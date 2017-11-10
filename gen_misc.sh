@@ -46,7 +46,7 @@ echo "user1.2048.new.5.bin------->0x001000"
 echo "blank_12k.bin-------------->0x1F8000"
 echo "blank.bin------------------>0x1FB000"
 echo "esp_init_data_default.bin-->0x1FC000"
-echo "blalk.bin------------------>0x1FE000"
+echo "blank.bin------------------>0x1FE000"
 echo -e "\033[00m"
 
 
