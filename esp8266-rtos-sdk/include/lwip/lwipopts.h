@@ -250,11 +250,7 @@
  * TCP_WND: The size of a TCP window.  This must be at least
  * (2 * TCP_MSS) for things to work well
  */
-#ifdef FOR_MTCP_CONNECTION
-#define TCP_WND                         (2 * TCP_MSS)
-#else
 //#define TCP_WND                         (*(volatile uint32*)0x600011F0)
-#endif
 
 /**
  * TCP_QUEUE_OOSEQ==1: TCP will queue segments that arrive out of order.
@@ -268,11 +264,7 @@
  *     LWIP_CALLBACK_API==1: The PCB callback function is called directly
  *         for the event. This is the default.
 */
-#ifdef FOR_MTCP_CONNECTION
-#define TCP_MSS                         1024
-#else
 #define TCP_MSS                         1460
-#endif
 
 /**
  * TCP_MAXRTX: Maximum number of retransmissions of data segments.
@@ -382,10 +374,6 @@
  */
 #define DEFAULT_ACCEPTMBOX_SIZE         6
 
-#ifdef FOR_BAOFENG
-#define DEFAULT_RAW_RECVMBOX_SIZE       6
-#endif
-
 /*
    ----------------------------------------------
    ---------- Sequential layer options ----------
@@ -429,9 +417,7 @@
 /**
  * SO_REUSE==1: Enable SO_REUSEADDR option.
  */
-#ifdef FOR_ALI
-#define SO_REUSE                        1
-#endif
+#define SO_REUSE                        0
 
 /*
    ----------------------------------------
@@ -463,11 +449,8 @@
 /**
  * LWIP_IPV6==1: Enable IPv6
  */
-#ifdef FOR_XIAOMI
-#define LWIP_IPV6                       0
-#else
-#define LWIP_IPV6                       1	
-#endif
+#define LWIP_IPV6                       1
+
 /*
    ---------------------------------------
    ---------- Hook options ---------------

@@ -211,8 +211,8 @@ INNET_RETRY:
     log_info("innet start");
     joylink_cfg_init(s_pBuffer);
     os_timer_disarm(&loop_timer);
-	os_timer_setfn(&loop_timer, joylink_config_loop_do, NULL); 
-	os_timer_arm(&loop_timer, 50, 0); //loop to do task
+    os_timer_setfn(&loop_timer, joylink_config_loop_do, NULL); 
+    os_timer_arm(&loop_timer, 50, 0); //loop to do task
     wifi_set_channel(1);
     wifi_promiscuous_enable(0);
     wifi_set_promiscuous_rx_cb(joylink_config_rx_callback);

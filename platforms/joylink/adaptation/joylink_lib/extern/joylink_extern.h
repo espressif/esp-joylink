@@ -86,6 +86,17 @@ E_JLRetCode_t
 joylink_dev_get_jlp_info(JLPInfo_t *jlp);
 
 /**
+ * brief: 
+ *
+ * @Param: out_modelcode
+ * @Param: out_max
+ *
+ * @Returns: 
+ */
+int
+joylink_dev_get_modelcode(char *out_modelcode, int32_t out_max);
+
+/**
 * server control rsp or upload, out_snap is json or script
 */
 int
@@ -147,6 +158,26 @@ joylink_dev_ota(JLOtaOrder_t *otaOrder);
 */
 void 
 joylink_dev_ota_status_upload(int status, int process, char *status_desc, uint8_t is_block);
+
+/**
+ * brief: 
+ *
+ * @Param: pidt
+ *
+ * @Returns: 
+ */
+E_JLRetCode_t
+joylink_dev_get_idt(jl2_d_idt_t *pidt);
+
+/**
+ * brief: 
+ *
+ * @Param: 
+ *
+ * @Returns: 
+ */
+int
+joylink_dev_get_random();
 
 int 
 joylink_dev_register_attr_cb(

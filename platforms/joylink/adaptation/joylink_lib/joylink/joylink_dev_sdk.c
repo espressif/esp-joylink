@@ -70,52 +70,80 @@ joylink_dev_get_ver()
     return _g_pdev->jlp.version;
 }
 
+extern int
+joylink_is_usr_timestamp_ok(char *usr, int timestamp);
+
+void 
+joylink_test()
+{
+    /*int t = time(NULL);*/
+    /*int t = 10;*/
+    int ttret;
+    static int index = 0; 
+    char buff[64] = {0};
+    
+    sprintf(buff, "192.168.8.%d", index);
+    ttret = joylink_is_usr_timestamp_ok(buff, index);
+    index++;
+    printf("----- user:%s\n", buff); 
+
+    if(ttret == 0){
+        printf("----- timestamp is invalid\n"); 
+    }else{
+        printf("----- timestamp is valid\n"); 
+    }
+}
+
 void 
 joylink_main_loop(void)
 { 
     int ret;
-	struct sockaddr_in sin;
+    struct sockaddr_in sin;
     bzero(&sin, sizeof(sin));
-	struct timeval  selectTimeOut;
-	static uint32_t serverTimer;
-	joylink_util_timer_reset(&serverTimer);
-	static int interval = 0;
-	sin.sin_addr.s_addr = htonl(INADDR_ANY);
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(_g_pdev->local_port);
-	_g_pdev->lan_socket = socket(AF_INET, SOCK_DGRAM, 0);
-	
-	if (_g_pdev->lan_socket < 0){
-		return;
-	}
-	
-	int broadcastEnable = 1;
-	if (setsockopt(_g_pdev->lan_socket, 
+    struct timeval  selectTimeOut;
+    static uint32_t serverTimer;
+    static int interval = 0;
+
+    joylink_util_timer_reset(&serverTimer);
+    
+    sin.sin_addr.s_addr = htonl(INADDR_ANY);
+    sin.sin_family = AF_INET;
+    sin.sin_port = htons(_g_pdev->local_port);
+    _g_pdev->lan_socket = socket(AF_INET, SOCK_DGRAM, 0);
+    
+    if (_g_pdev->lan_socket < 0){
+        return;
+    }
+    
+    int broadcastEnable = 1;
+    if (setsockopt(_g_pdev->lan_socket, 
                 SOL_SOCKET, SO_BROADCAST, 
                 (uint8_t *)&broadcastEnable, 
                 sizeof(broadcastEnable)) < 0){
-		log_error("SO_BROADCAST ERR");
+        log_error("SO_BROADCAST ERR");
     }
-	
-	if(0 > bind(_g_pdev->lan_socket, (SOCKADDR*)&sin, sizeof(SOCKADDR))){
-		perror("Bind lan socket error!");
+    
+    if(0 > bind(_g_pdev->lan_socket, (SOCKADDR*)&sin, sizeof(SOCKADDR))){
+        perror("Bind lan socket error!");
     }
-	while (1) {
+    while (1) {
+        /*joylink_test();*/
+        
         //if ((joylink_util_getsys_ms() & 0x7FFFFFFF) < interval) {
         //    printf("system time was reset!\n");
         //    joylink_util_timer_reset(&serverTimer);
         //}
-		if (joylink_util_is_time_out(&serverTimer, interval)) {
-			joylink_util_timer_reset(&serverTimer);
+        if (joylink_util_is_time_out(&serverTimer, interval)) {
+            joylink_util_timer_reset(&serverTimer);
             if(joylink_dev_is_net_ok() == E_RET_OK){    // check device if connected internet
                 interval = joylink_proc_server_st();
             }else{
                 interval = 1000 * 3; // delay 3s to wait connect AP
             }
-		}
-		fd_set  readfds;
-		FD_ZERO(&readfds);
-		FD_SET(_g_pdev->lan_socket, &readfds);
+        }
+        fd_set  readfds;
+        FD_ZERO(&readfds);
+        FD_SET(_g_pdev->lan_socket, &readfds);
         
         if (_g_pdev->server_socket != -1 
                && _g_pdev->server_st > 0){
@@ -128,44 +156,52 @@ joylink_main_loop(void)
 
         selectTimeOut.tv_usec = 0L;
         selectTimeOut.tv_sec = (long)1;
-		ret = select(maxFd + 1, &readfds, NULL, NULL, &selectTimeOut);
-		if (ret < 0) {
-			log_error("Select ERR: %s!", strerror(errno));
-			continue;
-		} else if (ret == 0) {
-			continue;
-		}
-		if (FD_ISSET(_g_pdev->lan_socket, &readfds)) {
+        ret = select(maxFd + 1, &readfds, NULL, NULL, &selectTimeOut);
+        //log_info("select ret:%d", ret);
+        if (ret < 0) {
+            log_error("Select ERR: %s!", strerror(errno));
+            continue;
+        } else if (ret == 0) {
+            continue;
+        }
+        if (FD_ISSET(_g_pdev->lan_socket, &readfds)) {
             log_debug("lan cmd down");
             joylink_proc_lan();
-		} else if ((_g_pdev->server_socket != -1) && 
+        } else if ((_g_pdev->server_socket != -1) && 
             (FD_ISSET(_g_pdev->server_socket, &readfds))) {
             log_debug("server cmd down");
             joylink_proc_server();
-		}
+        }
         log_debug("\n************\nHighWater:%d, free RAM:%d\n*************\n",\
              uxTaskGetStackHighWaterMark( NULL ), system_get_free_heap_size());
-	}
+    }
 }
 
 static void 
 joylink_dev_init()
 {
+    /**
+     *NOTE: If your model_code_flag is configed in cloud, 
+     *Please set _g_pdev->model_code_flag = 1. 
+     */
+    /*_g_pdev->model_code_flag = 1;*/
     joylink_dev_get_jlp_info(&_g_pdev->jlp);
-    log_debug("feedid:%s", _g_pdev->jlp.feedid);
-    log_debug("uuid:%s", _g_pdev->jlp.uuid);
-    log_debug("accesskey:%s", _g_pdev->jlp.accesskey);
-    log_debug("localkey:%s", _g_pdev->jlp.localkey);
+    joylink_dev_get_idt(&_g_pdev->idt);
+    log_debug("--->feedid:%s", _g_pdev->jlp.feedid);
+    log_debug("--->uuid:%s", _g_pdev->jlp.uuid);
+    log_debug("--->accesskey:%s", _g_pdev->jlp.accesskey);
+    log_debug("--->localkey:%s", _g_pdev->jlp.localkey);
 }
 
-void 
-joylink_main_start(void)
+int 
+joylink_main_start()
 {
     //extern void joylink_init_aes_table(void);
     //joylink_init_aes_table();
     joylink_ecc_contex_init();
     joylink_dev_init();
-	joylink_main_loop();
+    joylink_main_loop();
+    return 0;
 }
 
 #ifdef _TEST_
@@ -173,7 +209,7 @@ int
 main()
 {
     joylink_main_start();
-	return 0;
+    return 0;
 }
 #else
 

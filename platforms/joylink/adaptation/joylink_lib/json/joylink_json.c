@@ -41,6 +41,14 @@ joylink_parse_scan(DevScan_t *scan, const char * pMsg)
     if(NULL != pSub){
         scan->type = pSub->valueint;
     }
+    cJSON * idt = cJSON_GetObjectItem(pJson, "idt");
+    if(NULL != idt){
+        cJSON * prand = cJSON_GetObjectItem(idt, "app_rand");
+        if(NULL != pSub){
+            strcpy(scan->app_rand, prand->valuestring);
+        }
+    }
+
     ret = E_RET_OK;
 
     cJSON_Delete(pJson);
@@ -78,6 +86,21 @@ joylink_package_scan(const char *retMsg, const int retCode,
     
     cJSON_AddNumberToObject(root, "devtype", dv->jlp.devtype); 
     
+	    {
+        cJSON *idt;
+        idt = cJSON_CreateObject();
+        if(NULL == idt){
+            goto RET;
+        }
+        cJSON_AddNumberToObject(idt, "t", dv->idt.type);
+        cJSON_AddStringToObject(idt, "d_p", dv->idt.pub_key);
+        cJSON_AddStringToObject(idt, "d_s", dv->idt.sig);
+        cJSON_AddStringToObject(idt, "f_p", dv->idt.f_pub_key);
+        cJSON_AddStringToObject(idt, "f_s", dv->idt.f_sig);
+        cJSON_AddStringToObject(idt, "d_r", dv->idt.rand);
+        cJSON_AddStringToObject(idt, "d_as", dv->idt.a_rand_sig);
+        cJSON_AddItemToObject(root,"d_idt", idt);
+    }
     
     
     JLDevInfo_t *sdev = NULL;
@@ -176,6 +199,14 @@ joylink_parse_lan_write_key(DevEnable_t *de, const char * pMsg)
         }
     }
 
+    cJSON * idt = cJSON_GetObjectItem(pData, "c_idt");
+    if(NULL != idt){
+         cJSON * pSub = cJSON_GetObjectItem(idt, "cloud_sig");
+        if(NULL != pSub){
+            strcpy(de->cloud_sig, pSub->valuestring);
+        }                                                                                                         
+    }
+	
     cJSON_Delete(pJson);
     ret = 0;
     return ret;
@@ -361,4 +392,45 @@ joylink_package_ota_upload(JLOtaUpload_t *otaUpload)
 
 RET:
     return out;
+}
+
+char ** 
+joylink_parse_ids(const char * pMsg, int32_t *num)
+{
+    char **ret = NULL;
+    if(NULL == pMsg || NULL == num){
+        printf("--->:ERROR: pMsg is NULL\n");
+        return ret;
+    }
+
+    cJSON * pJson = cJSON_Parse(pMsg);
+    int iSize = 0;
+    int iCnt = 0;
+    int sum = 0;
+
+    if(NULL == pJson){
+        printf("--->:cJSON_Parse is error:%s\n", pMsg);
+        return ret;
+    }
+    if(NULL != pJson){
+        iSize = cJSON_GetArraySize(pJson);
+        ret = (char**)malloc(sizeof(char*) * iSize);
+        iCnt = 0;
+
+        for(iCnt = 0; iCnt < iSize; iCnt++){
+            cJSON *pSub = cJSON_GetArrayItem(pJson, iCnt);
+            if(NULL == pSub){
+                continue;
+            }
+            ret[iCnt] = (char *)malloc(32);
+            if(NULL != ret[iCnt]){
+                strcpy(ret[iCnt], pSub->valuestring);
+                sum ++;
+            }
+        }
+    }
+    
+    *num = sum;
+    cJSON_Delete(pJson);
+    return ret;
 }

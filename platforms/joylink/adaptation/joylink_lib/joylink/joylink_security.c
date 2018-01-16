@@ -2,9 +2,9 @@
 #include "joylink_packets.h"
 #include "joylink_crypt.h"
 #ifdef ESP_8266
-#include "uECC.h"
-#include "aes.h"
-#include "crc.h"
+#include "joylink_auth_uECC.h"
+#include "joylink_aes.h"
+#include "joylink_auth_crc.h"
 #else
 #include "auth/uECC.h"
 #include "auth/aes.h"
@@ -357,6 +357,36 @@ joylink_dencypt_server_req(
 
 	return ret;
 }
+
+int 
+joylink_is_cmd_enctype_match(int cmd, int enctype)
+{
+    switch (cmd){
+        case PT_SCAN:
+            if(enctype == ET_NOTHING){
+                return 1;
+            }
+            break;
+        case PT_WRITE_ACCESSKEY:
+            if(enctype == ET_ECDH){
+                return 1;
+            }
+            break;
+        case PT_JSONCONTROL:
+        case PT_SCRIPTCONTROL:
+        case PT_SUB_AUTH:
+        case PT_SUB_LAN_JSON:
+        case PT_SUB_LAN_SCRIPT:
+        case PT_SUB_ADD:
+            if(enctype == ET_ACCESSKEYAES){
+                return 1;
+            }
+            break;
+    }
+
+    return 0;
+}
+
 //dencypt recv packet from JD server
 int 
 joylink_dencypt_lan_req(JLPacketParam_t *pParam, const uint8_t *pIn, int length, uint8_t* pOut, int maxlen)
@@ -374,6 +404,10 @@ joylink_dencypt_lan_req(JLPacketParam_t *pParam, const uint8_t *pIn, int length,
 			return 0;
         }
 
+        if(!joylink_is_cmd_enctype_match(pPack->type, pPack->enctype)){
+            return 0;
+        }
+		
 		pParam->version = pPack->version;
 		switch (pPack->enctype)
 		{

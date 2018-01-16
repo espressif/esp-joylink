@@ -273,38 +273,44 @@ static void initialise_led(void)
 
 int joylink_start(void)
 {
-    joylink_info_t product_info = {
-        .innet_aes_key       = JOYLINK_AES_KEY,
-        .jlp.version         = JOYLINK_VERSION,
-        .jlp.accesskey       = JOYLINK_ACCESSKEY,
-        .jlp.localkey        = JOYLINK_LOCAL_KEY,
-        .jlp.feedid          = JOYLINK_FEEDID,
-        .jlp.devtype         = JOYLINK_DEVTYPE,
-        .jlp.joylink_server  = JOYLINK_SERVER,
-        .jlp.server_port     = JOYLINK_SERVER_PORT,
-        .jlp.CID             = JOYLINK_CID,
-        .jlp.firmwareVersion = JOYLINK_FW_VERSION,
-        .jlp.modelCode       = JOYLINK_MODEL_CODE,
-        .jlp.uuid            = JOYLINK_UUID,
-        .jlp.lancon          = JOYLINK_LAN_CTRL,
-        .jlp.cmd_tran_type   = JOYLINK_CMD_TYPE
-    };
+    joylink_info_t *product_info = (joylink_info_t*)malloc(sizeof(joylink_info_t));
+    
+    if (!product_info) {
+        JOYLINK_LOGE("malloc fail\n");
+    }
+    
+    memset(product_info,0x0,sizeof(joylink_info_t));
+    
+    product_info->innet_aes_key = JOYLINK_AES_KEY;
+    product_info->device_info.local_port = JOYLINK_LOCAL_PORT;
+    product_info->device_info.jlp.version = JOYLINK_VERSION;
+    product_info->device_info.jlp.devtype = JOYLINK_DEVTYPE;
+    strncpy(product_info->device_info.jlp.joylink_server, JOYLINK_SERVER,sizeof(product_info->device_info.jlp.joylink_server));
+    product_info->device_info.jlp.server_port = JOYLINK_SERVER_PORT;
+    strncpy(product_info->device_info.jlp.firmwareVersion, JOYLINK_FW_VERSION, sizeof(product_info->device_info.jlp.firmwareVersion));
+    strncpy(product_info->device_info.jlp.modelCode, JOYLINK_MODEL_CODE, sizeof(product_info->device_info.jlp.modelCode));
+    strncpy(product_info->device_info.jlp.uuid, JOYLINK_UUID, sizeof(product_info->device_info.jlp.uuid));
+    product_info->device_info.jlp.lancon = JOYLINK_LAN_CTRL;
+    product_info->device_info.jlp.cmd_tran_type = JOYLINK_CMD_TYPE;
+    strncpy(product_info->device_info.idt.cloud_pub_key, CLOUD_PUB_KEY, sizeof(product_info->device_info.idt.cloud_pub_key));
+        
     uint8 macaddr[6];
     char mac_str[18] = {0};
     wifi_get_macaddr(0, macaddr);
-    snprintf(product_info.jlp.mac, sizeof(product_info.jlp.mac), MACSTR, MAC2STR(macaddr));
+    snprintf(product_info->device_info.jlp.mac, sizeof(product_info->device_info.jlp.mac), MACSTR, MAC2STR(macaddr));
 
     JOYLINK_LOGI("*********************************");
     JOYLINK_LOGI("*         JOYLINK INFO          *");
     JOYLINK_LOGI("*********************************");
-    JOYLINK_LOGI("UUID     : %s", product_info.jlp.uuid);
-    JOYLINK_LOGI("mac      : %s", product_info.jlp.mac);
-    JOYLINK_LOGI("type     : %d", product_info.jlp.devtype);
-    JOYLINK_LOGI("version  : %d", product_info.jlp.version);
-    JOYLINK_LOGI("fw_ver   : %s", product_info.jlp.firmwareVersion);
-    JOYLINK_LOGI("model    : %s", product_info.jlp.modelCode);
-    JOYLINK_LOGI("tran type: %d", product_info.jlp.cmd_tran_type);
-    JOYLINK_LOGI("innet key: %s", product_info.innet_aes_key);
+    JOYLINK_LOGI("UUID     : %s", product_info->device_info.jlp.uuid);
+    JOYLINK_LOGI("mac      : %s", product_info->device_info.jlp.mac);
+    JOYLINK_LOGI("type     : %d", product_info->device_info.jlp.devtype);
+    JOYLINK_LOGI("version  : %d", product_info->device_info.jlp.version);
+    JOYLINK_LOGI("fw_ver   : %s", product_info->device_info.jlp.firmwareVersion);
+    JOYLINK_LOGI("model    : %s", product_info->device_info.jlp.modelCode);
+    JOYLINK_LOGI("tran type: %d", product_info->device_info.jlp.cmd_tran_type);
+    JOYLINK_LOGI("innet key: %s", product_info->innet_aes_key);
+    JOYLINK_LOGI("public key: %s", product_info->device_info.idt.cloud_pub_key);
     JOYLINK_LOGI("sys run  : %s", system_upgrade_userbin_check() ? "user2" : "user1");
     JOYLINK_LOGI("*********************************");
 
@@ -312,7 +318,7 @@ int joylink_start(void)
     initialise_key();
     initialise_led();
     esp_info_init();
-    esp_joylink_init(&product_info);
+    esp_joylink_init(product_info);
     esp_joylink_set_version(JOYLINK_VERSION);
 
     if (xSemWriteInfo == NULL) {
@@ -327,6 +333,10 @@ int joylink_start(void)
     xTaskCreate(read_task_test, "read_task_test", 256, NULL, 5, NULL);
     xTaskCreate(write_task_test, "write_task_test", 256, NULL, 4, NULL);
 
+    if (!product_info) {
+        free(product_info);
+    }
+    
     return E_RET_OK;
 }
 

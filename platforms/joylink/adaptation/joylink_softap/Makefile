@@ -12,11 +12,7 @@
 #     a generated lib/image xxx.a ()
 #
 ifndef PDIR
-UP_EXTRACT_DIR = ..
 GEN_LIBS = libjoylink_softap.a
-COMPONENTS_libjoylink_softap = auth/libsoftap_auth.a\
-                               softap/libsoftap.a
-					   
 endif
 
 
@@ -43,8 +39,6 @@ endif
 
 INCLUDES := $(INCLUDES) -I $(PDIR)include
 INCLUDES += -I ./
-INCLUDES += -I $(PDIR)auth
-INCLUDES += -I $(PDIR)softap
 PDIR := ../$(PDIR)
 sinclude $(PDIR)Makefile
 

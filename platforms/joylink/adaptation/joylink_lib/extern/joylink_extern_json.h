@@ -64,6 +64,16 @@ packageWIFIInfo(const WIFIInfo_t *wc,
         char * out_buff, 
         int g24);
 
+/**
+ * brief: 
+ *
+ * @Param: retCode
+ * @Param: pCtrl
+ *
+ * @Returns: 
+ */
+char * 
+joylink_dev_modelcode_info(const int retCode);
 
 #ifdef __cplusplus
 }

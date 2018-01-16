@@ -17,7 +17,7 @@
 #include "joylink_extern.h"
 #include "joylink_json.h"
 #include "joylink_extern_json.h"
-#include "crc.h"
+#include "joylink_auth_crc.h"
 #include "joylink_log.h"
 #include "esp_joylink.h"
 #include "esp_info_store.h"
@@ -25,6 +25,13 @@
 extern void joylink_dev_set_ver(short ver);
 extern short joylink_dev_get_ver();
 extern void joylink_wait_station_got_ip(void);
+unsigned long os_random(void);
+
+int
+joylink_dev_get_random()
+{
+    return os_random();
+}
 
 E_JLRetCode_t
 joylink_dev_is_net_ok()
@@ -41,16 +48,16 @@ joylink_dev_set_connect_st(int st)
     if (st == JL_SERVER_ST_WORK) {
 
         if (server_st == 0) {
-			server_st = 1;
-    		joylink_event_send(JOYLINK_EVENT_CLOUD_CONNECTED, NULL);
-		}
+            server_st = 1;
+            joylink_event_send(JOYLINK_EVENT_CLOUD_CONNECTED, NULL);
+        }
     } else {
 
         if (server_st == 1) {
-			server_st = 0;
-			joylink_event_send(JOYLINK_EVENT_CLOUD_DISCONNECTED, NULL);
-    	}
-	}
+            server_st = 0;
+            joylink_event_send(JOYLINK_EVENT_CLOUD_DISCONNECTED, NULL);
+        }
+    }
 
     return E_RET_OK;
 }
@@ -71,6 +78,14 @@ joylink_dev_set_attr_jlp(JLPInfo_t *jlp)
 }
 
 E_JLRetCode_t
+joylink_dev_get_idt(jl2_d_idt_t *pidt)
+{
+    JL_PARAM_CHECK(!pidt);
+
+    return E_RET_OK;
+}
+
+E_JLRetCode_t
 joylink_dev_get_jlp_info(JLPInfo_t *jlp)
 {
     JL_PARAM_CHECK(!jlp);
@@ -85,6 +100,37 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
     
     memcpy(jlp, &jlp_tmp, sizeof(JLPInfo_t));
     return E_RET_OK;
+}
+
+int
+joylink_dev_get_modelcode(char *out_modelcode, int32_t out_max)
+{
+    if(NULL == out_modelcode || out_max < 0){
+        return 0;
+    }
+
+    int len = 0;
+    
+    /*
+    LightCtrl_t *pCtrl = &(_g_pLightMgr->lightCtrl);
+    
+    char *packet_data =  joylink_dev_modelcode_info(0, pCtrl);
+    if(NULL !=  packet_data){
+        len = strlen(packet_data);
+        printf("------>%s:len:%d\n", packet_data, len);
+        if(len < out_max){
+            memcpy(out_modelcode, packet_data, len); 
+        }else{
+            len = 0;
+        }
+    }
+
+    if(NULL !=  packet_data){
+        free(packet_data);
+    }
+    */
+    
+    return len;
 }
 
 int
@@ -168,9 +214,9 @@ joylink_dev_get_json_snap_shot(char *out_snap, int32_t out_max, int code, char *
         goto ERR;
     }
 
-	int len = joylink_get_dev_json_status(out_snap, out_max);
+    int len = joylink_get_dev_json_status(out_snap, out_max);
 
-	if (len <= 0) {
+    if (len <= 0) {
         goto ERR;
     }
 
@@ -178,7 +224,7 @@ joylink_dev_get_json_snap_shot(char *out_snap, int32_t out_max, int code, char *
     return len;
 
 ERR:
-	if (data) {
+    if (data) {
         sprintf(out_snap, "{\"code\":1, \"feedid\":\"%s\", \"msg\":\"code err or ctrl timeout\"}", data);
     } else {
         sprintf(out_snap, "{\"code\":1, \"msg\":\"code err or ctrl timeout\"}");
@@ -219,7 +265,7 @@ joylink_dev_lan_json_ctrl(const char *json_cmd)
         log_error("other cmd type");
     }
     
-	log_debug("json ctrl:%s", json_cmd);
+    log_debug("json ctrl:%s", json_cmd);
     return ret;
 }
 

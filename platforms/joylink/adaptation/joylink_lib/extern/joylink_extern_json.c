@@ -472,6 +472,37 @@ RET:
     return ret;
 }
 
+char * 
+joylink_dev_modelcode_info(const int retCode)
+{
+    cJSON *root, *arrary;
+    char *out  = NULL; 
+
+    root = cJSON_CreateObject();
+    if(NULL == root){
+        goto RET;
+    }
+    arrary = cJSON_CreateArray();
+    if(NULL == arrary){
+        cJSON_Delete(root);
+        goto RET;
+    }
+    cJSON_AddItemToObject(root, "model_codes", arrary);
+    
+    char i2str[32];
+    bzero(i2str, sizeof(i2str));
+    cJSON *element = cJSON_CreateObject();
+    cJSON_AddItemToArray(arrary, element);
+    cJSON_AddStringToObject(element, "feedid", "247828880060773075");
+    //sprintf(i2str, "%d", pCtrl->para_value);
+    cJSON_AddStringToObject(element, "model_code", "12345678123456781234567812345678");
+
+    out=cJSON_Print(root);  
+    cJSON_Delete(root); 
+RET:
+    return out;
+}
+
 int 
 jl_parse_jlp(JLPInfo_t *jlp, char * pMsg)
 {

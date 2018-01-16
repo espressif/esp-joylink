@@ -479,9 +479,6 @@ tcpip_init(tcpip_init_done_fn initfunc, void *arg)
 //	os_printf("ApiMsgMutex created\n");
 
   xLwipTaskHandle = sys_thread_new(TCPIP_THREAD_NAME, tcpip_thread, NULL, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO);
-  os_printf("tcpip_task_hdl : %x, prio:%d,stack:%d\n",
-		 xLwipTaskHandle,TCPIP_THREAD_PRIO,TCPIP_THREAD_STACKSIZE);
-
 }
 
 /**
