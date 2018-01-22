@@ -2,7 +2,7 @@
 ## 1. 概述
 ESP8266 平台实现了京东微联 Joylink2.0 协议。用户可以参考 Espressif 提供的设备端 Demo 进行二次开发，快速接入京东微联云平台。
 
-Demo 参考京东官方 [Joylink2.0 SDK](https://storage.jd.com/testsmartcloud/joylink_dev_sdk.zip)，添加了 WiFi 相关、OTA、Flash 存储、button 等适配层，用户只需要关心少部分 API，如初始化、数据收发、事件回调等，加快了用户的二次开发速度。适配层具有一定的通用性且开源，用户可根据产品需求自行修改。
+Demo 参考京东官方 [Joylink2.0 SDK](https://smartdev.jd.com/docCenterDownload/list/2)，添加了 WiFi 相关、OTA、Flash 存储、button 等适配层，用户只需要关心少部分 API，如初始化、数据收发、事件回调等，加快了用户的二次开发速度。适配层具有一定的通用性且开源，用户可根据产品需求自行修改。
 Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发者中心上传空实现的 lua 脚本： `only_trans.lua`。
 
 本文档章节介绍：
@@ -20,7 +20,7 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 * 硬件准备  
   * **开发板**：ESP8266 开发板（[ESP-LAUNCHER](http://espressif.com/zh-hans/company/contact/buy-a-sample)）
   * **路由器**：使用 2.4GHz 网络，可以连接外网
-  * **手机**：安装[京东微联 APP](http://devsmart.jd.com/app)
+  * **手机**：安装[京东微联沙箱 APP](https://smartdev.jd.com/docCenterDownload/list/2)
 
 * 开发板介绍
 
