@@ -3,8 +3,8 @@
 #include "joylink_crypt.h"
 #include "joylink_utils.h"
 #ifdef ESP_8266
-#include "uECC.h"
-#include "aes.h"
+#include "joylink_auth_uECC.h"
+#include "joylink_aes.h"
 #else
 #include "auth/uECC.h"
 #include "auth/aes.h"

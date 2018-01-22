@@ -6,9 +6,9 @@ extern "C"{
 #endif /* __cplusplus */
 
 #ifdef ESP_8266
-#include "uECC.h"
+#include "joylink_auth_uECC.h"
 #else
-#include "uECC.h"
+#include "joylink_auth_uECC.h"
 #endif
 #include "joylink_dev.h"
 #include "joylink_log.h"
@@ -32,6 +32,7 @@ extern "C"{
 #define JL_MAX_URL_LEN             	(100)
 #define JL_MAX_MSG_LEN 				(1024)
 #define JL_MAX_STATUS_DESC_LEN      (100)
+#define JL_APP_RANDOM_LEN           (65)
 
 #define JL_SERVER_ST_INIT           (0)
 #define JL_SERVER_ST_AUTH           (1)
@@ -93,6 +94,8 @@ typedef enum {
 	PT_BEAT =           10,
 	PT_SERVERCONTROL =  11,
 	PT_UPLOAD =         12,
+	PT_TIME_TASK =      13,
+	PT_MODEL_CODE =     17,
 
 	PT_SUB_AUTH =       102,
 	PT_SUB_LAN_JSON =   103,
@@ -103,6 +106,33 @@ typedef enum {
 	PT_SUB_UPLOAD =     112,
 	PT_SUB_UNBIND =     113
 }E_PacketType;
+
+typedef enum {
+    BIZ_CODE_TIME_TASK_CHECK_REQ                =1090,
+    BIZ_CODE_TIME_TASK_CHECK_RSP                =190,
+    BIZ_CODE_TIME_TASK_ADD_REQ                  =1091,
+    BIZ_CODE_TIME_TASK_ADD_RSP                  =191,
+    BIZ_CODE_TIME_TASK_UPD_REQ                  =1092,
+    BIZ_CODE_TIME_TASK_UPD_RSP                  =192,
+    BIZ_CODE_TIME_TASK_DEL_REQ                  =1093,
+    BIZ_CODE_TIME_TASK_DEL_RSP                  =193,
+    BIZ_CODE_TIME_TASK_GET_REQ                  =1094,
+    BIZ_CODE_TIME_TASK_GET_RSP                  =194,
+    BIZ_CODE_TIME_TASK_STOP_REQ                 =1095,
+    BIZ_CODE_TIME_TASK_STOP_RSP                 =195,
+    BIZ_CODE_TIME_TASK_RESTART_REQ              =1096,
+    BIZ_CODE_TIME_TASK_RESTART_RSP              =196,
+    BIZ_CODE_TIME_TASK_REPORT_RESULT_REQ        =1097,
+    BIZ_CODE_TIME_TASK_REPORT_RESULT_RSP        =197,
+    BIZ_CODE_TIME_TASK_REPORT_NEW_TASK_REQ      =1098,
+    BIZ_CODE_TIME_TASK_REPORT_NEW_TASK_RSP      =198,
+    BIZ_CODE_TIME_TASK_REPORT_DEL_TASK_REQ      =1099,
+    BIZ_CODE_TIME_TASK_REPORT_DEL_TASK_RSP      =199,
+    BIZ_CODE_TIME_TASK_REPORT_UPDATE_TASK_REQ   =1100,
+    BIZ_CODE_TIME_TASK_REPORT_UPDATE_TASK_RSP   =200,
+    BIZ_CODE_TIME_TASK_REPORT_SNAPSHOT_TASK_REQ =1101,
+    BIZ_CODE_TIME_TASK_REPORT_SNAPSHOT_TASK_RSP =201 
+}E_TIMETASK_BIZCODE;
 
 typedef enum {
 	ET_NOTHING = 0,
@@ -170,6 +200,27 @@ typedef struct {
     unsigned int crc32;
 }JLPInfo_t;
 
+#define IDT_D_PK_LEN            (34)
+#define IDT_C_PK_LEN            (67)
+#define IDT_D_SIG_LEN           (65)
+#define IDT_D_RNAD_LEN          (33)
+#define IDT_F_SIG_LEN           (65)
+#define IDT_F_PK_LEN            (34)
+#define IDT_A_RNAD_SIG_LEN      (33)
+#define IDT_C_SIG_LEN           (65)
+
+typedef struct {
+    int      type;
+	char	 cloud_pub_key[IDT_C_PK_LEN];
+	char	 pub_key[IDT_D_PK_LEN];
+	char	 sig[IDT_D_SIG_LEN];
+	char	 rand[IDT_D_RNAD_LEN];
+	char	 f_sig[IDT_F_SIG_LEN];
+	char	 f_pub_key[IDT_F_PK_LEN];
+	char     a_rand_sig[IDT_A_RNAD_SIG_LEN];		
+	char     cloud_sig[IDT_C_SIG_LEN];		
+}jl2_d_idt_t;
+
 typedef struct {
     JLPInfo_t jlp;
     WIFICtrl_t wifi;
@@ -188,6 +239,10 @@ typedef struct {
      */
     char *send_p;
     int payload_total;
+	jl2_d_idt_t idt;
+    int cloud_timestamp;
+
+    int model_code_flag;
 }JLDevice_t;
 
 typedef enum _dev_type{
@@ -219,6 +274,7 @@ typedef struct __dev_enable{
     char joylink_server[JL_MAX_SERVER_NAME_LEN];
     int server_port;
     char opt[JL_MAX_SERVER_NAME_LEN];
+    char cloud_sig[64 * 2 + 1];
 }DevEnable_t;
 
 typedef enum __scan_type{
@@ -237,6 +293,7 @@ typedef enum _protocol_rec_st{
 typedef struct __lan_scan{
     char uuid[JL_MAX_UUID_LEN];
     E_ScanType_t type;
+    char app_rand[JL_APP_RANDOM_LEN];
 }DevScan_t;
 
 typedef struct {

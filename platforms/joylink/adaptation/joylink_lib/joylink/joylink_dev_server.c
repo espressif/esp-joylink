@@ -28,6 +28,7 @@
 #include "joylink_json.h"
 #include "joylink_extern.h"
 #include "joylink_sub_dev.h"
+#include "joylink_dev_timer.h"
 #include "joylink_config.h"
 
 #define GET_HOST_BY_NAME
@@ -35,28 +36,27 @@
 #define JOYLINK_TASK_STACK_SNTP    (256+64) //remain 160
 #define JOYLINK_SNTP_TASK_PRIORITY (2)
 
-uint8_t g_recBuffer[JL_MAX_PACKET_LEN * 2]; //used to public memory
-uint8_t g_recPainText[JL_MAX_PACKET_LEN * 2 + 16];
+extern int _g_model_code_flag;
 
 static void 
 joylink_server_st_time_out_check()
 {
     log_debug("server st :%d", _g_pdev->server_st);
-	if(_g_pdev->hb_lost_count > JL_MAX_SERVER_HB_LOST){
-		if (_g_pdev->server_st == JL_SERVER_ST_WORK){
-			log_info("Server HB Lost, Retry Auth!");
-			_g_pdev->hb_lost_count = 0;
-			_g_pdev->server_st = JL_SERVER_ST_AUTH;
-		}
+    if(_g_pdev->hb_lost_count > JL_MAX_SERVER_HB_LOST){
+        if (_g_pdev->server_st == JL_SERVER_ST_WORK){
+            log_info("Server HB Lost, Retry Auth!");
+            _g_pdev->hb_lost_count = 0;
+            _g_pdev->server_st = JL_SERVER_ST_AUTH;
+        }
 
-		if(_g_pdev->server_st == JL_SERVER_ST_AUTH){
-			log_info("Auth ERR, Reconnect!");
-			_g_pdev->hb_lost_count = 0;
-			_g_pdev->server_st = JL_SERVER_ST_INIT;
-			close(_g_pdev->server_socket);
-			_g_pdev->server_socket = -1;
-		}
-	}
+        if(_g_pdev->server_st == JL_SERVER_ST_AUTH){
+            log_info("Auth ERR, Reconnect!");
+            _g_pdev->hb_lost_count = 0;
+            _g_pdev->server_st = JL_SERVER_ST_INIT;
+            close(_g_pdev->server_socket);
+            _g_pdev->server_socket = -1;
+        }
+    }
 }
 
 #ifdef START_SNTP_SERVER
@@ -64,16 +64,16 @@ void sys_start_sntp_server(void *para)
 {
     int cnt = 0, ret;
     xSemaphoreHandle *xsem_sntp = (xSemaphoreHandle *)para;
-    ip_addr_t	*addr	=	(ip_addr_t	*)os_zalloc(sizeof(ip_addr_t));
-    sntp_setservername(0,JOYLINK_SNTP_SERVER1_NAME);	//"cn.ntp.org.cn"	set	server	0	by	domain	name
-    sntp_setservername(1,JOYLINK_SNTP_SERVER2_NAME);	//	set	server	1	by	domain	name
+    ip_addr_t   *addr   =   (ip_addr_t  *)os_zalloc(sizeof(ip_addr_t));
+    sntp_setservername(0,JOYLINK_SNTP_SERVER1_NAME);    //"cn.ntp.org.cn"   set server  0   by  domain  name
+    sntp_setservername(1,JOYLINK_SNTP_SERVER2_NAME);    //  set server  1   by  domain  name
     ipaddr_aton("210.72.145.44", addr);
-    sntp_setserver(2, addr);	//	set	server	2	by	IP	address
+    sntp_setserver(2, addr);    //  set server  2   by  IP  address
     sntp_init();
     ret = sntp_enabled();
     os_free(addr);
     while(1) {
-        uint32	current_stamp;
+        uint32  current_stamp;
         current_stamp = sntp_get_current_timestamp();
         log_debug("HighWater %d", uxTaskGetStackHighWaterMark(NULL));
         if (current_stamp == 0) {
@@ -113,11 +113,11 @@ joylink_server_st_init()
         return ;
     }
     saServer.sin_addr = *((struct in_addr *)host->h_addr);
-	log_debug("server: %s:%d\n",_g_pdev->jlp.joylink_server, _g_pdev->jlp.server_port);
-	log_debug("gethostbyname: %s:%d\n",inet_ntoa(saServer.sin_addr), saServer.sin_port);	
+    log_debug("server: %s:%d\n",_g_pdev->jlp.joylink_server, _g_pdev->jlp.server_port);
+    log_debug("gethostbyname: %s:%d\n",inet_ntoa(saServer.sin_addr), saServer.sin_port);    
 #else
-   	saServer.sin_addr.s_addr = inet_addr(_g_pdev->jlp.joylink_server);
- 	log_debug("NO GET_HOST_BY_NAME");
+    saServer.sin_addr.s_addr = inet_addr(_g_pdev->jlp.joylink_server);
+    log_debug("NO GET_HOST_BY_NAME");
 #endif
 
 #ifdef START_SNTP_SERVER
@@ -181,9 +181,9 @@ joylink_server_st_work()
 int
 joylink_proc_server_st()
 {
-	int interval = 5000;
+    int interval = 5000;
 
-	if ((!strlen(_g_pdev->jlp.feedid)) || (!strlen(_g_pdev->jlp.joylink_server))) {
+    if ((!strlen(_g_pdev->jlp.feedid)) || (!strlen(_g_pdev->jlp.joylink_server))) {
         log_debug("server isn't readly");
         return interval;
     }
@@ -192,7 +192,7 @@ joylink_proc_server_st()
 
     joylink_server_st_time_out_check();
 
-	switch (_g_pdev->server_st){
+    switch (_g_pdev->server_st){
         case JL_SERVER_ST_INIT:
             joylink_server_st_init();
             interval = 2000;
@@ -219,7 +219,42 @@ joylink_proc_server_st()
 
     joylink_dev_set_connect_st(_g_pdev->server_st);
 
-	return interval;
+    return interval;
+}
+
+int
+joylink_server_upload_modelcode_req()
+{
+    int ret = -1;
+    int time_v;
+    int len;
+    char data[JL_MAX_PACKET_LEN] = {0};
+
+    ret = joylink_dev_get_modelcode(data + 4, JL_MAX_PACKET_LEN - 4);
+
+    if(ret > 0){
+        time_v = time(NULL);
+        memcpy(data, &time_v, 4);
+
+        len = joylink_encypt_server_rsp(
+                _g_pdev->send_buff,
+                JL_MAX_PACKET_LEN, PT_MODEL_CODE,
+                _g_pdev->jlp.sessionKey, 
+                (uint8_t*)&data,
+                ret + 4);
+
+        if(len > 0 && len < JL_MAX_PACKET_LEN){
+            ret = send(_g_pdev->server_socket, _g_pdev->send_buff, len, 0);
+            if(ret < 0){
+                log_error("send error ret:%d", ret);
+            }
+            log_debug("send to server len:%d:ret:%d\n", len, ret);
+        }else{
+            log_error("send data too big or packe error:ret:%d", ret);
+        }
+    }
+
+    return ret;
 }
 
 int
@@ -228,10 +263,9 @@ joylink_server_upload_req()
     int ret = -1;
     int time_v;
     int len;
-//    char data[JL_MAX_PACKET_LEN];
-    /* Reuse memory */
-    char *data = (char *)g_recBuffer+JL_MAX_PACKET_LEN;
-	bzero(data,JL_MAX_PACKET_LEN);
+    //char data[JL_MAX_PACKET_LEN];
+    char *data = (char *)malloc(JL_MAX_PACKET_LEN);
+    bzero(data,JL_MAX_PACKET_LEN);
 
     ret = joylink_dev_get_snap_shot(data + 4, JL_MAX_PACKET_LEN - 4, 1);
 
@@ -258,6 +292,11 @@ joylink_server_upload_req()
         }
     }
 
+    if(NULL != data) {
+        log_debug("free heap：%p", data);
+        free(data);
+    }
+
     return ret;
 }
 
@@ -267,16 +306,15 @@ joylink_server_subdev_upload_req()
     int ret = -1;
     int time_v;
     int len;
-//    char data[JL_MAX_PACKET_LEN];
-    /* reuse memory*/
-    char *data = (char *)g_recBuffer+JL_MAX_PACKET_LEN;
+    //char data[JL_MAX_PACKET_LEN];
+    char *data = (char *)malloc(JL_MAX_PACKET_LEN);
     int i;
     JLDevInfo_t *alldevinfo = NULL;
     int count;
     int scan_type = 0;
     char *snap_shot = NULL;
 
-	bzero(data,JL_MAX_PACKET_LEN);
+    bzero(data,JL_MAX_PACKET_LEN);
     alldevinfo = joylink_dev_sub_devs_get(&count, scan_type);
 
     for(i = 0; i < count; i++){
@@ -318,6 +356,10 @@ joylink_server_subdev_upload_req()
     if(NULL == alldevinfo){
         free(alldevinfo);
     }
+    
+    if(NULL != data) {
+        free(data);
+    }
 
     return ret;
 }
@@ -332,7 +374,7 @@ joylink_proc_server_auth(uint8_t* recPainText)
     log_debug("OK===>Rand=%u,Time:%u, sessionKey:!", 
             p->random_unm, p->timestamp);
 
-	log_info("AUTH OK");
+    log_info("AUTH OK");
 
     if(E_JLDEV_TYPE_GW != _g_pdev->jlp.devtype){
         joylink_server_upload_req();
@@ -346,8 +388,14 @@ joylink_proc_server_hb(uint8_t* recPainText)
     _g_pdev->server_st = JL_SERVER_ST_WORK;
     JLHearBeatRst_t* p = (JLHearBeatRst_t*)recPainText;
     _g_pdev->hb_lost_count = 0;
+    
+    _g_pdev->cloud_timestamp = p->timestamp;
     log_info("HEAT BEAT OK===>Code=%u,Time:%u!",
             p->code, p->timestamp);
+
+    if(_g_pdev->model_code_flag == 1) {
+        joylink_server_upload_modelcode_req();
+    }
 
     if(E_JLDEV_TYPE_GW != _g_pdev->jlp.devtype){
         joylink_server_upload_req();
@@ -361,18 +409,17 @@ joylink_proc_server_ctrl(uint8_t* recPainText)
 {
     int ret = -1;
     int len;
-//    char data[JL_MAX_PACKET_LEN];
-    /* reuse memory*/
-    char *data = (char *)g_recBuffer;
+    //char data[JL_MAX_PACKET_LEN];
+    char *data = (char *)malloc(JL_MAX_PACKET_LEN);
     JLContrl_t ctr;
     bzero(&ctr, sizeof(ctr));
-	bzero(data,JL_MAX_PACKET_LEN);
+    bzero(data,JL_MAX_PACKET_LEN);
 
     log_debug("Control from server:%s: len:%d",
             recPainText + 12, (int)strlen((char*)(recPainText + 12)));
 
     if(-1 == joylink_dev_script_ctrl((const char *)recPainText, &ctr, 2)){
-        return;
+        goto RET;
     }
     ret = joylink_packet_script_ctrl_rsp(data, JL_MAX_PACKET_LEN, &ctr, 1);
     log_debug("rsp data:%s:len:%d",
@@ -392,6 +439,13 @@ joylink_proc_server_ctrl(uint8_t* recPainText)
     }else{
         log_error("packet error ret:%d", ret);
     }
+
+RET:
+    if(NULL != data) {
+        free(data);
+    }
+
+    return;
 }
 
 static void
@@ -430,12 +484,11 @@ joylink_proc_server_sub_ctrl(uint8_t* recPainText, unsigned short payloadlen)
 {
     int ret = -1;
     int len;
-//    char data[JL_MAX_PACKET_LEN];
-    /* reuse memory*/
-    char *data = (char *)g_recBuffer;
+    //char data[JL_MAX_PACKET_LEN];
+    char *data = (char *)malloc(JL_MAX_PACKET_LEN);
     JLSubContrl_t ctr;
     bzero(&ctr, sizeof(ctr));
-	bzero(data,JL_MAX_PACKET_LEN);
+    bzero(data,JL_MAX_PACKET_LEN);
  
     if(-1 == joylink_subdev_script_ctrl(recPainText, &ctr, payloadlen)){
         return;
@@ -464,6 +517,11 @@ joylink_proc_server_sub_ctrl(uint8_t* recPainText, unsigned short payloadlen)
     }else{
         log_error("packet error ret:%d", ret);
     }
+
+    if(NULL != data) {
+        free(data);
+    }
+    
 }
 
 static void
@@ -471,11 +529,9 @@ joylink_proc_server_sub_unbind(uint8_t* recPainText, unsigned short payloadlen)
 {
     int ret = -1;
     int len;
-//    char data[JL_MAX_PACKET_LEN];
-    /* reuse memory*/
-    char *data = (char *)g_recBuffer;
-
-	bzero(data,JL_MAX_PACKET_LEN);
+    //char data[JL_MAX_PACKET_LEN];
+    char *data = (char *)malloc(JL_MAX_PACKET_LEN);
+    bzero(data,JL_MAX_PACKET_LEN);
     JLSubUnbind_t unbind;
     bzero(&unbind, sizeof(unbind));
 
@@ -484,7 +540,7 @@ joylink_proc_server_sub_unbind(uint8_t* recPainText, unsigned short payloadlen)
     }
     ret = joylink_packet_subdev_unbind_rsp(data, JL_MAX_PACKET_LEN, &unbind);
     if(-1 == ret){
-        return;
+        goto RET;
     }
     len = joylink_encypt_server_rsp(_g_pdev->send_buff, JL_MAX_PACKET_LEN,
         PT_SUB_UNBIND, _g_pdev->jlp.sessionKey,
@@ -503,6 +559,13 @@ joylink_proc_server_sub_unbind(uint8_t* recPainText, unsigned short payloadlen)
     if(NULL != unbind.info){
         free(unbind.info);
     }
+    
+RET:
+    if(NULL != data) {
+        free(data);
+    }
+
+    return;
 }
 
 void
@@ -632,21 +695,23 @@ joylink_proc_server()
     //uint8_t recBuffer[JL_MAX_PACKET_LEN * 2 ];
     //uint8_t recPainText[JL_MAX_PACKET_LEN * 2 + 16];
 
-	bzero(g_recBuffer, sizeof(g_recBuffer));
-	bzero(g_recPainText, sizeof(g_recPainText));
-	int ret;
+    uint8_t *recBuffer = (uint8_t*)malloc(JL_MAX_PACKET_LEN * 2);
+    uint8_t *recPainText = (uint8_t*)malloc(JL_MAX_PACKET_LEN * 2 + 16);
+    bzero(recBuffer, JL_MAX_PACKET_LEN * 2);
+    bzero(recPainText, JL_MAX_PACKET_LEN * 2 + 16);
+    int ret;
     
-    ret = joylink_server_recv(_g_pdev->server_socket, (char*)g_recBuffer, JL_MAX_PACKET_LEN * 2);
+    ret = joylink_server_recv(_g_pdev->server_socket, (char*)recBuffer, JL_MAX_PACKET_LEN * 2);
     if (ret == -1 || ret == 0){
         close(_g_pdev->server_socket);
         _g_pdev->server_socket = -1;
         _g_pdev->server_st = 0;
         log_info("Server close, Reconnect!");
-        return;
+        goto RET;
     }
 
     JLPacketParam_t param;
-    ret = joylink_dencypt_server_req(&param, g_recBuffer, ret, g_recPainText, JL_MAX_PACKET_LEN * 2);
+    ret = joylink_dencypt_server_req(&param, recBuffer, ret, recPainText, JL_MAX_PACKET_LEN * 2);
 
     if (ret < 1){
         return;
@@ -655,37 +720,55 @@ joylink_proc_server()
     log_info("Server org ctrl type:%d", param.type);
     switch (param.type){
         case PT_AUTH:
-            joylink_proc_server_auth(g_recPainText);
+            joylink_proc_server_auth(recPainText);
             break;
         case PT_BEAT:
-            joylink_proc_server_hb(g_recPainText);
+            joylink_proc_server_hb(recPainText);
+            break;
+        case PT_MODEL_CODE:
+            /*model code only report once, reset the flag*/
+            _g_pdev->model_code_flag = 0;
             break;
         case PT_SERVERCONTROL:
-            joylink_proc_server_ctrl(g_recPainText);
+            joylink_proc_server_ctrl(recPainText);
             break;
         case PT_UPLOAD:
-            joylink_proc_server_upload(g_recPainText);
+            joylink_proc_server_upload(recPainText);
             break;
         case PT_SUB_HB:
-            joylink_proc_server_sub_hb(g_recPainText);
+            joylink_proc_server_sub_hb(recPainText);
             break;
         case PT_SUB_UPLOAD:
-            joylink_proc_server_sub_upload(g_recPainText);
+            joylink_proc_server_sub_upload(recPainText);
             break;
         case PT_SUB_CLOUD_CTRL:
-            joylink_proc_server_sub_ctrl(g_recPainText, ret);
+            joylink_proc_server_sub_ctrl(recPainText, ret);
             break;
         case PT_SUB_UNBIND:
-            joylink_proc_server_sub_unbind(g_recPainText, ret);
+            joylink_proc_server_sub_unbind(recPainText, ret);
             break;
         case PT_OTA_ORDER:
-            joylink_proc_server_ota_order((g_recPainText + 4), (ret - 4));
+            joylink_proc_server_ota_order((recPainText + 4), (ret - 4));
             break;
         case PT_OTA_UPLOAD:
-            joylink_proc_server_ota_upload(g_recPainText + 4);
+            joylink_proc_server_ota_upload(recPainText + 4);
+            break;
+        case PT_TIME_TASK:
+            joylink_proc_time_task((char *)recPainText, ret);
             break;
         default:
             log_debug("Unknow param type.");
             break;
     }
+
+RET:
+    if (NULL != recBuffer) {
+        free(recBuffer);
+    }
+    
+    if (NULL != recPainText) {
+        free(recPainText);
+    }
+
+    return;
 }

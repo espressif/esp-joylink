@@ -94,6 +94,7 @@ SECTIONS
     *(.init.literal)
     *(.init)
     *libfreertos.a:(.literal .text .literal.* .text.*)
+    *libmain.a:spi_flash.o(.literal .text .literal.* .text.*)
     *(.literal .text .stub .gnu.warning .gnu.linkonce.literal.* .gnu.linkonce.t.*.literal .gnu.linkonce.t.*)
     *(.fini.literal)
     *(.fini)
@@ -110,8 +111,7 @@ SECTIONS
     *libmbedtls.a:(.rodata.* .rodata)
     *libssl.a:(.rodata.* .rodata)
     *libopenssl.a:(.rodata.* .rodata)
-	*libplatforms.a:(.rodata.* .rodata)
-	*libuser*.a:(.rodata.* .rodata)
+    *libplatforms.a:(.rodata.* .rodata)
     *(.irom0.literal .irom.literal .irom.text.literal .irom0.text .irom.text)
     *(.literal.* .text.*)
     _irom0_text_end = ABSOLUTE(.);

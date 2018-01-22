@@ -930,13 +930,6 @@ tcp_slowtmr_start:
            * connect to somebody (i.e., we are in SYN_SENT). */
           if (pcb->state != SYN_SENT) {
             pcb->rto = ((pcb->sa >> 3) + pcb->sv) << system_get_data_of_array_8(tcp_backoff, pcb->nrtx);
-#ifdef FOR_ALI
-            os_printf("Current timeout %u ms\n", pcb->rto*TCP_SLOW_INTERVAL);
-            #define tcp_slowtmr_rtime 6
-            if(pcb->rto > tcp_slowtmr_rtime) {
-                pcb->rto = tcp_slowtmr_rtime;
-            }
-#endif
           }
 
           /* Reset the retransmission timer. */

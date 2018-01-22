@@ -47,6 +47,9 @@ joylink_parse_server_ota_upload_req(JLOtaUploadRsp_t* otaUpload, const char* pMs
 
 char *
 joylink_package_ota_upload(JLOtaUpload_t *otaUpload);
+
+char ** 
+joylink_parse_ids(const char * pMsg, int32_t *num);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -632,11 +632,7 @@ netconn_write_partly(struct netconn *conn, const void *dataptr, size_t size,
     return ERR_OK;
   }
   dontblock = netconn_is_nonblocking(conn) || (apiflags & NETCONN_DONTBLOCK);
-#ifdef FOR_XIAOMI
-  if (dontblock && bytes_written) {
-#else
   if (dontblock && !bytes_written) {
-#endif
     /* This implies netconn_write() cannot be used for non-blocking send, since
        it has no way to return the number of bytes written. */
     return ERR_VAL;

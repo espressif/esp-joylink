@@ -101,11 +101,7 @@ privileged Vs unprivileged linkage and placement. */
 /*
  * Defines the size, in words, of the stack allocated to the idle task.
  */
-#ifdef FOR_BAOFENG
-#define tskIDLE_STACK_SIZE	1024//176
-#else
-#define tskIDLE_STACK_SIZE  384
-#endif
+#define tskIDLE_STACK_SIZE	384
 
 #ifdef MEMLEAK_DEBUG
 static const char mem_debug_file[] ICACHE_RODATA_ATTR STORE_ATTR = __FILE__;
@@ -1249,7 +1245,6 @@ portBASE_TYPE xReturn;
 		/* Create the idle task, storing its handle in xIdleTaskHandle so it can
 		be returned by the xTaskGetIdleTaskHandle() function. */
 		xReturn = xTaskCreate( prvIdleTask, ( signed char * ) "IDLE", tskIDLE_STACK_SIZE, ( void * ) NULL, ( tskIDLE_PRIORITY | portPRIVILEGE_BIT ), &xIdleTaskHandle ); /*lint !e961 MISRA exception, justified as it is not a redundant explicit cast to all supported compilers. */
-		os_printf("idle_task_hdl : %x,prio:%d, stack:%d\n", xIdleTaskHandle,tskIDLE_PRIORITY,tskIDLE_STACK_SIZE);
 	}
 	#else
 	{
@@ -1981,11 +1976,8 @@ portTickType xTimeToWake;
 
 #endif /* configUSE_TIMERS */
 /*-----------------------------------------------------------*/
-#ifdef FOR_BAOFENG
-signed portBASE_TYPE 
-#else
+
 signed portBASE_TYPE ICACHE_FLASH_ATTR
-#endif
 xTaskRemoveFromEventList( const xList * const pxEventList )
 {
 tskTCB *pxUnblockedTCB;
@@ -2494,7 +2486,7 @@ tskTCB *pxNewTCB;
 
 	/* Allocate space for the TCB.  Where the memory comes from depends on
 	the implementation of the port malloc function. */
-	pxNewTCB = ( tskTCB * ) os_malloc( sizeof( tskTCB ) );
+	pxNewTCB = ( tskTCB * ) os_malloc_iram( sizeof( tskTCB ) );
 
 	if( pxNewTCB != NULL )
 	{

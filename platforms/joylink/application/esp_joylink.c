@@ -316,6 +316,8 @@ void joylink_wait_station_got_ip(void)
     }
 }
 
+//extern int joylink_main_start();
+
 static void joylink_task(void *pvParameters)
 {
     int rsn = 0;
@@ -339,8 +341,8 @@ static void joylink_task(void *pvParameters)
         joylink_event_send(JOYLINK_EVENT_WIFI_START_SMARTCONFIG, NULL);
         rsn = JOYLINK_GOT_IP_WIFI_CONFIG;
     }else {  /* have connectend AP, connect to AP driect */
-       rsn = JOYLINK_GOT_IP_AUTO_CONN;
-	   wifi_station_connect();
+        rsn = JOYLINK_GOT_IP_AUTO_CONN;
+        wifi_station_connect();
     }
 
 
@@ -354,32 +356,32 @@ static void joylink_task(void *pvParameters)
 
     JOYLINK_LOGI("connected to %s password is %s", param->conn.conf.ssid, param->conn.conf.password);
     joylink_event_send(JOYLINK_EVENT_WIFI_GOT_IP, param);
-   	joylink_main_start();  /* joylink SDK loop task */
+    joylink_main_start();  /* joylink SDK loop task */
 
-	vTaskDelete(NULL);
+    vTaskDelete(NULL);
 }
 
 joylink_err_t esp_joylink_init(joylink_info_t *joylink_info)
 {
     JOYLINK_PARAM_CHECK(!joylink_info);
 
-	/* init joylink config of product */
-	memcpy(&(_g_pdev->jlp), &(joylink_info->jlp), sizeof(JLPInfo_t));
-	/* init wifi config */
-	jd_innet_set_aes_key((const char*)(joylink_info->innet_aes_key));
-	/* init Queue and Semaphore */
-	joylink_trans_init();
-	/* init event task */
-	xTaskCreate(joylink_task, "jl_task", JOYLINK_MAIN_TASK_STACK, NULL, JOYLINK_TASK_PRIOTY, NULL);
+    /* init joylink config of product */
+    memcpy(_g_pdev, &(joylink_info->device_info), sizeof(JLDevice_t));
+    /* init wifi config */
+    jd_innet_set_aes_key((const char*)(joylink_info->innet_aes_key));
+    /* init Queue and Semaphore */
+    joylink_trans_init();
+    /* init event task */
+    xTaskCreate(joylink_task, "jl_task", JOYLINK_MAIN_TASK_STACK, NULL, JOYLINK_TASK_PRIOTY, NULL);
 
-	return JOYLINK_OK;
+    return JOYLINK_OK;
 }
 
 joylink_err_t joylink_get_jlp_info(joylink_info_t *joylink_info)
 {
     JOYLINK_PARAM_CHECK(!joylink_info);
 
-    memcpy(&(joylink_info->jlp), &(_g_pdev->jlp), sizeof(JLPInfo_t));
+    memcpy(&(joylink_info->device_info), &(_g_pdev), sizeof(JLDevice_t));
     joylink_info->innet_aes_key = jd_innet_get_aes_key();
 
     return JOYLINK_OK;

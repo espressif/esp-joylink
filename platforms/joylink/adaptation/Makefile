@@ -15,8 +15,8 @@ ifndef PDIR
 UP_EXTRACT_DIR = ..
 GEN_LIBS = libjoylink_adaptation.a
 COMPONENTS_libjoylink_adaptation = joylink_smartconfig/libjoylink_smartconfig.a \
-                                   joylink_softap/libjoylink_softap.a \
-                                   joylink_lib/libjoylink.a
+                                   joylink_lib/libjoylink.a \
+                                   joylink_softap/libjoylink_softap.a
 
 endif
 

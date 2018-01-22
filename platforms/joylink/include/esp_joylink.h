@@ -72,7 +72,7 @@ typedef int32_t joylink_err_t;
 #endif
 
 #ifndef CONFIG_JOYLINK_MAIN_TASK_STACK
-#define CONFIG_JOYLINK_MAIN_TASK_STACK (512 - 64)
+#define CONFIG_JOYLINK_MAIN_TASK_STACK (512 + 128)
 #endif
 
 #ifndef CONFIG_WIFI_WAIT_TIME
@@ -94,7 +94,7 @@ typedef int32_t joylink_err_t;
 #endif
 
 typedef struct {
-    JLPInfo_t jlp;
+    JLDevice_t device_info;
     const char *innet_aes_key;
 } joylink_info_t;
 

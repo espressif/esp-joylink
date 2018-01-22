@@ -2,9 +2,9 @@
 #include "joylink_packets.h"
 #include "joylink_crypt.h"
 #ifdef ESP_8266
-#include "uECC.h"
-#include "aes.h"
-#include "crc.h"
+#include "joylink_auth_uECC.h"
+#include "joylink_aes.h"
+#include "joylink_auth_crc.h"
 #else
 #include "auth/uECC.h"
 #include "auth/aes.h"
@@ -24,6 +24,24 @@ joylink_packet_lan_scan_rsp(DevScan_t *scan)
 {
     int len = 0;
 
+    if(!strcmp(_g_pdev->idt.rand, "")){
+        /*1 signature the app_random*/
+        /*2 get a dev random*/
+        int ran[8];
+        int i;
+        ran[0] = joylink_dev_get_random();
+        ran[1] = time(NULL);
+        for(i = 2; i < 8; i++){
+           ran[i] = ran[i-1] ^ ran[i-0]; 
+        }
+
+        joylink_util_byte2hexstr((uint8_t *)&ran[0], 
+                        sizeof(ran), 
+                        (uint8_t *)(&_g_pdev->idt.rand[0]), 
+                        sizeof(_g_pdev->idt.rand) - 1);
+    }
+
+    log_debug("idt.rand = %s\n", _g_pdev->idt.rand);
     char * scan_rsp_data = joylink_package_scan("scan ok", 
             0,
             scan->type,
@@ -66,9 +84,10 @@ RET:
 }
 
 int 
-joylink_packet_lan_write_key_rsp(void)
+joylink_packet_lan_write_key_rsp(int code, char *msg)
 {
-	char data[] = "{\"code\":0,\"msg\":\"success\"}";
+    char data[100] = {0};
+    sprintf(data, "{\"code\":%d, \"msg\":\"%s\"}", code, msg);
 
 	int len = joylink_encrypt_lan_basic(
             _g_pdev->send_buff, 

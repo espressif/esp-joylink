@@ -1179,19 +1179,8 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb)
   ipX_output_hinted(PCB_ISIPV6(pcb), seg->p, &pcb->local_ip, &pcb->remote_ip,
     pcb->ttl, pcb->tos, IP_PROTO_TCP, &pcb->addr_hint);
 #else /* LWIP_NETIF_HWADDRHINT*/
-#ifdef FOR_ALI
-  int error = 0;
-  error = ipX_output(PCB_ISIPV6(pcb), seg->p, &pcb->local_ip, &pcb->remote_ip, pcb->ttl,
-    pcb->tos, IP_PROTO_TCP);
-  if (pcb->nrtx != 0) {
-      os_printf("out seqno %u, ackno %u, src %u, nrtx %u,%u\n",
-              htonl(seg->tcphdr->seqno), htonl(seg->tcphdr->ackno),
-              ntohs(seg->tcphdr->src), ntohs(seg->tcphdr->dest), pcb->nrtx, error);
-  }
-#else
   ipX_output(PCB_ISIPV6(pcb), seg->p, &pcb->local_ip, &pcb->remote_ip, pcb->ttl,
     pcb->tos, IP_PROTO_TCP);
-#endif
 #endif /* LWIP_NETIF_HWADDRHINT*/
 }
 

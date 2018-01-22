@@ -39,15 +39,17 @@ joylink_proc_lan_sub_add(uint8_t *src, struct sockaddr_in *sin_recv, socklen_t a
     int len = 0;
     int num = 0;
     int en_len = 0;
-//    char data[JL_MAX_PACKET_LEN];
-    /* reuse memory*/
-    char *data = (char *)g_recBuffer;
-	bzero(data,JL_MAX_PACKET_LEN);
-	
+    //char data[JL_MAX_PACKET_LEN];
+    char *data = (char *)malloc(JL_MAX_PACKET_LEN);
+    bzero(data,JL_MAX_PACKET_LEN);
+
     JLDevInfo_t *devs = NULL;
 
     if(NULL == (devs = joylink_parse_sub_add(src, &num))){
         log_error("parse error");
+        if(NULL != data) {
+            free(data);
+        }
         return ret;
     }
 
@@ -81,6 +83,10 @@ joylink_proc_lan_sub_add(uint8_t *src, struct sockaddr_in *sin_recv, socklen_t a
         log_error("packet error ret:%d", ret);
     }
 
+    if(NULL != data) {
+        free(data);
+    }
+
     return E_RET_OK;
 }
 
@@ -94,15 +100,17 @@ joylink_proc_lan_sub_auth(uint8_t *src, struct sockaddr_in *sin_recv, socklen_t 
 {
     int ret = E_RET_ERROR;
     int len = 0;
-//    char data[JL_MAX_PACKET_LEN];
-    /* reuse memory*/
-    char *data = (char *)g_recBuffer;
-	bzero(data,JL_MAX_PACKET_LEN);
+    //char data[JL_MAX_PACKET_LEN];
+    char *data = (char *)malloc(JL_MAX_PACKET_LEN);
+    bzero(data,JL_MAX_PACKET_LEN);
 
     JLDevInfo_t dev;
     bzero(&dev, sizeof(dev));
 
     if(E_RET_OK != joylink_parse_sub_auth(src, &dev)){
+        if(NULL != data) {
+            free(data);
+        }
         return ret;
     }
     
@@ -135,6 +143,10 @@ joylink_proc_lan_sub_auth(uint8_t *src, struct sockaddr_in *sin_recv, socklen_t 
         log_error("packet error ret:%d", ret);
     }
 
+    if(NULL != data) {
+        free(data);
+    }
+
     return E_RET_OK;
 }
 
@@ -148,10 +160,9 @@ joylink_proc_lan_sub_script_ctrl(uint8_t *src, int src_len,
     int offset = 0;
     int snapshot_len = 0;
     char *ss = NULL;
-//    char data[JL_MAX_PACKET_LEN];
-    /* reuse memory*/
-    char *data = (char *)g_recBuffer;
-	bzero(data,JL_MAX_PACKET_LEN);
+    //char data[JL_MAX_PACKET_LEN];
+    char *data = (char *)malloc(JL_MAX_PACKET_LEN);
+    bzero(data,JL_MAX_PACKET_LEN);
     JLContrl_t ctr;
     JLDevInfo_t dev;
 
@@ -168,6 +179,9 @@ joylink_proc_lan_sub_script_ctrl(uint8_t *src, int src_len,
     offset += 32;
 
     if(E_RET_OK != joylink_dev_sub_get_by_feedid(ctr.feedid, &dev)){
+        if(NULL != data) {
+            free(data);
+        }
         return  E_RET_ERROR;
     }
 
@@ -228,6 +242,10 @@ joylink_proc_lan_sub_script_ctrl(uint8_t *src, int src_len,
         }
     }else{
         log_error("packet error ret:%d", ret);
+    }
+
+    if(NULL != data) {
+        free(data);
     }
 
     return E_RET_OK;
@@ -307,10 +325,9 @@ joylink_subdev_script_ctrl(uint8_t* recPainText, JLSubContrl_t *ctr, unsigned sh
         return -1;
     }
     int ret = -1;
-//    char data[JL_MAX_PACKET_LEN];
-    /* reuse memory*/
-    char *data = (char *)g_recBuffer;
-	bzero(data,JL_MAX_PACKET_LEN);
+    //char data[JL_MAX_PACKET_LEN];
+    char *data = (char *)malloc(JL_MAX_PACKET_LEN);
+    bzero(data,JL_MAX_PACKET_LEN);
     int offset = 0;
     JLDevInfo_t dev;
     bzero(&dev, sizeof(dev));
@@ -325,6 +342,9 @@ joylink_subdev_script_ctrl(uint8_t* recPainText, JLSubContrl_t *ctr, unsigned sh
         case JL_BZCODE_CTRL:
 
             if(E_RET_OK != joylink_dev_sub_get_by_feedid(ctr->feedid, &dev)){
+                if(NULL != data) {
+                    free(data);
+                }
                 return  E_RET_ERROR;
             }
             ret =  joylink_dencrypt_sub_dev_data(recPainText + offset, payloadlen - offset, 
@@ -350,6 +370,10 @@ joylink_subdev_script_ctrl(uint8_t* recPainText, JLSubContrl_t *ctr, unsigned sh
 
     if(ctr->cmd != NULL){
         free(ctr->cmd);
+    }
+    
+    if(NULL != data) {
+        free(data);
     }
 
     return ret;
