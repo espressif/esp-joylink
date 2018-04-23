@@ -209,6 +209,11 @@ int joylink_event_handler(joylink_action_t action)
             led_state_write(led_0, LED_SLOW_BLINK);
             break;
 
+        case JOYLINK_EVENT_WIFI_START_SOFTAP_CONFIG:
+            JOYLINK_LOGD("JOYLINK_EVENT_WIFI_START_SOFTAP_CONFIG");
+            led_state_write(led_0, LED_SLOW_BLINK);
+            break;
+
         case JOYLINK_EVENT_WIFI_GOT_IP:
             JOYLINK_LOGD("JOYLINK_EVENT_WIFI_GOT_IP");
             led_state_write(led_0, LED_QUICK_BLINK);

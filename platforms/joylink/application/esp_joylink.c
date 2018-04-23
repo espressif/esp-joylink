@@ -333,12 +333,13 @@ static void joylink_task(void *pvParameters)
         JOYLINK_LOGI("config mode is %d (1:smartconfig  2:softap innet)", config_mode);
 
         if (config_mode == CONFIG_MODE_SMARTCONFIG) {  /* start innet smart config process */
+            joylink_event_send(JOYLINK_EVENT_WIFI_START_SMARTCONFIG, NULL);
             jd_innet_start();
         } else if (config_mode == CONFIG_MODE_SOFTAP) {  /* start softap innet process */
+            joylink_event_send(JOYLINK_EVENT_WIFI_START_SOFTAP_CONFIG, NULL);
             joylink_softap_innet();
         }
 
-        joylink_event_send(JOYLINK_EVENT_WIFI_START_SMARTCONFIG, NULL);
         rsn = JOYLINK_GOT_IP_WIFI_CONFIG;
     }else {  /* have connectend AP, connect to AP driect */
         rsn = JOYLINK_GOT_IP_AUTO_CONN;

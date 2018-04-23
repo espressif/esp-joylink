@@ -105,10 +105,11 @@ typedef enum {
 } wifi_config_mode_t;
 
 typedef enum {
-	JOYLINK_EVENT_NONE = 0,                 /*!< None */
-	JOYLINK_EVENT_WIFI_START_SMARTCONFIG,   /*!< ESP8266 start smartconfig */
-	JOYLINK_EVENT_WIFI_GOT_IP,              /*!< ESP8266 station got IP from connected AP */
-	JOYLINK_EVENT_WIFI_DISCONNECTED,        /*!< ESP8266 station disconnet with AP */
+    JOYLINK_EVENT_NONE = 0,                 /*!< None */
+    JOYLINK_EVENT_WIFI_START_SMARTCONFIG,   /*!< ESP8266 start smartconfig */
+    JOYLINK_EVENT_WIFI_START_SOFTAP_CONFIG, /*!< ESP8266 start softap config */
+    JOYLINK_EVENT_WIFI_GOT_IP,              /*!< ESP8266 station got IP from connected AP */
+    JOYLINK_EVENT_WIFI_DISCONNECTED,        /*!< ESP8266 station disconnet with AP */
     JOYLINK_EVENT_CLOUD_CONNECTED,          /*!< ESP8266 connected joylink cloud */
     JOYLINK_EVENT_CLOUD_DISCONNECTED,       /*!< ESP8266 disconnected with joylink cloud */
     JOYLINK_EVENT_GET_DEVICE_DATA,          /*!< ESP8266 get device status */
