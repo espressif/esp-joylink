@@ -1,0 +1,246 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+AF_LOCAL	joylink_adapter_net.h	29;"	d
+AGENT_DEV_MAX	joylink_agent_devs.h	15;"	d
+ANET_CONNECT_NONBLOCK	joylink_adapter_net.c	465;"	d	file:
+ANET_CONNECT_NONE	joylink_adapter_net.c	464;"	d	file:
+ANET_ERR	joylink_adapter_net.h	21;"	d
+ANET_ERR_LEN	joylink_adapter_net.h	22;"	d
+ANET_IP_ONLY	joylink_adapter_net.h	26;"	d
+ANET_NONE	joylink_adapter_net.h	25;"	d
+ANET_OK	joylink_adapter_net.h	20;"	d
+AgentAuthReq_t	joylink_agent.h	/^}AgentAuthReq_t;$/;"	t	typeref:struct:__anon4
+AgentAuthRsp_t	joylink_agent.h	/^}AgentAuthRsp_t;$/;"	t	typeref:struct:__anon5
+AgentDevAdd_t	joylink_agent.h	/^}AgentDevAdd_t;$/;"	t	typeref:struct:__anon2
+AgentDevDel_t	joylink_agent.h	/^}AgentDevDel_t;$/;"	t	typeref:struct:__anon3
+AgentDev_t	joylink_agent.h	/^}AgentDev_t;$/;"	t	typeref:struct:__anon10
+AgentHBReq_t	joylink_agent.h	/^}AgentHBReq_t;$/;"	t	typeref:struct:__anon6
+AgentHBRsp_t	joylink_agent.h	/^}AgentHBRsp_t;$/;"	t	typeref:struct:__anon7
+AgentSnapsReq_t	joylink_agent.h	/^}AgentSnapsReq_t;$/;"	t	typeref:struct:__anon8
+AgentSnapsRsp_t	joylink_agent.h	/^}AgentSnapsRsp_t;$/;"	t	typeref:struct:__anon9
+E_ERROR	joylink_adapter_net.c	91;"	d	file:
+E_OK	joylink_adapter_net.c	90;"	d	file:
+HEADERS	Makefile	/^HEADERS = $(wildcard *.h)$/;"	m
+IS_AGENT_AUTH_SET	joylink_agent.h	83;"	d
+IS_AGENT_HB_SET	joylink_agent.h	84;"	d
+IS_AGENT_SNAP_SET	joylink_agent.h	85;"	d
+JL_AGENT_GW_CLIENT_MAX	joylink_agent.h	81;"	d
+JL_AGENT_GW_PORT	joylink_agent.h	80;"	d
+JOYLINK_ADAPTER_NET_TCP_H	joylink_adapter_net.h	16;"	d
+LIBNAME	Makefile	/^LIBNAME = $(strip ${shell pwd |xargs basename})$/;"	m
+OBJS	Makefile	/^OBJS = $(patsubst %.c, %.o, $(SOURCES))$/;"	m
+ORG_SOURCES	Makefile	/^ORG_SOURCES = $(wildcard *.c)$/;"	m
+OUT_SRC	Makefile	/^OUT_SRC = test.c $/;"	m
+SOURCES	Makefile	/^SOURCES=$(filter-out ${OUT_SRC}, ${ORG_SOURCES})$/;"	m
+ST_AGENT_AUTH_CLR	joylink_agent.h	91;"	d
+ST_AGENT_AUTH_SET	joylink_agent.h	87;"	d
+ST_AGENT_HB_CLR	joylink_agent.h	92;"	d
+ST_AGENT_HB_SET	joylink_agent.h	88;"	d
+ST_AGENT_SNAP_CLR	joylink_agent.h	93;"	d
+ST_AGENT_SNAP_SET	joylink_agent.h	89;"	d
+__JD_AGENT_DEVS_H_	joylink_agent_devs.h	2;"	d
+__JD_AGENT_H_	joylink_agent.h	2;"	d
+__JD_AGENT_JSON_H_	joylink_agent_json.h	2;"	d
+__anon10::accesskey	joylink_agent.h	/^	char accesskey[JL_MAX_ACKEY_LEN];$/;"	m	struct:__anon10	access:public
+__anon10::agent_st	joylink_agent.h	/^    int agent_st;$/;"	m	struct:__anon10	access:public
+__anon10::auth	joylink_agent.h	/^    char auth[16];$/;"	m	struct:__anon10	access:public
+__anon10::fd	joylink_agent.h	/^    int32_t fd;$/;"	m	struct:__anon10	access:public
+__anon10::feedid	joylink_agent.h	/^	char feedid[JL_MAX_FEEDID_LEN];$/;"	m	struct:__anon10	access:public
+__anon10::hb	joylink_agent.h	/^    JLHearBeat_t hb;$/;"	m	struct:__anon10	access:public
+__anon10::random	joylink_agent.h	/^    int32_t random;$/;"	m	struct:__anon10	access:public
+__anon10::sessionkey	joylink_agent.h	/^	char sessionkey[JL_MAX_SESSION_KEY_LEN];$/;"	m	struct:__anon10	access:public
+__anon10::snap	joylink_agent.h	/^    char *snap;$/;"	m	struct:__anon10	access:public
+__anon10::snap_len	joylink_agent.h	/^    int32_t snap_len;$/;"	m	struct:__anon10	access:public
+__anon10::st	joylink_agent.h	/^    int32_t st;$/;"	m	struct:__anon10	access:public
+__anon1::cloud_thread_run	joylink_agent.c	/^    int32_t cloud_thread_run;$/;"	m	struct:__anon1	file:	access:public
+__anon1::eabled	joylink_agent.c	/^    char eabled;$/;"	m	struct:__anon1	file:	access:public
+__anon1::fd	joylink_agent.c	/^    int32_t fd;$/;"	m	struct:__anon1	file:	access:public
+__anon1::ntid	joylink_agent.c	/^    pthread_t ntid;$/;"	m	struct:__anon1	file:	access:public
+__anon1::st	joylink_agent.c	/^    int32_t st;$/;"	m	struct:__anon1	file:	access:public
+__anon2::accesskey	joylink_agent.h	/^	char accesskey[33];$/;"	m	struct:__anon2	access:public
+__anon2::feedid	joylink_agent.h	/^	char feedid[JL_MAX_FEEDID_LEN];$/;"	m	struct:__anon2	access:public
+__anon3::feedid	joylink_agent.h	/^	char feedid[JL_MAX_FEEDID_LEN];$/;"	m	struct:__anon3	access:public
+__anon4::devs	joylink_agent.h	/^	char* devs;$/;"	m	struct:__anon4	access:public
+__anon4::devs_len	joylink_agent.h	/^	int devs_len;$/;"	m	struct:__anon4	access:public
+__anon4::timestamp	joylink_agent.h	/^	unsigned int timestamp;$/;"	m	struct:__anon4	access:public
+__anon5::code	joylink_agent.h	/^	int code;$/;"	m	struct:__anon5	access:public
+__anon5::error_devs	joylink_agent.h	/^	char error_devs[];$/;"	m	struct:__anon5	access:public
+__anon5::timestamp	joylink_agent.h	/^	unsigned int timestamp;$/;"	m	struct:__anon5	access:public
+__anon6::devs	joylink_agent.h	/^	char* devs;$/;"	m	struct:__anon6	access:public
+__anon6::devs_len	joylink_agent.h	/^	int devs_len;$/;"	m	struct:__anon6	access:public
+__anon6::timestamp	joylink_agent.h	/^	unsigned int timestamp;$/;"	m	struct:__anon6	access:public
+__anon7::code	joylink_agent.h	/^	int code;$/;"	m	struct:__anon7	access:public
+__anon7::timestamp	joylink_agent.h	/^	unsigned int timestamp;$/;"	m	struct:__anon7	access:public
+__anon8::snaps	joylink_agent.h	/^	char* snaps;$/;"	m	struct:__anon8	access:public
+__anon8::snaps_len	joylink_agent.h	/^	int snaps_len;$/;"	m	struct:__anon8	access:public
+__anon8::timestamp	joylink_agent.h	/^	unsigned int timestamp;$/;"	m	struct:__anon8	access:public
+__anon9::code	joylink_agent.h	/^	int code;$/;"	m	struct:__anon9	access:public
+__anon9::timestamp	joylink_agent.h	/^	unsigned int timestamp;$/;"	m	struct:__anon9	access:public
+_g_adevs	joylink_agent_devs.c	/^AgentDev_t _g_adevs[AGENT_DEV_MAX];$/;"	v
+_g_c_mg	joylink_agent.c	/^static jl_agent_cloud_mg_t _g_c_mg, * _g_p_cmg = &_g_c_mg;$/;"	v	file:
+_g_p_cmg	joylink_agent.c	/^static jl_agent_cloud_mg_t _g_c_mg, * _g_p_cmg = &_g_c_mg;$/;"	v	file:
+_joylink_net_tcp_server	joylink_adapter_net.c	/^_joylink_net_tcp_server(char *err, int32_t port, char *bindaddr, int32_t af, int32_t backlog)$/;"	f	file:	signature:(char *err, int32_t port, char *bindaddr, int32_t af, int32_t backlog)
+accesskey	joylink_agent.h	/^	char accesskey[33];$/;"	m	struct:__anon2	access:public
+accesskey	joylink_agent.h	/^	char accesskey[JL_MAX_ACKEY_LEN];$/;"	m	struct:__anon10	access:public
+agent_st	joylink_agent.h	/^    int agent_st;$/;"	m	struct:__anon10	access:public
+auth	joylink_agent.h	/^    char auth[16];$/;"	m	struct:__anon10	access:public
+cloud_thread_run	joylink_agent.c	/^    int32_t cloud_thread_run;$/;"	m	struct:__anon1	file:	access:public
+code	joylink_agent.h	/^	int code;$/;"	m	struct:__anon5	access:public
+code	joylink_agent.h	/^	int code;$/;"	m	struct:__anon7	access:public
+code	joylink_agent.h	/^	int code;$/;"	m	struct:__anon9	access:public
+devs	joylink_agent.h	/^	char* devs;$/;"	m	struct:__anon4	access:public
+devs	joylink_agent.h	/^	char* devs;$/;"	m	struct:__anon6	access:public
+devs_len	joylink_agent.h	/^	int devs_len;$/;"	m	struct:__anon4	access:public
+devs_len	joylink_agent.h	/^	int devs_len;$/;"	m	struct:__anon6	access:public
+devs_lock	joylink_agent_devs.c	/^pthread_mutex_t    devs_lock = PTHREAD_MUTEX_INITIALIZER;$/;"	v
+eabled	joylink_agent.c	/^    char eabled;$/;"	m	struct:__anon1	file:	access:public
+error_devs	joylink_agent.h	/^	char error_devs[];$/;"	m	struct:__anon5	access:public
+fd	joylink_agent.c	/^    int32_t fd;$/;"	m	struct:__anon1	file:	access:public
+fd	joylink_agent.h	/^    int32_t fd;$/;"	m	struct:__anon10	access:public
+fd_lock	joylink_agent.c	/^pthread_mutex_t    fd_lock = PTHREAD_MUTEX_INITIALIZER;$/;"	v
+feedid	joylink_agent.h	/^	char feedid[JL_MAX_FEEDID_LEN];$/;"	m	struct:__anon10	access:public
+feedid	joylink_agent.h	/^	char feedid[JL_MAX_FEEDID_LEN];$/;"	m	struct:__anon2	access:public
+feedid	joylink_agent.h	/^	char feedid[JL_MAX_FEEDID_LEN];$/;"	m	struct:__anon3	access:public
+hb	joylink_agent.h	/^    JLHearBeat_t hb;$/;"	m	struct:__anon10	access:public
+jl_agent_cloud_mg_t	joylink_agent.c	/^}jl_agent_cloud_mg_t;$/;"	t	typeref:struct:__anon1	file:
+joylink_adapter_inet_addr	joylink_adapter_net.c	/^joylink_adapter_inet_addr(const char *cp)$/;"	f	signature:(const char *cp)
+joylink_adapter_inet_aton	joylink_adapter_net.c	/^joylink_adapter_inet_aton(const char *cp, struct in_addr *ap)$/;"	f	signature:(const char *cp, struct in_addr *ap)
+joylink_adapter_inet_ntoa	joylink_adapter_net.c	/^joylink_adapter_inet_ntoa(struct in_addr in_a)$/;"	f	signature:(struct in_addr in_a)
+joylink_adapter_multi_net_get_ip	joylink_adapter_net.c	/^joylink_adapter_multi_net_get_ip(char* ipv4, const uint32_t max_size)$/;"	f	signature:(char* ipv4, const uint32_t max_size)
+joylink_adapter_net_check_connect	joylink_adapter_net.c	/^joylink_adapter_net_check_connect(int32_t s)$/;"	f	file:	signature:(int32_t s)
+joylink_adapter_net_close	joylink_adapter_net.c	/^joylink_adapter_net_close(int32_t fd)$/;"	f	signature:(int32_t fd)
+joylink_adapter_net_close	joylink_adapter_net.h	/^joylink_adapter_net_close(int32_t fd);$/;"	p	signature:(int32_t fd)
+joylink_adapter_net_disable_tcp_no_delay	joylink_adapter_net.c	/^joylink_adapter_net_disable_tcp_no_delay(char *err, int32_t fd)$/;"	f	signature:(char *err, int32_t fd)
+joylink_adapter_net_disable_tcp_no_delay	joylink_adapter_net.h	/^joylink_adapter_net_disable_tcp_no_delay(char *err, int32_t fd);$/;"	p	signature:(char *err, int32_t fd)
+joylink_adapter_net_enable_tcp_no_delay	joylink_adapter_net.c	/^joylink_adapter_net_enable_tcp_no_delay(char *err, int32_t fd)$/;"	f	signature:(char *err, int32_t fd)
+joylink_adapter_net_enable_tcp_no_delay	joylink_adapter_net.h	/^joylink_adapter_net_enable_tcp_no_delay(char *err, int32_t fd);$/;"	p	signature:(char *err, int32_t fd)
+joylink_adapter_net_generic_resolve	joylink_adapter_net.c	/^joylink_adapter_net_generic_resolve(char *err, char *host, char *ipbuf, int32_t ipbuf_len,$/;"	f	signature:(char *err, char *host, char *ipbuf, int32_t ipbuf_len, int32_t flags)
+joylink_adapter_net_keep_alive	joylink_adapter_net.c	/^joylink_adapter_net_keep_alive(char *err, int32_t fd, int32_t interval)$/;"	f	signature:(char *err, int32_t fd, int32_t interval)
+joylink_adapter_net_keep_alive	joylink_adapter_net.h	/^joylink_adapter_net_keep_alive(char *err, int32_t fd, int32_t int32_terval);$/;"	p	signature:(char *err, int32_t fd, int32_t int32_terval)
+joylink_adapter_net_non_block	joylink_adapter_net.c	/^joylink_adapter_net_non_block(char *err, int32_t fd)$/;"	f	signature:(char *err, int32_t fd)
+joylink_adapter_net_non_block	joylink_adapter_net.h	/^joylink_adapter_net_non_block(char *err, int32_t fd);$/;"	p	signature:(char *err, int32_t fd)
+joylink_adapter_net_read	joylink_adapter_net.c	/^joylink_adapter_net_read(int32_t fd, char *buf, int32_t count)$/;"	f	signature:(int32_t fd, char *buf, int32_t count)
+joylink_adapter_net_read	joylink_adapter_net.h	/^joylink_adapter_net_read(int32_t fd, char *buf, int32_t count);$/;"	p	signature:(int32_t fd, char *buf, int32_t count)
+joylink_adapter_net_read_no_check_out	joylink_adapter_net.c	/^joylink_adapter_net_read_no_check_out(int32_t fd, char *buf, int32_t count)$/;"	f	signature:(int32_t fd, char *buf, int32_t count)
+joylink_adapter_net_recv	joylink_adapter_net.c	/^joylink_adapter_net_recv(int32_t fd, char *buf, int32_t size)$/;"	f	signature:(int32_t fd, char *buf, int32_t size)
+joylink_adapter_net_recv	joylink_adapter_net.h	/^joylink_adapter_net_recv(int32_t fd, char *buf, int32_t size);$/;"	p	signature:(int32_t fd, char *buf, int32_t size)
+joylink_adapter_net_recv_with_time	joylink_adapter_net.c	/^joylink_adapter_net_recv_with_time(int32_t fd, char *buf, int32_t size, int32_t usec, int32_t sec)$/;"	f	signature:(int32_t fd, char *buf, int32_t size, int32_t usec, int32_t sec)
+joylink_adapter_net_recv_with_time	joylink_adapter_net.h	/^joylink_adapter_net_recv_with_time(int32_t fd, char *buf, int32_t size, int32_t usec, int32_t sec);$/;"	p	signature:(int32_t fd, char *buf, int32_t size, int32_t usec, int32_t sec)
+joylink_adapter_net_resolve	joylink_adapter_net.c	/^joylink_adapter_net_resolve(char *err, char *host, char *ipbuf, int32_t ipbuf_len) {$/;"	f	signature:(char *err, char *host, char *ipbuf, int32_t ipbuf_len)
+joylink_adapter_net_resolve	joylink_adapter_net.h	/^joylink_adapter_net_resolve(char *err, char *host, char *ipbuf, int32_t ipbuf_len);$/;"	p	signature:(char *err, char *host, char *ipbuf, int32_t ipbuf_len)
+joylink_adapter_net_resolve_ip	joylink_adapter_net.c	/^joylink_adapter_net_resolve_ip(char *err, char *host, char *ipbuf, int32_t ipbuf_len) {$/;"	f	signature:(char *err, char *host, char *ipbuf, int32_t ipbuf_len)
+joylink_adapter_net_resolve_ip	joylink_adapter_net.h	/^joylink_adapter_net_resolve_ip(char *err, char *host, char *ipbuf, int32_t ipbuf_len);$/;"	p	signature:(char *err, char *host, char *ipbuf, int32_t ipbuf_len)
+joylink_adapter_net_send	joylink_adapter_net.c	/^joylink_adapter_net_send(int32_t fd, char *buf, int32_t size)$/;"	f	signature:(int32_t fd, char *buf, int32_t size)
+joylink_adapter_net_send	joylink_adapter_net.h	/^joylink_adapter_net_send(int32_t fd, char *buf, int32_t size);$/;"	p	signature:(int32_t fd, char *buf, int32_t size)
+joylink_adapter_net_set_error	joylink_adapter_net.c	/^joylink_adapter_net_set_error(char *err, const char *fmt, ...)$/;"	f	file:	signature:(char *err, const char *fmt, ...)
+joylink_adapter_net_set_reuse_addr	joylink_adapter_net.c	/^joylink_adapter_net_set_reuse_addr(char *err, int32_t fd) {$/;"	f	file:	signature:(char *err, int32_t fd)
+joylink_adapter_net_set_send_buf	joylink_adapter_net.c	/^joylink_adapter_net_set_send_buf(char *err, int32_t fd, int32_t buffsize)$/;"	f	signature:(char *err, int32_t fd, int32_t buffsize)
+joylink_adapter_net_set_send_buf	joylink_adapter_net.h	/^joylink_adapter_net_set_send_buf(char *err, int32_t fd, int32_t buffsize);$/;"	p	signature:(char *err, int32_t fd, int32_t buffsize)
+joylink_adapter_net_set_tcp_no_delay	joylink_adapter_net.c	/^joylink_adapter_net_set_tcp_no_delay(char *err, int32_t fd, int32_t val)$/;"	f	file:	signature:(char *err, int32_t fd, int32_t val)
+joylink_adapter_net_tcp6_server	joylink_adapter_net.c	/^joylink_adapter_net_tcp6_server(char *err, int32_t port, char *bindaddr, int32_t backlog)$/;"	f	signature:(char *err, int32_t port, char *bindaddr, int32_t backlog)
+joylink_adapter_net_tcp6_server	joylink_adapter_net.h	/^joylink_adapter_net_tcp6_server(char *err, int32_t port, char *bindaddr, int32_t backlog);$/;"	p	signature:(char *err, int32_t port, char *bindaddr, int32_t backlog)
+joylink_adapter_net_tcp_connect	joylink_adapter_net.c	/^joylink_adapter_net_tcp_connect(char *err, const char *addr, int32_t port)$/;"	f	signature:(char *err, const char *addr, int32_t port)
+joylink_adapter_net_tcp_connect	joylink_adapter_net.h	/^joylink_adapter_net_tcp_connect(char *err, const char *addr, int32_t port);$/;"	p	signature:(char *err, const char *addr, int32_t port)
+joylink_adapter_net_tcp_generic_connect	joylink_adapter_net.c	/^joylink_adapter_net_tcp_generic_connect(char *err, const char *addr, int32_t port, int32_t flags)$/;"	f	file:	signature:(char *err, const char *addr, int32_t port, int32_t flags)
+joylink_adapter_net_tcp_keep_alive	joylink_adapter_net.c	/^joylink_adapter_net_tcp_keep_alive(char *err, int32_t fd)$/;"	f	signature:(char *err, int32_t fd)
+joylink_adapter_net_tcp_keep_alive	joylink_adapter_net.h	/^joylink_adapter_net_tcp_keep_alive(char *err, int32_t fd);$/;"	p	signature:(char *err, int32_t fd)
+joylink_adapter_net_tcp_non_block_connect	joylink_adapter_net.c	/^joylink_adapter_net_tcp_non_block_connect(char *err, char *addr, int32_t port)$/;"	f	signature:(char *err, char *addr, int32_t port)
+joylink_adapter_net_tcp_non_block_connect	joylink_adapter_net.h	/^joylink_adapter_net_tcp_non_block_connect(char *err, char *addr, int32_t port);$/;"	p	signature:(char *err, char *addr, int32_t port)
+joylink_adapter_net_tcp_server	joylink_adapter_net.c	/^joylink_adapter_net_tcp_server(char *err, int32_t port, char *bindaddr, int32_t backlog)$/;"	f	signature:(char *err, int32_t port, char *bindaddr, int32_t backlog)
+joylink_adapter_net_tcp_server	joylink_adapter_net.h	/^joylink_adapter_net_tcp_server(char *err, int32_t port, char *bindaddr, int32_t backlog);$/;"	p	signature:(char *err, int32_t port, char *bindaddr, int32_t backlog)
+joylink_adapter_net_v6_only	joylink_adapter_net.c	/^joylink_adapter_net_v6_only(char *err, int32_t s) $/;"	f	file:	signature:(char *err, int32_t s)
+joylink_adapter_net_write	joylink_adapter_net.c	/^joylink_adapter_net_write(int32_t fd, char *buf, int32_t count)$/;"	f	signature:(int32_t fd, char *buf, int32_t count)
+joylink_adapter_net_write	joylink_adapter_net.h	/^joylink_adapter_net_write(int32_t fd, char *buf, int32_t count);$/;"	p	signature:(int32_t fd, char *buf, int32_t count)
+joylink_adapter_select	joylink_adapter_net.c	/^joylink_adapter_select(int nfds, fd_set *readfds, fd_set *writefds,$/;"	f	signature:(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)
+joylink_adapter_select	joylink_adapter_net.h	/^joylink_adapter_select(int nfds, fd_set *readfds, fd_set *writefds,$/;"	p	signature:(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)
+joylink_adapter_udp_socket	joylink_adapter_net.c	/^joylink_adapter_udp_socket()$/;"	f
+joylink_adapter_udp_socket	joylink_adapter_net.h	/^joylink_adapter_udp_socket();$/;"	p	signature:()
+joylink_agent_HB_req	joylink_agent_gw_2_cloud.c	/^joylink_agent_HB_req()$/;"	f
+joylink_agent_HB_rsps	joylink_agent_gw_2_cloud.c	/^joylink_agent_HB_rsps(char *src, int len)$/;"	f	signature:(char *src, int len)
+joylink_agent_auth_req	joylink_agent_gw_2_cloud.c	/^joylink_agent_auth_req()$/;"	f
+joylink_agent_auth_rsps	joylink_agent_gw_2_cloud.c	/^joylink_agent_auth_rsps(char *src, int len)$/;"	f	signature:(char *src, int len)
+joylink_agent_cloud_auth_hand	joylink_agent.h	/^joylink_agent_cloud_auth_hand(int32_t fd, uint8_t *src, int32_t len);$/;"	p	signature:(int32_t fd, uint8_t *src, int32_t len)
+joylink_agent_cloud_fd	joylink_agent.c	/^joylink_agent_cloud_fd()$/;"	f
+joylink_agent_cloud_finit	joylink_agent.c	/^joylink_agent_cloud_finit(void)$/;"	f	signature:(void)
+joylink_agent_cloud_init	joylink_agent.c	/^joylink_agent_cloud_init(void)$/;"	f	signature:(void)
+joylink_agent_cloud_loop	joylink_agent.c	/^joylink_agent_cloud_loop(void* data)$/;"	f	signature:(void* data)
+joylink_agent_cloud_mg	joylink_agent.c	/^joylink_agent_cloud_mg(void)$/;"	f	file:	signature:(void)
+joylink_agent_cloud_rsp	joylink_agent_gw_2_cloud.c	/^joylink_agent_cloud_rsp(char * src, int32_t src_len)$/;"	f	signature:(char * src, int32_t src_len)
+joylink_agent_cloud_rsp_packet	joylink_agent.c	/^joylink_agent_cloud_rsp_packet($/;"	f	signature:( uint8_t* pBuf, int buflen, E_PacketType cmd, uint8_t* pOpt, int optLen, uint8_t* key, const uint8_t* payload, int payloadLen)
+joylink_agent_cloud_server_proc	joylink_agent.c	/^joylink_agent_cloud_server_proc(int32_t gw_fd)$/;"	f	file:	signature:(int32_t gw_fd)
+joylink_agent_create_cloud_auth_json_req	joylink_agent_json.h	/^joylink_agent_create_cloud_auth_json_req();$/;"	p	signature:()
+joylink_agent_create_cloud_auth_json_req_f	joylink_agent_gw_2_cloud.c	/^joylink_agent_create_cloud_auth_json_req_f();$/;"	p	file:
+joylink_agent_create_cloud_auth_json_req_f	joylink_agent_json.c	/^joylink_agent_create_cloud_auth_json_req_f()$/;"	f
+joylink_agent_create_cloud_hb_json_req	joylink_agent_json.c	/^joylink_agent_create_cloud_hb_json_req()$/;"	f
+joylink_agent_create_cloud_hb_json_req	joylink_agent_json.h	/^joylink_agent_create_cloud_hb_json_req();$/;"	p	signature:()
+joylink_agent_create_cloud_snap_json_req	joylink_agent_json.c	/^joylink_agent_create_cloud_snap_json_req()$/;"	f
+joylink_agent_create_cloud_snap_json_req	joylink_agent_json.h	/^joylink_agent_create_cloud_snap_json_req();$/;"	p	signature:()
+joylink_agent_dev_add	joylink_agent_devs.c	/^joylink_agent_dev_add(char feedid[JL_MAX_FEEDID_LEN], char ackey[JL_MAX_ACKEY_LEN])$/;"	f	signature:(char feedid[JL_MAX_FEEDID_LEN], char ackey[JL_MAX_ACKEY_LEN])
+joylink_agent_dev_add	joylink_agent_devs.h	/^joylink_agent_dev_add(char feedid[JL_MAX_FEEDID_LEN], $/;"	p	signature:(char feedid[JL_MAX_FEEDID_LEN], char ackey[JL_MAX_ACKEY_LEN])
+joylink_agent_dev_cloud_HB_hand	joylink_agent.c	/^joylink_agent_dev_cloud_HB_hand(int32_t fd, uint8_t *payload, $/;"	f	signature:(int32_t fd, uint8_t *payload, int32_t s_len)
+joylink_agent_dev_cloud_auth_hand	joylink_agent.c	/^joylink_agent_dev_cloud_auth_hand(int32_t fd, char* feedid, uint32_t d_rand, $/;"	f	signature:(int32_t fd, char* feedid, uint32_t d_rand, uint8_t *payload, int32_t s_len, char* auth_org)
+joylink_agent_dev_cloud_upload_hand	joylink_agent.c	/^joylink_agent_dev_cloud_upload_hand(int32_t fd, uint8_t *payload, $/;"	f	signature:(int32_t fd, uint8_t *payload, int32_t s_len)
+joylink_agent_dev_del	joylink_agent_devs.c	/^joylink_agent_dev_del(char *feedid)$/;"	f	signature:(char *feedid)
+joylink_agent_dev_del	joylink_agent_devs.h	/^joylink_agent_dev_del(char *feedid);$/;"	p	signature:(char *feedid)
+joylink_agent_dev_get	joylink_agent_devs.c	/^joylink_agent_dev_get(char *feedid)$/;"	f	signature:(char *feedid)
+joylink_agent_dev_get	joylink_agent_devs.h	/^joylink_agent_dev_get(char *feedid);$/;"	p	signature:(char *feedid)
+joylink_agent_dev_get_keys	joylink_agent_devs.c	/^joylink_agent_dev_get_keys(char feedid[JL_MAX_FEEDID_LEN], $/;"	f	signature:(char feedid[JL_MAX_FEEDID_LEN], char ackey[JL_MAX_ACKEY_LEN], char sessionkey[JL_MAX_SESSION_KEY_LEN])
+joylink_agent_dev_req_proc	joylink_agent.c	/^joylink_agent_dev_req_proc(int fd)$/;"	f	signature:(int fd)
+joylink_agent_dev_rsp	joylink_agent.c	/^joylink_agent_dev_rsp()$/;"	f
+joylink_agent_dev_upd	joylink_agent_devs.c	/^joylink_agent_dev_upd(char *feedid, AgentDev_t *pad)$/;"	f	signature:(char *feedid, AgentDev_t *pad)
+joylink_agent_dev_upd	joylink_agent_devs.h	/^joylink_agent_dev_upd(char *feedid, AgentDev_t *pad);$/;"	p	signature:(char *feedid, AgentDev_t *pad)
+joylink_agent_devs_get_fds	joylink_agent_devs.c	/^joylink_agent_devs_get_fds(int fds[AGENT_DEV_MAX])$/;"	f	signature:(int fds[AGENT_DEV_MAX])
+joylink_agent_devs_get_fds	joylink_agent_devs.h	/^joylink_agent_devs_get_fds(int fds[AGENT_DEV_MAX]);$/;"	p	signature:(int fds[AGENT_DEV_MAX])
+joylink_agent_devs_load	joylink_agent_devs.c	/^joylink_agent_devs_load(void)$/;"	f	signature:(void)
+joylink_agent_devs_load	joylink_agent_devs.h	/^joylink_agent_devs_load(void);$/;"	p	signature:(void)
+joylink_agent_get_dev_by_fd	joylink_agent_devs.c	/^joylink_agent_get_dev_by_fd(int fd)$/;"	f	signature:(int fd)
+joylink_agent_get_dev_by_fd	joylink_agent_devs.h	/^joylink_agent_get_dev_by_fd(int fd);$/;"	p	signature:(int fd)
+joylink_agent_get_feedid_by_fd	joylink_agent_devs.c	/^joylink_agent_get_feedid_by_fd(int fd, char feedid[JL_MAX_FEEDID_LEN])$/;"	f	signature:(int fd, char feedid[JL_MAX_FEEDID_LEN])
+joylink_agent_get_feedid_by_fd	joylink_agent_devs.h	/^joylink_agent_get_feedid_by_fd(int fd, char feedid[JL_MAX_FEEDID_LEN]);$/;"	p	signature:(int fd, char feedid[JL_MAX_FEEDID_LEN])
+joylink_agent_gw_thread_start	joylink_agent.c	/^joylink_agent_gw_thread_start()$/;"	f
+joylink_agent_gw_thread_start	test.c	/^joylink_agent_gw_thread_start();$/;"	p	file:
+joylink_agent_gw_thread_stop	joylink_agent.c	/^joylink_agent_gw_thread_stop()$/;"	f
+joylink_agent_make_session_key	joylink_agent.c	/^joylink_agent_make_session_key(char *skey)$/;"	f	signature:(char *skey)
+joylink_agent_package_and_send	joylink_agent_gw_2_cloud.c	/^joylink_agent_package_and_send(char* msg, int32_t msg_len, int32_t cmd)$/;"	f	signature:(char* msg, int32_t msg_len, int32_t cmd)
+joylink_agent_snap_req	joylink_agent_gw_2_cloud.c	/^joylink_agent_snap_req()$/;"	f
+joylink_agent_snap_rsps	joylink_agent_gw_2_cloud.c	/^joylink_agent_snap_rsps(char *src, int len)$/;"	f	signature:(char *src, int len)
+joylink_agent_tcp_recv	joylink_agent.c	/^joylink_agent_tcp_recv(char fd, char *rec_buff, int max)$/;"	f	signature:(char fd, char *rec_buff, int max)
+joylink_cloud_set_st	joylink_adapter_net.c	/^extern void joylink_cloud_set_st(int32_t value);$/;"	p	file:	signature:(int32_t value)
+joylink_dencypt_server_req	joylink_agent.c	/^joylink_dencypt_server_req($/;"	p	file:	signature:( JLPacketParam_t *pParam, const uint8_t *pIn, int length, uint8_t* pOut, int maxlen, char* feedid)
+joylink_net_generic_accept	joylink_adapter_net.c	/^static int32_t joylink_net_generic_accept(char *err, int32_t s, struct sockaddr *sa, socklen_t *len) {$/;"	f	file:	signature:(char *err, int32_t s, struct sockaddr *sa, socklen_t *len)
+joylink_net_listen	joylink_adapter_net.c	/^joylink_net_listen(char *err, int32_t s, struct sockaddr *sa, socklen_t len, int32_t backlog) {$/;"	f	file:	signature:(char *err, int32_t s, struct sockaddr *sa, socklen_t len, int32_t backlog)
+joylink_net_peer_to_string	joylink_adapter_net.c	/^joylink_net_peer_to_string(int32_t fd, char *ip, int32_t ip_len, int32_t *port) {$/;"	f	signature:(int32_t fd, char *ip, int32_t ip_len, int32_t *port)
+joylink_net_peer_to_string	joylink_adapter_net.h	/^joylink_net_peer_to_string(int32_t fd, char *ip, int32_t ip_len, int32_t *port);$/;"	p	signature:(int32_t fd, char *ip, int32_t ip_len, int32_t *port)
+joylink_net_sock_name	joylink_adapter_net.c	/^joylink_net_sock_name(int32_t fd, char *ip, int32_t ip_len, int32_t *port) {$/;"	f	signature:(int32_t fd, char *ip, int32_t ip_len, int32_t *port)
+joylink_net_sock_name	joylink_adapter_net.h	/^joylink_net_sock_name(int32_t fd, char *ip, int32_t ip_len, int32_t *port);$/;"	p	signature:(int32_t fd, char *ip, int32_t ip_len, int32_t *port)
+joylink_net_tcp_accept	joylink_adapter_net.c	/^joylink_net_tcp_accept(char *err, int32_t s, char *ip, int32_t ip_len, int32_t *port) {$/;"	f	signature:(char *err, int32_t s, char *ip, int32_t ip_len, int32_t *port)
+joylink_net_tcp_accept	joylink_adapter_net.h	/^joylink_net_tcp_accept(char *err, int32_t serversock, char *ip, int32_t ip_len, int32_t *port);$/;"	p	signature:(char *err, int32_t serversock, char *ip, int32_t ip_len, int32_t *port)
+joylink_net_unix_accept	joylink_adapter_net.h	/^joylink_net_unix_accept(char *err, int32_t serversock);$/;"	p	signature:(char *err, int32_t serversock)
+joylink_package_ota_fff_upload	joylink_agent_gw_2_cloud.c	/^joylink_package_ota_fff_upload();$/;"	p	file:
+joylink_packet_server_hb_xxx_req	test.c	/^joylink_packet_server_hb_xxx_req(void);$/;"	p	file:	signature:(void)
+joylink_server_st_init	test.c	/^joylink_server_st_init()$/;"	f	file:
+joylink_util_byte2hexstr	joylink_agent_json.c	/^joylink_util_byte2hexstr(const uint8_t *pBytes, int srcLen, uint8_t *pDstStr, int dstLen);$/;"	p	file:	signature:(const uint8_t *pBytes, int srcLen, uint8_t *pDstStr, int dstLen)
+main	test.c	/^int main(int argc , char **argv)$/;"	f	signature:(int argc , char **argv)
+ntid	joylink_agent.c	/^    pthread_t ntid;$/;"	m	struct:__anon1	file:	access:public
+random	joylink_agent.h	/^    int32_t random;$/;"	m	struct:__anon10	access:public
+s_host_ipv4	joylink_adapter_net.c	/^uint8_t s_host_ipv4[32] = {0};$/;"	v
+sessionkey	joylink_agent.h	/^	char sessionkey[JL_MAX_SESSION_KEY_LEN];$/;"	m	struct:__anon10	access:public
+snap	joylink_agent.h	/^    char *snap;$/;"	m	struct:__anon10	access:public
+snap_len	joylink_agent.h	/^    int32_t snap_len;$/;"	m	struct:__anon10	access:public
+snaps	joylink_agent.h	/^	char* snaps;$/;"	m	struct:__anon8	access:public
+snaps_len	joylink_agent.h	/^	int snaps_len;$/;"	m	struct:__anon8	access:public
+st	joylink_agent.c	/^    int32_t st;$/;"	m	struct:__anon1	file:	access:public
+st	joylink_agent.h	/^    int32_t st;$/;"	m	struct:__anon10	access:public
+test_adevs	test.c	/^void test_adevs()$/;"	f
+test_adevs_init	test.c	/^void test_adevs_init()$/;"	f
+test_send	test.c	/^void test_send()$/;"	f
+timestamp	joylink_agent.h	/^	unsigned int timestamp;$/;"	m	struct:__anon4	access:public
+timestamp	joylink_agent.h	/^	unsigned int timestamp;$/;"	m	struct:__anon5	access:public
+timestamp	joylink_agent.h	/^	unsigned int timestamp;$/;"	m	struct:__anon6	access:public
+timestamp	joylink_agent.h	/^	unsigned int timestamp;$/;"	m	struct:__anon7	access:public
+timestamp	joylink_agent.h	/^	unsigned int timestamp;$/;"	m	struct:__anon8	access:public
+timestamp	joylink_agent.h	/^	unsigned int timestamp;$/;"	m	struct:__anon9	access:public
