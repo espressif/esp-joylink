@@ -140,13 +140,13 @@ DDEFINES +=				\
 INCLUDES := $(INCLUDES) -I $(PDIR)include -I $(PDIR)utilities
 INCLUDES += -I $(PDIR)utilities/adapter
 INCLUDES += -I $(PDIR)platforms/include
-INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_smartconfig
-INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_softap
-INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_lib/json
-INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_lib/joylink
-INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_lib/extern
-INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_lib/auth
-INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_lib/list
+INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_smnt_v3.0.11
+INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_softap_v3.0.4
+INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_dev_sdk_2.0_2018_04_24/json
+INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_dev_sdk_2.0_2018_04_24/joylink
+INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_dev_sdk_2.0_2018_04_24/extern
+INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_dev_sdk_2.0_2018_04_24/auth
+INCLUDES += -I $(PDIR)platforms/joylink/adaptation/joylink_dev_sdk_2.0_2018_04_24/list
 sinclude $(SDK_PATH)/Makefile
 
 .PHONY: FORCE

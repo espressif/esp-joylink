@@ -7,8 +7,9 @@ Copyright (c) 2015-2050, JD Smart All rights reserved.
 
 /* Copyright 2014, Kenneth MacKay. Licensed under the BSD 2-clause license. */
 
-#include "joylink_auth_uECC.h"
+#include "esp_joylink_auth_uECC.h"
 #include "joylink_auth_uECC_vli.h"
+#include "adaptation.h"
 
 #ifndef uECC_RNG_MAX_TRIES
     #define uECC_RNG_MAX_TRIES 64
@@ -183,7 +184,7 @@ static uECC_RNG_Function g_rng_function = &default_RNG;
 static uECC_RNG_Function g_rng_function = 0;
 #endif
 
-void uECC_set_rng(uECC_RNG_Function rng_function) {
+void esp_uECC_set_rng(uECC_RNG_Function rng_function) {
     g_rng_function = rng_function;
 }
 
@@ -207,9 +208,11 @@ uECC_VLI_API void uECC_vli_clear(uECC_word_t *vli, wordcount_t num_words) {
 uECC_VLI_API uECC_word_t uECC_vli_isZero(const uECC_word_t *vli, wordcount_t num_words) {
     uECC_word_t bits = 0;
     wordcount_t i;
+//    printf("\r\nbits=%d, num_words=%d\r\n",bits,num_words);
     for (i = 0; i < num_words; ++i) {
         bits |= vli[i];
     }
+//    printf("\r\nbits=%d, num_words=%d\r\n",bits,num_words);
     return (bits == 0);
 }
 
@@ -297,6 +300,7 @@ uECC_VLI_API cmpresult_t uECC_vli_cmp(const uECC_word_t *left,
     uECC_word_t tmp[uECC_MAX_WORDS];
     uECC_word_t neg = !!uECC_vli_sub(tmp, left, right, num_words);
     uECC_word_t equal = uECC_vli_isZero(tmp, num_words);
+//    printf("\r\nequal=%d, neg=%d\r\n",equal,neg);
     return (!equal - 2 * neg);
 }
 
@@ -975,11 +979,13 @@ uECC_VLI_API int uECC_generate_random_int(uECC_word_t *random,
     bitcount_t num_bits = uECC_vli_numBits(top, num_words);
 
     if (!g_rng_function) {
+        printf("\r\n- 1 -\r\n");
         return 0;
     }
 
     for (tries = 0; tries < uECC_RNG_MAX_TRIES; ++tries) {
         if (!g_rng_function((uint8_t *)random, num_words * uECC_WORD_SIZE)) {
+            printf("\r\n- 2 -\r\n");
             return 0;
 	    }
         random[num_words - 1] &= mask >> ((bitcount_t)(num_words * uECC_WORD_SIZE * 8 - num_bits));
@@ -988,10 +994,11 @@ uECC_VLI_API int uECC_generate_random_int(uECC_word_t *random,
             return 1;
         }
     }
+    printf("\r\n- 3 - tries = %d, uECC_WORD_SIZE =%d, num_words=%d\r\n",tries,uECC_WORD_SIZE,num_words);
     return 0;
 }
 
-int uECC_make_key(uint8_t *public_key,
+int esp_uECC_make_key(uint8_t *public_key,
                   uint8_t *private_key,
                   uECC_Curve curve) {
     uECC_word_t private[uECC_MAX_WORDS];
@@ -1001,7 +1008,7 @@ int uECC_make_key(uint8_t *public_key,
     for (tries = 0; tries < uECC_RNG_MAX_TRIES; ++tries) {
         if (!uECC_generate_random_int(private, curve->n, BITS_TO_WORDS(curve->num_n_bits))) {
 
-			printf_high("ECC generate random fail\n");
+			printf("ECC generate random fail,curve->num_n_bits=%d,BITS_TO_WORDS(curve->num_n_bits)=%d,tries=%d\n",curve->num_n_bits,BITS_TO_WORDS(curve->num_n_bits),tries);
             return 0;
         }
 
@@ -1016,7 +1023,7 @@ int uECC_make_key(uint8_t *public_key,
     return 0;
 }
 
-int uECC_shared_secret(const uint8_t *public_key,
+int esp_uECC_shared_secret(const uint8_t *public_key,
                        const uint8_t *private_key,
                        uint8_t *secret,
                        uECC_Curve curve) {
@@ -1052,7 +1059,7 @@ int uECC_shared_secret(const uint8_t *public_key,
 }
 
 #if uECC_SUPPORT_COMPRESSED_POINT
-void uECC_compress(const uint8_t *public_key, uint8_t *compressed, uECC_Curve curve) {
+void esp_uECC_compress(const uint8_t *public_key, uint8_t *compressed, uECC_Curve curve) {
     wordcount_t i;
     for (i = 0; i < curve->num_bytes; ++i) {
         compressed[i+1] = public_key[i];
@@ -1060,7 +1067,7 @@ void uECC_compress(const uint8_t *public_key, uint8_t *compressed, uECC_Curve cu
     compressed[0] = 2 + (public_key[curve->num_bytes * 2 - 1] & 0x01);
 }
 
-void uECC_decompress(const uint8_t *compressed, uint8_t *public_key, uECC_Curve curve) {
+void esp_uECC_decompress(const uint8_t *compressed, uint8_t *public_key, uECC_Curve curve) {
     uECC_word_t point[uECC_MAX_WORDS * 2];
     uECC_word_t *y = point + curve->num_words;
     uECC_vli_bytesToNative(point, compressed + 1, curve->num_bytes);
@@ -1076,7 +1083,7 @@ void uECC_decompress(const uint8_t *compressed, uint8_t *public_key, uECC_Curve 
 }
 #endif /* uECC_SUPPORT_COMPRESSED_POINT */
 
-int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve) {
+int uECC_valid_point_rename(const uECC_word_t *point, uECC_Curve curve) {
     uECC_word_t tmp1[uECC_MAX_WORDS];
     uECC_word_t tmp2[uECC_MAX_WORDS];
     wordcount_t num_words = curve->num_words;
@@ -1099,16 +1106,16 @@ int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve) {
     return (int)(uECC_vli_equal(tmp1, tmp2, num_words));
 }
 
-int uECC_valid_public_key(const uint8_t *public_key, uECC_Curve curve) {
+int esp_uECC_valid_public_key(const uint8_t *public_key, uECC_Curve curve) {
     uECC_word_t public[uECC_MAX_WORDS * 2];
 
     uECC_vli_bytesToNative(public, public_key, curve->num_bytes);
     uECC_vli_bytesToNative(
         public + curve->num_words, public_key + curve->num_bytes, curve->num_bytes);
-    return uECC_valid_point(public, curve);
+    return uECC_valid_point_rename(public, curve);
 }
 
-int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key, uECC_Curve curve) {
+int esp_uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key, uECC_Curve curve) {
     uECC_word_t private[uECC_MAX_WORDS];
     uECC_word_t public[uECC_MAX_WORDS * 2];
 
@@ -1224,7 +1231,7 @@ static int uECC_sign_with_k(const uint8_t *private_key,
     return 1;
 }
 
-int uECC_sign(const uint8_t *private_key,
+int esp_uECC_sign(const uint8_t *private_key,
               const uint8_t *message_hash,
               unsigned hash_size,
               uint8_t *signature,
@@ -1295,7 +1302,7 @@ static void update_V(const uECC_HashContext *hash_context, uint8_t *K, uint8_t *
     * We generate a value for k (aka T) directly rather than converting endianness.
 
    Layout of hash_context->tmp: <K> | <V> | (1 byte overlapped 0x00 or 0x01) / <HMAC pad> */
-int uECC_sign_deterministic(const uint8_t *private_key,
+int esp_uECC_sign_deterministic(const uint8_t *private_key,
                             const uint8_t *message_hash,
                             unsigned hash_size,
                             const uECC_HashContext *hash_context,
@@ -1372,7 +1379,7 @@ static bitcount_t smax(bitcount_t a, bitcount_t b) {
     return (a > b ? a : b);
 }
 
-int uECC_verify(const uint8_t *public_key,
+int esp_uECC_verify(const uint8_t *public_key,
                 const uint8_t *message_hash,
                 unsigned hash_size,
                 const uint8_t *signature,

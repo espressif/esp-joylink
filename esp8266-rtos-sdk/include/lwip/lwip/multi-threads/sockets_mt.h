@@ -85,7 +85,7 @@ int lwip_trace_tcp(int s, int cmd, void *arg);
 #define read(a,b,c)           lwip_read_mt(a,b,c)
 #define write(a,b,c)          lwip_write_mt(a,b,c)
 #define close(s)              lwip_close_mt(s)
-#define fcntl(a,b,c)          lwip_fcntl_mt(a,b,c)
+//#define fcntl(a,b,c)          lwip_fcntl_mt(a,b,c)
 #endif /* LWIP_POSIX_SOCKETS_IO_NAMES */
 
 

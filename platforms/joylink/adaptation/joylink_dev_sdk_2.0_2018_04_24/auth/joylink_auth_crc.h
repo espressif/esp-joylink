@@ -9,6 +9,10 @@
 #include <stdint.h>
 #endif
 
+#if defined(ESP_8266)
+#include "stdint.h"
+#endif
+
 #include <unistd.h>
 #include <stdio.h>
 unsigned short CRC16(const unsigned char* buffer, unsigned int size);

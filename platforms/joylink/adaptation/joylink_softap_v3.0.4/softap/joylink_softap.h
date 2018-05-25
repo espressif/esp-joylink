@@ -5,8 +5,8 @@ Copyright (c) 2015-2050, JD Smart All rights reserved.
 *************************************/
 
 
-#ifndef _JOYLINK_H_
-#define _JOYLINK_H_
+#ifndef _ESP_JOYLINK_H_
+#define _ESP_JOYLINK_H_
 #include "joylink_head.h"
 #define SIZE_SSID		32
 #define SIZE_PASSWORD	64
@@ -42,6 +42,7 @@ Note:
     In softap mode,system is expected to use this as the ssid.And the password is default "12345678"
 */
 extern uint8				softap_ssid[MAX_LEN_OF_SSID+1];
+#define DEFAULT_PASSWORD    "" //"12345678"
 
 /*
 Routine Description:
@@ -93,5 +94,7 @@ Note:
 	If the function return the right result,System shoud enter to STA mode and try to connet to the ssid
 */
 int joylink_softap_result(joylinkSoftAP_Result_t* pRet);
+
+int joylink_softap_success(void);
 
 #endif

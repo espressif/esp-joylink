@@ -27,6 +27,7 @@
 
 #include "joylink.h"
 #include "joylink_config.h"
+#include "esp_common.h"
 
 #ifdef  __cplusplus
 extern "C" {

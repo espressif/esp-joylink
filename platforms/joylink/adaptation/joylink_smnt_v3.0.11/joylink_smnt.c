@@ -6,30 +6,26 @@ Copyright (c) 2015-2050, JD Smart All rights reserved.
 #include <stdio.h>
 #include <string.h>
 #include "joylink_smnt.h"
-#include "joylink_auth_aes.h"
-
 #define STEP_MULTICAST_HOLD_CHANNEL				5
-#define STEP_BROADCAST_HOLD_CHANNEL				4
+#define STEP_BROADCAST_HOLE_CHANNEL				4
 #define STEP_BROADCAST_ERROR_HOLE_CHANNEL		2
-#define PAYLOAD_MIN								(3)
-#define PAYLOAD_MAX								(48+1)				
 
+#define PAYLOAD_MIN		(3)
+#define PAYLOAD_MAX		(48+1)				
 
-typedef struct{
-	unsigned char type;	                        // 0:NotReady, 1:ControlPacketOK, 2:BroadcastOK, 3:MulticastOK
-	unsigned char encData[1+32+32+32];            // length + EncodeData
-}smnt_encrypt_data_t;
+//#define printf_high printf
+#define printf_high(...)
 
-typedef enum{
-	SMART_CH_INIT 		=	0x1,
-	SMART_CH_LOCKING 	=	0x2,
-	SMART_CH_LOCKED 	=	0x4,
-	SMART_FINISH 		= 	0x8
-}smnt_status_t;
+static uint8 getCrc(uint8 *ptr, uint8 len);
+static void dump8(uint8* p, int split, int len);
+static int  payLoadCheck(void);
+static void muticastAdd(uint8* pAddr);
+static void broadcastAdd(int ascii);
 
-
-typedef struct{
-	smnt_status_t state;	
+typedef struct _joylinkSmnt
+{
+	joylink_smnt_type_t jd_smnt_type;
+	joylink_smnt_status_t state;	
 	uint16 syncFirst;				
 	uint8 syncCount;				
 	uint8 syncStepPoint;			
@@ -50,129 +46,64 @@ typedef struct{
 	uint8 chCurrentIndex;		
 	uint8 chCurrentProbability;	
 	uint8 isProbeReceived;	
-	uint8 payload_multicast[128];	
-	uint8 payload_broadcast[128];
-	smnt_encrypt_data_t result;	
+	uint8 payload[128];		
+	joylinkResult_t result;	
 }joylinkSmnt_t;
 
 joylinkSmnt_t* pSmnt = NULL;
-joylink_smnt_param_t	joylink_smnt_gobal;
-static int  joylink_smnt_payLoadcheck(uint8 *payload);
-static void joylink_smnt_muticastadd(uint8* pAddr);
-static void joylink_smnt_broadcastadd(int ascii);
-static uint8 joylink_smnt_crc(uint8 *ptr, uint8 len);
-static void joylink_smnt_bufferprintf(uint8* p, int split, int len);
 
-
-
-
-void joylink_smnt_init(joylink_smnt_param_t param)
+static int payLoadCheck(void)
 {
-	printf("+++++++++++++SMNT INIT %s+++++++++++++++++",VERSION_SMNT);
-        
-    pSmnt = (joylinkSmnt_t *)malloc(sizeof(joylinkSmnt_t));
-	
+	uint8 crc = getCrc(pSmnt->payload + 1, pSmnt->payload[1]+1);
+	if ((pSmnt->payload[1] > (PAYLOAD_MIN*2)) &&
+		(pSmnt->payload[1] < (PAYLOAD_MAX*2)) &&
+        (pSmnt->payload[0] == crc)){
+
+		joylinkResult_t* pRet = &pSmnt->result;
+		memcpy(pRet->encData, pSmnt->payload+1, pSmnt->payload[1]+1);
+		pRet->type = pSmnt->result.type;
+        pSmnt->state = SMART_FINISH;
+        return 0;
+	}
+	return 1;
+}
+
+
+void joylink_cfg_init(unsigned char* pBuffer)
+{
+	pSmnt = (void*)pBuffer;
     memset(pSmnt, 0, sizeof(joylinkSmnt_t) );
-	memset(pSmnt->payload_multicast, 0xFF, sizeof(pSmnt->payload_multicast));	
-	memset(pSmnt->payload_broadcast, 0xFF, sizeof(pSmnt->payload_broadcast));
-	
-	memcpy(joylink_smnt_gobal.secretkey,param.secretkey,16);
-	
-	if(param.get_result_callback != NULL){
-		joylink_smnt_gobal.get_result_callback = param.get_result_callback;
-	}else{
-		printf("get_result_callback is NULL\n");
-	}
-
-	if(param.switch_channel_callback != NULL){
-		joylink_smnt_gobal.switch_channel_callback = param.switch_channel_callback;
-	}else{
-		printf("switch_channel_callback is NULL\n");
-	}
-	return;
-}
-
-void joylink_smnt_release(void)
-{
-	memset(joylink_smnt_gobal.secretkey,0,sizeof(joylink_smnt_gobal.secretkey));
-	joylink_smnt_gobal.get_result_callback 		= NULL;
-	joylink_smnt_gobal.switch_channel_callback 	= NULL;
-
-	if(pSmnt != NULL){
-		free(pSmnt);
-		pSmnt = NULL;
-	}
-}
-
-void joylink_smnt_reset(void)
-{
-	if(pSmnt != NULL){
-		memset(pSmnt,0,sizeof(pSmnt));
-	}
+	memset(pSmnt->payload, 0xFF, 128);	
 }
 
 
-static void  joylink_smnt_finish(void)
+int  joylink_cfg_Result(joylinkResult_t* pRet)
 {
-	int ret = 128;
-	uint8 iv[16] = {0};
+	pRet->type = 0;
 	
-	joylink_smnt_result_t smnt_result;
-	memset(&smnt_result,0,sizeof(smnt_result));
 	if (pSmnt && (pSmnt->state== SMART_FINISH) ){
-
-		joylink_smnt_bufferprintf(pSmnt->result.encData, 1, pSmnt->result.encData[0]);
-		memset(&smnt_result,0,sizeof(smnt_result));
-
-		ret = JLdevice_aes_decrypt(joylink_smnt_gobal.secretkey,16,iv,pSmnt->result.encData+1,pSmnt->result.encData[0],pSmnt->result.encData+1,128);
-	
-		if((ret> 0) && (ret <= 96)){
-			smnt_result.jd_password_len = pSmnt->result.encData[1];
-			smnt_result.jd_ssid_len	 = ret - smnt_result.jd_password_len -1 -6;
-			memcpy(smnt_result.jd_password,pSmnt->result.encData+2,smnt_result.jd_password_len);
-			memcpy(smnt_result.jd_ssid,pSmnt->result.encData + 2 + smnt_result.jd_password_len +6,smnt_result.jd_ssid_len);	
-
-			smnt_result.smnt_result_status = smnt_result_ok;
-		}else{
-			smnt_result.smnt_result_status = smnt_result_decrypt_error;
-		}
-		
-		if(joylink_smnt_gobal.get_result_callback == NULL){
-			printf("ERROR:joylink_smnt_finish->get_result_callback NULL\n");
-			goto RET;
-		}
-		
-		joylink_smnt_gobal.get_result_callback(smnt_result);
+		memcpy(pRet, &pSmnt->result, sizeof(joylinkResult_t));
+		return 0;
 	}
-RET:
-	return;
+	
+	return 1;
 }
 
-
-int joylink_smnt_cyclecall(void)
+int joylink_cfg_50msTimer(void)
 {
-	if(pSmnt == NULL){
-    	return 50;
-  	}
-
-	if(joylink_smnt_gobal.switch_channel_callback == NULL){
-		printf("switch channel function NULL\n");
-		return 50;
-	}
-	
-    if (pSmnt->directTimerSkip){
+	if (pSmnt->directTimerSkip){
 		pSmnt->directTimerSkip--;
 		return 50;
 	}
 	
 	if (pSmnt->state == SMART_FINISH){
-		printf("-------------------->Finished\n");
+		printf_high("-------------------->Finished\n");
 		pSmnt->directTimerSkip = 10000/50;
 		return 50;
 	}
 	
 	if (pSmnt->isProbeReceived >0 ){
-		printf("-------------------->Probe Stay(CH:%d) %d\n", pSmnt->chCurrentIndex+1, pSmnt->isProbeReceived);
+		printf_high("-------------------->Probe Stay(CH:%d) %d\n", pSmnt->chCurrentIndex + 1, pSmnt->isProbeReceived);
 		pSmnt->isProbeReceived = 0;
 		pSmnt->directTimerSkip = 5000 / 50;
 		return 50;
@@ -180,38 +111,42 @@ int joylink_smnt_cyclecall(void)
 	
 	if (pSmnt->chCurrentProbability > 0){
 		pSmnt->chCurrentProbability--;
-		printf("------------------->SYNC (CH:%d) %d\n", pSmnt->chCurrentIndex+1, pSmnt->chCurrentProbability);
+		printf_high("------------------->SYNC (CH:%d) %d\n", pSmnt->chCurrentIndex + 1, pSmnt->chCurrentProbability);
 		return 50;
 	}
-
-	pSmnt->chCurrentIndex = (pSmnt->chCurrentIndex + 1) % 13;
-	
-	if(joylink_smnt_gobal.switch_channel_callback != NULL){
-		joylink_smnt_gobal.switch_channel_callback(pSmnt->chCurrentIndex+1);
-	}
-	
-	pSmnt->state 			= SMART_CH_LOCKING;
+    uint8 channel_val = (pSmnt->chCurrentIndex + 1) % 13;
+    
+    if (adp_changeCh(channel_val +1)) {
+        pSmnt->chCurrentIndex = (pSmnt->chCurrentIndex + 1) % 13;//CHANNEL_ALL_NUM;
+    }
+	//pSmnt->chCurrentIndex = (pSmnt->chCurrentIndex + 1) % 13;
+	//adp_changeCh(pSmnt->chCurrentIndex +1);
+	pSmnt->state = SMART_CH_LOCKING;
+	pSmnt->jd_smnt_type 	= TYPE_JOY_OTHER;
 	pSmnt->syncStepPoint = 0;
 	pSmnt->syncCount = 0;
 	pSmnt->chCurrentProbability = 0;
-//	printf("CH=%d, T=%d\n", pSmnt->chCurrentIndex, 50);
+	//printf_high("CH=%d, T=%d\n", pSmnt->chCurrentIndex +1, 50);
 	return 50;
 }
 
-static void  joylink_smnt_broadcastadd(int ascii)
+static void  broadcastAdd(int ascii)
 {
 	uint8 isFlag = (uint8)((ascii >> 8) & 0x1);
 	uint8 is_finishpacket = 0;
 
 	uint8 *broadbuffer=pSmnt->broadBuffer,*broadindex = &(pSmnt->broadIndex);
-	if (isFlag){
+	if (isFlag)
+	{
 		*broadindex = 0;
 		*broadbuffer = (uint8)ascii;
-	}else{
+	}
+	else
+	{
 		*broadindex = *broadindex + 1;
 		broadbuffer[*broadindex] = (uint8)ascii;
 
-		if((((pSmnt->payload_broadcast[1] +2) / 4 + 1) == ( (*broadbuffer) >> 3))  && (pSmnt->payload_broadcast[1] != 0) && (pSmnt->payload_broadcast[1] != 0xFF))
+		if((((pSmnt->payload[1] +2) / 4 + 1) == ( (*broadbuffer) >> 3))  && (pSmnt->payload[1] != 0) && (pSmnt->payload[1] != 0xFF))
 		{
 			if(*broadindex == 2){
 				is_finishpacket = 1;
@@ -225,40 +160,44 @@ static void  joylink_smnt_broadcastadd(int ascii)
 			*broadindex = 0;
 			uint8 crc = (*broadbuffer) & 0x7;
 			uint8 index = (*broadbuffer) >> 3;
-			uint8 rCrc = joylink_smnt_crc(broadbuffer + 1, 4) & 0x7;
+			uint8 rCrc = getCrc(broadbuffer + 1, 4) & 0x7;
 			
 			/*not to check the last pacet crc,It is a patch for the last packet is a lot wrong which maybe leaded by the phone*/
 			if (((index>0) && (index<33) && (rCrc == crc)))
 			{
-				memcpy(pSmnt->payload_broadcast + (index - 1) * 4, broadbuffer + 1, 4);
+				memcpy(pSmnt->payload + (index - 1) * 4, broadbuffer + 1, 4);
 					
-				printf("B(%x=%x)--%02x,%02x,%02x,%02x\n", index, broadbuffer[0], broadbuffer[1], broadbuffer[2], broadbuffer[3], broadbuffer[4]);
-				index = joylink_smnt_payLoadcheck(pSmnt->payload_broadcast);
+				printf_high("B(%x=%x)--%02x,%02x,%02x,%02x\n", index, broadbuffer[0], broadbuffer[1], broadbuffer[2], broadbuffer[3], broadbuffer[4]);
+				index = payLoadCheck();
 
 				if (pSmnt->chCurrentProbability < 30){ 
-					pSmnt->chCurrentProbability += STEP_BROADCAST_HOLD_CHANNEL;
+					pSmnt->chCurrentProbability += STEP_BROADCAST_HOLE_CHANNEL;
 				}
 				
 				if (index == 0){	
 					pSmnt->result.type = 2;
 				}
 				
-				//joylink_smnt_bufferprintf(pSmnt->payload, 1, 80);
+				//dump8(pSmnt->payload, 1, 80);
 				
-			}else{
+			}
+			else
+			{
 				if (pSmnt->chCurrentProbability < 30){ 
 					pSmnt->chCurrentProbability += STEP_BROADCAST_ERROR_HOLE_CHANNEL;
 				}
 			}
-		}else if (*broadindex == 2){
+		}
+		else if (*broadindex == 2)
+		{
 			uint8 index = broadbuffer[0] >> 3;
 			if (index == 0){
 				*broadindex = 0;
 				uint8 crc = broadbuffer[0] & 0x7;
-				uint8 rCrc = joylink_smnt_crc(broadbuffer + 1, 2) & 0x7;
+				uint8 rCrc = getCrc(broadbuffer + 1, 2) & 0x7;
 				if (rCrc == crc){
 					pSmnt->broadcastVersion = broadbuffer[1];
-					printf("Version RX:%x\n",pSmnt->broadcastVersion);
+					printf_high("Version RX:%x\n",pSmnt->broadcastVersion);
 				}
 			}
 		}
@@ -269,16 +208,21 @@ static void  joylink_smnt_broadcastadd(int ascii)
 Input: Muticast Addr
 Output: -1:Unkown Packet, 0:Parse OK, 1:Normal Process
 */
-static void joylink_smnt_muticastadd(uint8* pAddr)
+static void muticastAdd(uint8* pAddr)
 {
-	int8 index = 0;
-	
-	if ((pAddr[3] >> 6) == ((pAddr[4] ^ pAddr[5]) & 0x1)){
+	int index = 0;
+
+	/*version data*/
+	if((pAddr[3] == 0) && (pAddr[4] == 1) && (pAddr[5]<=3) && (pAddr[5]>0))
+		pSmnt->jd_smnt_type = TYPE_JOY_SMNT;
+	if (pAddr[3] == 0)
+		index = 0 - pAddr[3];
+	else if ((pAddr[3] >> 6) == ((pAddr[4] ^ pAddr[5]) & 0x1))
 		index = pAddr[3] & 0x3F;
-	}else
+	else
 		return;
 	
-	if ((index >= 1) && (index < PAYLOAD_MAX))		//avoid overstep leaded by error
+	if (index < PAYLOAD_MAX)		//avoid overstep leaded by error
 	{
 		uint8 payloadIndex = index - 1;
 		if (payloadIndex > 64)
@@ -287,11 +231,13 @@ static void joylink_smnt_muticastadd(uint8* pAddr)
 		if (pSmnt->chCurrentProbability < 20) 
 			pSmnt->chCurrentProbability += STEP_MULTICAST_HOLD_CHANNEL;			// Delay CH switch!
 		
-		printf("M%02d(CH=%d)--%02X:(%02X,%02X)\n", index, pSmnt->chCurrentIndex+1, pAddr[3], pAddr[4], pAddr[5]); 
-		pSmnt->payload_multicast[payloadIndex * 2]     = pAddr[4];
-		pSmnt->payload_multicast[payloadIndex * 2 + 1] = pAddr[5];
-
-		if (joylink_smnt_payLoadcheck(pSmnt->payload_multicast) == 0){
+		printf_high("M%02d(CH=%d)--%02X:(%02X,%02X)\n", index, pSmnt->chCurrentIndex + 1, pAddr[3], pAddr[4], pAddr[5]); 
+		pSmnt->payload[payloadIndex * 2]     = pAddr[4];
+		pSmnt->payload[payloadIndex * 2 + 1] = pAddr[5];
+#ifdef IS_FULL_LOG
+		dump8(pSmnt->payload, 1, 80);
+#endif
+		if (payLoadCheck() == 0){
 			pSmnt->result.type = 3;
 			return;
 		}
@@ -299,7 +245,20 @@ static void joylink_smnt_muticastadd(uint8* pAddr)
 	return;
 }
 
-void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
+
+joylink_smnt_info_t	joylink_get_smnt_info(void)
+{
+	joylink_smnt_info_t	smnt_info;
+	memset(&smnt_info,0,sizeof(joylink_smnt_info_t));
+
+	smnt_info.joy_smnt_type 	= pSmnt->jd_smnt_type;
+	smnt_info.joy_smnt_state	= pSmnt->state;
+	memcpy(smnt_info.joy_smnt_bssid,pSmnt->syncBssid,6);
+	smnt_info.joy_smnt_channel_fix 	= pSmnt->chCurrentIndex + 1;
+	return smnt_info;
+}
+
+void joylink_cfg_DataAction(PHEADER_802_11 pHeader, int length)
 {
 	uint8 isUplink = 1;				
 	uint8 packetType = 0;					// 1-multicast packets 2-broadcast packets 0-thers
@@ -346,9 +305,9 @@ void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
 		if (pSmnt->state == SMART_CH_LOCKING)
 		{
 			if(isUplink == 1)
-				printf("uplink:(%02x-%04d)->length:%2x, =length-synfirst:(0x%02x),synfirst:%2x\n", *((uint8*)pHeader) & 0xFF, pHeader->Sequence, length, (uint8)(length - pSmnt->syncFirst +1),pSmnt->syncFirst);
+				printf_high("uplink:(%02x-%04d)->length:%2x, =length-synfirst:(0x%02x),synfirst:%2x\n", *((uint8*)pHeader) & 0xFF, pHeader->Sequence, length, (uint8)(length - pSmnt->syncFirst +1),pSmnt->syncFirst);
 			else
-				printf("downlink:(%02x-%04d)->length:%2x, =length-synfirst:(0x%02x),synfirst:%2x\n", *((uint8*)pHeader) & 0xFF, pHeader->Sequence, length, (uint8)(length - pSmnt->syncFirst_downlink +1),pSmnt->syncFirst_downlink);
+				printf_high("downlink:(%02x-%04d)->length:%2x, =length-synfirst:(0x%02x),synfirst:%2x\n", *((uint8*)pHeader) & 0xFF, pHeader->Sequence, length, (uint8)(length - pSmnt->syncFirst_downlink +1),pSmnt->syncFirst_downlink);
 			
 		}
 		packetType = 2;
@@ -356,7 +315,7 @@ void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
 	else if (memcmp(pDest, "\x01\x00\x5E", 3) == 0)
 	{
 		if (pSmnt->state == SMART_CH_LOCKING)
-			printf("(%02x-%04d):%02x:%02x:%02x->%d\n", *((uint8*)pHeader) & 0xFF, pHeader->Sequence, pDest[3], pDest[4], pDest[5], (uint8)length);
+			printf_high("(%02x-%04d):%02x:%02x:%02x->%d\n", *((uint8*)pHeader) & 0xFF, pHeader->Sequence, pDest[3], pDest[4], pDest[5], (uint8)length);
 		packetType = 1;
 	}
 
@@ -394,7 +353,8 @@ void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
 						}
 
 					}
-					joylink_smnt_muticastadd(pDest); // Internal state machine could delay the ch switching
+					muticastAdd(pDest); // Internal state machine could delay the ch switching
+
 					return;
 				}
 
@@ -419,8 +379,9 @@ void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
 							memcpy(pSmnt->syncBssid, pBssid, 6);
 
 							pSmnt->state 		= SMART_CH_LOCKED;
+							pSmnt->jd_smnt_type = TYPE_JOY_SMNT;
 
-							printf("SYNC:(%02X%02X%02X%02X%02X%02X-%02X%02X%02X%02X%02X%02X)------->:CH=%d, WD=%d\n",
+							printf_high("SYNC:(%02X%02X%02X%02X%02X%02X-%02X%02X%02X%02X%02X%02X)------->:CH=%d, WD=%d\n",
 								pSrc[0], pSrc[1], pSrc[2], pSrc[3], pSrc[4], pSrc[5],
 								pBssid[0], pBssid[1], pBssid[2], pBssid[3], pBssid[4], pBssid[5],
 								pSmnt->chCurrentIndex+1, pSmnt->syncFirst);
@@ -429,7 +390,7 @@ void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
 							
 							if(pSmnt->chCurrentProbability < 20)
 								pSmnt->chCurrentProbability = 20;
-							printf("--->locked by uplink\n");
+							printf_high("--->locked by uplink\n");
 						}
 						return;
 					}
@@ -439,7 +400,7 @@ void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
 						pSmnt->syncCount = 0;
 						memcpy(pSmnt->syncAppMac, pSrc, 6);
 						pSmnt->syncFirst = length;
-						printf("SYNC LOST\n");
+						printf_high("SYNC LOST\n");
 					}
 				}
 				else
@@ -462,7 +423,7 @@ void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
 							pSmnt->syncFirst_downlink = pSmnt->syncFirst_downlink + pSmnt->syncStepPoint_downlink - (pSmnt->syncStepPoint_downlink? 4 : 0);	// Save sync world
 							memcpy(pSmnt->syncBssid, pBssid, 6);
 							pSmnt->state = SMART_CH_LOCKED;
-							printf("SYNC:(%02X%02X%02X%02X%02X%02X-%02X%02X%02X%02X%02X%02X)------->:CH=%d, WD=%d\n",
+							printf_high("SYNC:(%02X%02X%02X%02X%02X%02X-%02X%02X%02X%02X%02X%02X)------->:CH=%d, WD=%d\n",
 								pSrc[0], pSrc[1], pSrc[2], pSrc[3], pSrc[4], pSrc[5],
 								pBssid[0], pBssid[1], pBssid[2], pBssid[3], pBssid[4], pBssid[5],
 								pSmnt->chCurrentIndex+1, pSmnt->syncFirst_downlink);
@@ -470,15 +431,18 @@ void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
 							pSmnt->syncIsUplink = isUplink;
 							if(pSmnt->chCurrentProbability < 20)
 								pSmnt->chCurrentProbability = 20;
-							printf("--->locked by downlink\n");
+							printf_high("--->locked by downlink\n");
 						}
 						return;
 					}
-					pSmnt->syncStepPoint_downlink = 0;
-					pSmnt->syncCount_downlink = 0;
-					memcpy(pSmnt->syncAppMac, pSrc, 6);
-					pSmnt->syncFirst_downlink = length;
-					printf("SYNC LOST\n");
+					//if (pSmnt->syncCount_downlink)	// ��������:������ÿ���յ���ͬAddrʱ����ʼ����������
+					{
+						pSmnt->syncStepPoint_downlink = 0;
+						pSmnt->syncCount_downlink = 0;
+						memcpy(pSmnt->syncAppMac, pSrc, 6);
+						pSmnt->syncFirst_downlink = length;
+						printf_high("SYNC LOST\n");
+					}
 				}
 			} 
 			return;	
@@ -486,7 +450,7 @@ void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
 		memcpy(pSmnt->syncAppMac, pSrc, 6);
 		pSmnt->syncFirst = length;
 		pSmnt->syncFirst_downlink = length;
-		printf("Try to SYNC!\n");
+		printf_high("Try to SYNC!\n");
 		return;
 	}
 	else if (pSmnt->state == SMART_CH_LOCKED)
@@ -494,7 +458,7 @@ void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
 		if (isDifferentAddr) return;
 
 		if (packetType == 1){
-			joylink_smnt_muticastadd(pDest);
+			muticastAdd(pDest);
 			return;
 		}
 		
@@ -526,7 +490,7 @@ void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
 			}
 			else
 			{
-				joylink_smnt_broadcastadd(ascii);
+				broadcastAdd(ascii);
 			}
 			if (((length + 4 - lastLength) % 4 == 1)&& (length - pSmnt->syncFirst)<4)  // There are SYNC packets even ch locked.
 			{
@@ -536,7 +500,7 @@ void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
 	}
 	else if (pSmnt->state == SMART_FINISH)
 	{
-		printf("SMART_FINISH-1\n");
+		printf_high("SMART_FINISH-1\n");
 	}
 	else
 	{
@@ -545,30 +509,12 @@ void joylink_smnt_datahandler(PHEADER_802_11 pHeader, int length)
 		pSmnt->syncFirst = length;
 		pSmnt->syncStepPoint = 0;
 		pSmnt->syncCount = 0;
-		printf("Reset All State\n");
+		printf_high("Reset All State\n");
 	}
 	return;
 }
 
-static int joylink_smnt_payLoadcheck(uint8 *payload)
-{
-	uint8 crc = joylink_smnt_crc(payload + 1, payload[1]+1);
-	if ((payload[1] > (PAYLOAD_MIN*2)) &&
-		(payload[1] < (PAYLOAD_MAX*2)) &&
-        (payload[0] == crc)){
-
-		smnt_encrypt_data_t* pRet = &pSmnt->result;
-		memcpy(pRet->encData, payload+1, payload[1]+1);
-		pRet->type = pSmnt->result.type;
-          pSmnt->state = SMART_FINISH;
-          joylink_smnt_finish();
-        return 0;
-	}
-	return 1;
-}
-
-
-static uint8 joylink_smnt_crc(uint8 *ptr, uint8 len)
+static uint8 getCrc(uint8 *ptr, uint8 len)
 {
 	unsigned char crc;
 	unsigned char i;
@@ -588,7 +534,7 @@ static uint8 joylink_smnt_crc(uint8 *ptr, uint8 len)
 	}
 	return crc;
 }
-static void joylink_smnt_bufferprintf(uint8* p, int split, int len)
+static void dump8(uint8* p, int split, int len)
 {
 	int i;
 	char buf[512];
@@ -602,6 +548,6 @@ static void joylink_smnt_bufferprintf(uint8* p, int split, int len)
 		else
 			index += sprintf(buf + index, "%02x ", p[i]);
 	}
-	printf("Len=%d:%s\n",len, buf);
+	printf_high("Len=%d:%s\n",len, buf);
 }
 

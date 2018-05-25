@@ -2,8 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if defined(__MTK_7687__)
-#include <stdint.h>
+#if defined(ESP_8266)
+#include "esp_common.h"
+#include "freertos/semphr.h"
 #include "lwip/sockets.h"
 #include "lwip/netdb.h"
 #else
@@ -725,7 +726,11 @@ joylink_proc_server_ota_upload(uint8_t* json)
  * @Returns: 
  */
 int
+#if defined(ESP_8266)
+joylink_server_recv(int fd, char *rec_buff, int max)
+#else
 joylink_server_recv(char fd, char *rec_buff, int max)
+#endif
 {
     JLPacketHead_t head;
     bzero(&head, sizeof(head));

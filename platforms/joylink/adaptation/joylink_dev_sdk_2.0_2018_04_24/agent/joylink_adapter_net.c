@@ -27,7 +27,8 @@
 #include "lwip/netif.h"
 #include "lwip/stats.h"
 #include "lwip/tcp.h"
-#elif defined(__ESP32__)
+#elif defined(ESP_8266)
+#include  <fcntl.h>
 #include "lwip/sockets.h"
 #include "lwip/netdb.h"
 #include "lwip/inet.h"
@@ -89,6 +90,8 @@ uint8_t s_host_ipv4[32] = {0};
 
 #define E_OK            E_RET_OK
 #define E_ERROR         E_RET_ERROR
+
+#define AI_NUMERICHOST  0x04
 
 static void 
 joylink_adapter_net_set_error(char *err, const char *fmt, ...)

@@ -4,8 +4,10 @@ Copyright (c) 2015-2050, JD Smart All rights reserved.
 
 *************************************/
 
-#include "joylink_util.h"
+#include "esp_joylink_util.h"
 #include "joylink_softap_extern.h"
+#include <stdio.h>
+#include <string.h>
 
 uint8 getCrc(uint8 *ptr, uint8 len)
 {
@@ -63,25 +65,25 @@ void dump8(uint8* p, int split, int len)
 	printf_high("Addr=%d,Len=%d:%s\n", p, len, buf);
 }
 
-int joylink_util_byte2hexstr(const uint8 *pbytes, int blen, uint8 *o_phex, int hlen)
-{
-	const char tab[] = "0123456789abcdef";
-	int i = 0;
-
-	memset(o_phex, 0, hlen);
-	if(hlen < blen * 2){
-		blen = (hlen - 1) / 2;
-    }
-
-	for(i = 0; i < blen; i++){
-		*o_phex++ = tab[*pbytes >> 4];
-		*o_phex++ = tab[*pbytes & 0x0f];
-		pbytes++;
-	}
-	*o_phex++ = 0;
-
-	return blen * 2;
-}
+//int joylink_util_byte2hexstr(const uint8 *pbytes, int blen, uint8 *o_phex, int hlen)
+//{
+//	const char tab[] = "0123456789abcdef";
+//	int i = 0;
+//
+//	memset(o_phex, 0, hlen);
+//	if(hlen < blen * 2){
+//		blen = (hlen - 1) / 2;
+//    }
+//
+//	for(i = 0; i < blen; i++){
+//		*o_phex++ = tab[*pbytes >> 4];
+//		*o_phex++ = tab[*pbytes & 0x0f];
+//		pbytes++;
+//	}
+//	*o_phex++ = 0;
+//
+//	return blen * 2;
+//}
 
 
 int joylink_util_make_guid(uint8 *guid_str, uint8 max_len)
@@ -172,7 +174,8 @@ int joylink_AesCBC256Encrypt(uint8 *pEncIn, int32 encLength,uint8 *key_32bytes, 
 	return ret;
 }
 
-uECC_RNG_Function	uECC_generate_rng(uint8 *buf,unsigned size)
+//uECC_RNG_Function	uECC_generate_rng(uint8 *buf,unsigned size)
+int   uECC_generate_rng(uint8 *buf,unsigned size)
 {
 	unsigned i;
 	

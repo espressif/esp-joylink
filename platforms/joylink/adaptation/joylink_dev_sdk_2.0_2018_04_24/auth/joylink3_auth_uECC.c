@@ -2,7 +2,9 @@
 
 #include "joylink3_auth_uECC.h"
 #include "joylink3_auth_uECC_vli.h"
-
+#if defined(ESP_8266)
+#include "adaptation.h"
+#endif
 #ifndef uECC_RNG_MAX_TRIES
     #define uECC_RNG_MAX_TRIES 64
 #endif
@@ -171,6 +173,9 @@ static cmpresult_t uECC_vli_cmp_unsafe(const uECC_word_t *left,
 #endif
 
 #if default_RNG_defined
+#if defined(ESP_8266)
+int default_RNG(uint8_t *dest, unsigned size);
+#endif
 static uECC_RNG_Function g_rng_function = &default_RNG;
 #else
 static uECC_RNG_Function g_rng_function = 0;
