@@ -1,9 +1,9 @@
-#ifndef _JOYLINK_HEAD_H_
-#define _JOYLINK_HEAD_H_
+#ifndef _ESP_JOYLINK_HEAD_H_
+#define _ESP_JOYLINK_HEAD_H_
 /* Boolean Type */
-typedef unsigned char        				bool;
+//typedef unsigned char        				bool;
 
-typedef char                       	int8,   *pint8,  *pchar;
+typedef char                       	/*int8,*/   *pint8,  *pchar;
 typedef short                      	int16, *pint16;
 typedef int                       	int32;
 typedef long long                 	int64;
@@ -17,8 +17,9 @@ typedef unsigned long long   				uint64,*puint64;
 #define IS_PACKET_WITH_ENDECRIPT		1
 #define IS_PACKEY_WITH_CRC					1
 
-#define TRUE			1
-#define FALSE			0
+//#define TRUE			1
+//#define FALSE			0
+#define printf_high printf
 
 #define MAX_LEN_OF_SSID                                  (32)
 

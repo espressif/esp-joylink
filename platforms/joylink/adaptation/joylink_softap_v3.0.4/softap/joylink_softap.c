@@ -4,11 +4,13 @@ Copyright (c) 2015-2050, JD Smart All rights reserved.
 
 *************************************/
 #include "joylink_softap.h"
-#include "../auth/joylink_auth_uECC.h"
+#include "esp_joylink_auth_uECC.h"
 #include "joylink_softap_extern.h"
+#include <string.h>
+//#include "joylink_util.h"
 
 static void joylink_ge_ssid(void);
-static void print_buf(uint8 *buf,uint8 size);
+extern void print_buf(uint8 *buf,uint8 size);
 
 joylinkSoftAPRam 	joy_softap_ram 			= {0};					
 uint8				softap_ssid[MAX_LEN_OF_SSID+1]  = {0};			//beacon ssid
@@ -30,20 +32,20 @@ int  joylink_softap_result(joylinkSoftAP_Result_t* pRet)
 		return 1;
 }
 
-
 int joylink_softap_udpbroad(void)
 {
 	static uint8 publickey_packet_buf[SOFTAP_BROAD_PUBKEY_PACKETLEN];
 	int status = 0;
 	uint8 *pdata = publickey_packet_buf;
 	
-	uECC_set_rng(uECC_generate_rng);			//register random function
+	esp_uECC_set_rng(uECC_generate_rng);			//register random function
 
 	/*if we have not generate public and priviate key,generate key*/
 	if(joy_softap_ram.is_generate_key == 0)
 	{
-		joy_softap_ram.ecc_curves = uECC_secp256r1();
-		status = uECC_make_key(joy_softap_ram.ecc_publickey, joy_softap_ram.ecc_privatekey, joy_softap_ram.ecc_curves);
+		joy_softap_ram.ecc_curves = uECC_secp256r1_he();
+		printf("test_point, %s\r\n",__func__);
+		status = esp_uECC_make_key(joy_softap_ram.ecc_publickey, joy_softap_ram.ecc_privatekey, joy_softap_ram.ecc_curves);
 		if(status)
 		{
 			uint16 crc16;
@@ -52,7 +54,7 @@ int joylink_softap_udpbroad(void)
 			*(pdata + SOFTAP_OFFSET_TYPE) 			= SOFTAP_TYPE_PUBKEY;
 			*(pdata + SOFTAP_OFFSET_DATALEN) 		= LEN_PUBLICKEY_ECC_ZIP;
 			
-			uECC_compress(joy_softap_ram.ecc_publickey, pdata + SOFTAP_OFFSET_DATA, joy_softap_ram.ecc_curves);
+			esp_uECC_compress(joy_softap_ram.ecc_publickey, pdata + SOFTAP_OFFSET_DATA, joy_softap_ram.ecc_curves);
 			
 			//memcpy(pdata + SOFTAP_OFFSET_DATA,joy_softap_ram.ecc_publickey,LEN_PUBLICKEY_ECC);
 		#if IS_PACKEY_WITH_CRC
@@ -178,14 +180,14 @@ static int handle_rx_r1msg(uint8 *msg, int16 connt)
 	printf_high("Receive R1 and remote public key:%d\n",connt);
 
 	//get adn de compress remote public key
-	joy_softap_ram.ecc_curves = uECC_secp256r1();
-	uECC_decompress(msg+SOFTAP_OFFSET_DATA + datalen - LEN_PUBLICKEY_ECC_ZIP,joy_softap_ram.ecc_publickey_remote,joy_softap_ram.ecc_curves);
+	joy_softap_ram.ecc_curves = uECC_secp256r1_he();
+	esp_uECC_decompress(msg+SOFTAP_OFFSET_DATA + datalen - LEN_PUBLICKEY_ECC_ZIP,joy_softap_ram.ecc_publickey_remote,joy_softap_ram.ecc_curves);
 
 
-	joy_softap_ram.ecc_curves = uECC_secp256r1();
+	joy_softap_ram.ecc_curves = uECC_secp256r1_he();
 
 	//generate shared key
-	ecc_status = uECC_shared_secret(joy_softap_ram.ecc_publickey_remote, joy_softap_ram.ecc_privatekey, joy_softap_ram.shared_key, joy_softap_ram.ecc_curves);
+	ecc_status = esp_uECC_shared_secret(joy_softap_ram.ecc_publickey_remote, joy_softap_ram.ecc_privatekey, joy_softap_ram.shared_key, joy_softap_ram.ecc_curves);
 
 	/*decrypt R1*/
 	len_aes_decrypt = joylink_AesCBC256Decrypt(msg + SOFTAP_OFFSET_DATA,datalen - LEN_PUBLICKEY_ECC_ZIP,joy_softap_ram.shared_key,joy_softap_ram.ecc_r1,LEN_R1R2_ECC);
@@ -369,15 +371,5 @@ int joylink_softap_tcppacket(uint8 *msg, int16 count)
 	return TRUE;
 }
 
-
-static void print_buf(uint8 *buf,uint8 size)
-{
-	uint8 i;
-	for(i = 0;i < size; i++)
-	{
-		printf_high("%x ",*(buf+i));
-	}
-	printf_high("\n");
-}
 
 

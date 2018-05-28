@@ -32,6 +32,9 @@ static int default_RNG(uint8_t *dest, unsigned size) {
 #include <fcntl.h>
 #include <unistd.h>
 
+#if defined(ESP_8266)
+#include "adaptation.h"
+#endif
 #ifndef O_CLOEXEC
     #define O_CLOEXEC 0
 #endif

@@ -1,7 +1,7 @@
 /*
  * ESPRESSIF MIT License
  *
- * Copyright (c) 2017 <ESPRESSIF SYSTEMS (SHANGHAI) PTE LTD>
+ * Copyright (c) 2018 <ESPRESSIF SYSTEMS (SHANGHAI) PTE LTD>
  *
  * Permission is hereby granted for use on ESPRESSIF SYSTEMS ESP8266 only, in which case,
  * it is free of charge, to any person obtaining a copy of this software and associated
@@ -30,6 +30,7 @@
 #include "esp_joylink.h"
 #include "esp_info_store.h"
 #include "esp_joylink_log.h"
+#include "joylink_aes.h"
 
 static const char *TAG = "esp_joylink";
 
@@ -338,6 +339,9 @@ static void joylink_task(void *pvParameters)
         } else if (config_mode == CONFIG_MODE_SOFTAP) {  /* start softap innet process */
             joylink_event_send(JOYLINK_EVENT_WIFI_START_SOFTAP_CONFIG, NULL);
             joylink_softap_innet();
+        } else {
+            joylink_event_send(JOYLINK_EVENT_WIFI_START_SMARTCONFIG, NULL);
+            jd_innet_start();
         }
 
         rsn = JOYLINK_GOT_IP_WIFI_CONFIG;
@@ -373,7 +377,7 @@ joylink_err_t esp_joylink_init(joylink_info_t *joylink_info)
     /* init Queue and Semaphore */
     joylink_trans_init();
     /* init event task */
-    xTaskCreate(joylink_task, "jl_task", JOYLINK_MAIN_TASK_STACK, NULL, JOYLINK_TASK_PRIOTY, NULL);
+    xTaskCreate(joylink_task, "jl_task", (1024*5), NULL, 1, NULL);
 
     return JOYLINK_OK;
 }

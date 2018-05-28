@@ -6,8 +6,8 @@
 //  Copyright (c) 2015年 broadlink. All rights reserved.
 //
 
-#ifndef JoyLink_joylinkCrypto_h
-#define JoyLink_joylinkCrypto_h
+#ifndef esp_JoyLink_joylinkCrypto_h
+#define esp_JoyLink_joylinkCrypto_h
 
 #include "joylink_auth_setting.h"
 

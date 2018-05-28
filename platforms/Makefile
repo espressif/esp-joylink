@@ -27,6 +27,8 @@ endif
 #
 #DEFINES += 
 
+# DEFINES += -D__LINUX_UB2__ -D__LINUX__ -D__AVR__=0 -D_GET_HOST_BY_NAME_
+DEFINES += -D__AVR__=0 -D_GET_HOST_BY_NAME_
 #############################################################
 # Recursion Magic - Don't touch this!!
 #
@@ -41,6 +43,7 @@ endif
 
 INCLUDES := $(INCLUDES) -I $(PDIR)include
 INCLUDES += -I ./
+INCLUDES += -I ./adaptation/joylink_dev_sdk_2.0_2018_04_24/joylink
 PDIR := ../$(PDIR)
 sinclude $(PDIR)Makefile
 

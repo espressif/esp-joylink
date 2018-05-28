@@ -2,9 +2,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if defined(__MTK_7687__)
-#include <stdint.h>
+#if defined(ESP_8266)
+#include "esp_common.h"
 #include "lwip/sockets.h"
+#include "lwip/netdb.h"
 #else
 #include <stdarg.h>
 #include <unistd.h>
@@ -26,7 +27,11 @@
 #include "joylink_json.h"
 #include "joylink_sub_dev.h"
 #include "joylink_join_packet.h"
+#if defined(ESP_8266)
+#include "joylink_auth_crc.h"
+#else
 #include "auth/joylink_auth_crc.h"
+#endif
 #include "joylink_dev.h"
 
 #define USR_TIMESTAMP_MAX      (4)

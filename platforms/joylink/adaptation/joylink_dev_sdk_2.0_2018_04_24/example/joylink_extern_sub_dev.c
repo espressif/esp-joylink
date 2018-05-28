@@ -12,9 +12,10 @@
 #include "joylink_json.h"
 #include "joylink_extern_json.h"
 
-#define JL_MAX_SUB      (50)
-int tail_index = 23;
 
+#define JL_MAX_SUB      (1)
+int tail_index = 0;
+/*
 JLDevInfo_t _g_sub_dev[JL_MAX_SUB] = { 
     {.jlp.mac = "mac000", .type = E_JLDEV_TYPE_SUB,  .jlp.uuid = "87B580", .jlp.lancon = 1, .jlp.cmd_tran_type = 1, .state = 1}, 
     {.jlp.mac = "mac001", .type = E_JLDEV_TYPE_SUB,  .jlp.uuid = "87B580", .jlp.lancon = 1, .jlp.cmd_tran_type = 1, .state = 1}, 
@@ -46,14 +47,14 @@ JLDevInfo_t _g_sub_dev[JL_MAX_SUB] = {
     {.jlp.mac = "mac027", .type = E_JLDEV_TYPE_SUB,  .jlp.uuid = "87B580", .jlp.lancon = 1, .jlp.cmd_tran_type = 1, .state = 1}, 
     {.jlp.mac = "mac028", .type = E_JLDEV_TYPE_SUB,  .jlp.uuid = "87B580", .jlp.lancon = 1, .jlp.cmd_tran_type = 1, .state = 1}, 
     {.jlp.mac = "mac029", .type = E_JLDEV_TYPE_SUB,  .jlp.uuid = "87B580", .jlp.lancon = 1, .jlp.cmd_tran_type = 1, .state = 1}
-};
+};*/
 
-/*JLDevInfo_t _g_sub_dev[JL_MAX_SUB] = { */
-    /*{   .jlp.feedid="144739743326280531",.jlp.accesskey="9b5ccce967e4a818f1fb3f94f306d852",*/
-        /*.jlp.mac = "mac001", .type = E_JLDEV_TYPE_SUB,  */
-        /*.jlp.uuid = "4GNIPK", .jlp.lancon = 1,*/
-        /*.jlp.cmd_tran_type = 0, .state = 1}*/
-/*};*/
+JLDevInfo_t _g_sub_dev[JL_MAX_SUB] = {
+    {   .jlp.feedid="144739743326280531",.jlp.accesskey="9b5ccce967e4a818f1fb3f94f306d852",
+        .jlp.mac = "mac001", .type = E_JLDEV_TYPE_SUB,
+        .jlp.uuid = "4GNIPK", .jlp.lancon = 1,
+        .jlp.cmd_tran_type = 0, .state = 1}
+};
 
 /**
  * brief: 

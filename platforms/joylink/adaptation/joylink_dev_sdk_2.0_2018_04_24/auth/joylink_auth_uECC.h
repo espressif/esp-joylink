@@ -13,6 +13,10 @@
 
 #include <unistd.h>
 #include <stdio.h>
+#if defined(ESP_8266)
+#include "adaptation.h"
+#include "stdint.h"
+#endif
 
 /* Platform selection options.
 If uECC_PLATFORM is not defined, the code will try to guess it based on compiler macros.
@@ -53,7 +57,9 @@ uECC_asm_fast  - Use GCC inline assembly optimized for maximum speed. */
 /* Curve selection options. */
 #define uECC_secp160r1 1
 #define uECC_secp192r1 2
-//#define uECC_secp256r1 3
+#if defined(ESP_8266)
+#define uECC_secp256r1_rename 3
+#endif
 #define uECC_secp256k1 4
 #define uECC_secp224r1 5
 #ifndef uECC_CURVE

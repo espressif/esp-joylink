@@ -1,7 +1,7 @@
 /*
  * ESPRESSIF MIT License
  *
- * Copyright (c) 2017 <ESPRESSIF SYSTEMS (SHANGHAI) PTE LTD>
+ * Copyright (c) 2018 <ESPRESSIF SYSTEMS (SHANGHAI) PTE LTD>
  *
  * Permission is hereby granted for use on ESPRESSIF SYSTEMS ESP8266 only, in which case,
  * it is free of charge, to any person obtaining a copy of this software and associated
@@ -25,11 +25,13 @@
 #include "esp_common.h"
 #include "freertos/semphr.h"
 #include "esp_joylink.h"
+#include "joylink_aes.h"
 #include "esp_joylink_log.h"
 #include "button/button.h"
 #include "status_led/led.h"
+#include "uart.h"
 
-static const char *TAG = "esp_joylink";
+static const char *TAG = "esp8266_joylink";
 
 #define JOYLINK_WIFI_CFG_BUTTON_NUM       (13) /*!< set button pin, restart to wifi config */
 #define JOYLINK_FACTORY_RESET_BUTTON_NUM  (14) /*!< set button pin, clear joylink config info */
@@ -275,6 +277,14 @@ static void initialise_led(void)
     led_0 = led_create(LED_IO_NUM, LED_DARK_LOW);
     led_state_write(led_0, LED_NORMAL_OFF);
 }
+#define SNTP_OPMODE_POLL            0
+
+static void initialize_sntp(void)
+{
+    sntp_setoperatingmode(SNTP_OPMODE_POLL);
+    sntp_setservername(0, "pool.ntp.org");
+    sntp_init();
+}
 
 int joylink_start(void)
 {
@@ -290,15 +300,17 @@ int joylink_start(void)
     product_info->device_info.local_port = JOYLINK_LOCAL_PORT;
     product_info->device_info.jlp.version = JOYLINK_VERSION;
     product_info->device_info.jlp.devtype = JOYLINK_DEVTYPE;
+    product_info->device_info.jlp.cmd_tran_type = E_CMD_TYPE_LUA_SCRIPT,
     strncpy(product_info->device_info.jlp.joylink_server, JOYLINK_SERVER,sizeof(product_info->device_info.jlp.joylink_server));
     product_info->device_info.jlp.server_port = JOYLINK_SERVER_PORT;
     strncpy(product_info->device_info.jlp.firmwareVersion, JOYLINK_FW_VERSION, sizeof(product_info->device_info.jlp.firmwareVersion));
     strncpy(product_info->device_info.jlp.modelCode, JOYLINK_MODEL_CODE, sizeof(product_info->device_info.jlp.modelCode));
     strncpy(product_info->device_info.jlp.uuid, JOYLINK_UUID, sizeof(product_info->device_info.jlp.uuid));
-    product_info->device_info.jlp.lancon = JOYLINK_LAN_CTRL;
-    product_info->device_info.jlp.cmd_tran_type = JOYLINK_CMD_TYPE;
+    product_info->device_info.jlp.lancon = E_LAN_CTRL_ENABLE;
     strncpy(product_info->device_info.idt.cloud_pub_key, CLOUD_PUB_KEY, sizeof(product_info->device_info.idt.cloud_pub_key));
-        
+
+    strncpy(product_info->device_info.jlp.CID, JOYLINK_CID, sizeof(product_info->device_info.jlp.CID));
+    
     uint8 macaddr[6];
     char mac_str[18] = {0};
     wifi_get_macaddr(0, macaddr);
@@ -323,6 +335,7 @@ int joylink_start(void)
     initialise_key();
     initialise_led();
     esp_info_init();
+    initialize_sntp();
     esp_joylink_init(product_info);
     esp_joylink_set_version(JOYLINK_VERSION);
 

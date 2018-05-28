@@ -7,6 +7,10 @@
 #include "joylink_utils.h"
 #endif
 
+#if defined(ESP_8266)
+#include "adaptation.h"
+#endif
+
 #ifndef uECC_PLATFORM
     #if __AVR__
         #define uECC_PLATFORM uECC_avr

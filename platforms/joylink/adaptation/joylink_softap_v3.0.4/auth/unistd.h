@@ -1,5 +1,5 @@
-#ifndef _SYS_UNISTD_H
-#define _SYS_UNISTD_H
+#ifndef _ESP_SYS_UNISTD_H
+#define _ESP_SYS_UNISTD_H
 
 #ifdef __cplusplus
 extern "C" {

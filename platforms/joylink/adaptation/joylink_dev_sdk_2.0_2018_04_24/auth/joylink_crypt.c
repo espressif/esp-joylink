@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include "joylink_crypt.h"
 #include "joylink_utils.h"
-#include "auth/joylink_auth_uECC.h"
+#if defined(ESP_8266)
+#include "joylink_auth_uECC.h"
+#endif
 #include "joylink.h"
 
 JLEccContex_t __g_ekey = {0};

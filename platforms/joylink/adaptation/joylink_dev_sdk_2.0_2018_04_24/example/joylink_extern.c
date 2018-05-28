@@ -15,15 +15,19 @@
 #include "joylink_json.h"
 #include "joylink_extern_json.h"
 #include "joylink_auth_crc.h"
-
+#if defined(ESP_8266)
+#include "esp_misc.h"
+#endif
 #ifdef __MTK_7687__
 #include "mtk_ctrl.h"
 #include "joylink_porting_layer.h"
 #endif
 
 #include <fcntl.h>  
-
+#if defined(ESP_8266)
+#else
 extern int joylink_parse_jlp(JLPInfo_t *jlp, char * pMsg);
+#endif
 
 typedef struct _light_manage_{
 	int conn_st;	
@@ -38,42 +42,24 @@ char  *file = "joylink_info.txt";
 #endif
 
 LightManage_t _g_lightMgr = {
-	.conn_st = -1,	
-	.jlp.mac= "A2:55:44:33:22:11",
+	.conn_st = -1,
+	.jlp.mac= "18:55:44:33:22:11",
     .jlp.devtype = E_JLDEV_TYPE_NORMAL,
-    /*.jlp.devtype = E_JLDEV_TYPE_AGENT_GW,*/
-    /*.jlp.devtype = E_JLDEV_TYPE_GW,*/
     .jlp.version = 1,
-    .jlp.uuid = "87B580",	
+    .jlp.uuid = "CF1484",
     .jlp.lancon = E_LAN_CTRL_ENABLE,
     .jlp.cmd_tran_type = E_CMD_TYPE_LUA_SCRIPT,
-#if 1
     .jlp.accesskey = "d973d154744c3439d50f58cc0230931f",
     .jlp.localkey = "412fcb845baf15670b8e9860534fb156",
     .jlp.feedid = "151503237730077867",
-
     .jlp.joylink_server = "sbdevicegw.jd.com",
     .jlp.server_port = 2002,
-#else
-    /*.jlp.feedid = "12345678901234567890123456789012",*/
-    /*.jlp.accesskey = "key45678901234567890123456789012",*/
-    /*.jlp.joylink_server = "127.0.0.1",*/
-    /*.jlp.server_port = 33000,*/
-#endif
-
-    /*.jlp.feedid = "152273544521843989",*/
-    /*.jlp.accesskey = "2a877b75ca6514b81ba4483d304dc521",*/
-    /*.jlp.joylink_server = "sbdevicegw.jd.com",*/
-    /*.jlp.localkey = "cada2a0afbfb6c09ca0191912245200f",*/
-    /*.jlp.server_port = 2002,*/
-
     .idt.type = 0,
-    .idt.cloud_pub_key = "0241A5170B0299294D39B0676D3D85BE732EE3EC664A0DCFA43C871A0D85192371",
+    .idt.cloud_pub_key = "03D5A54ACF235E77FC1240754DB26BC0E20949E5A3C68338A635CA646EC336D1D9",
     .idt.pub_key = "01234567890123456789012345678901",
     .idt.sig = "01234567890123456789012345678901",
     .idt.f_sig = "01234567890123456789012345678901",
     .idt.f_pub_key = "01234567890123456789012345678901",
-	
 	.lightCtrl.cmd = LIGHT_CMD_NONE,
     .lightCtrl.para_value = LIGHT_CTRL_OFF
 };
@@ -96,7 +82,11 @@ joylink_dev_get_random()
     /**
      *FIXME:must to do
      */
+#if defined(ESP_8266)
+    return os_random();
+#else
     return random();
+#endif
 }
 
 /**
@@ -349,6 +339,14 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
     strcpy(jlp->localkey, _g_pLightMgr->jlp.localkey);
     strcpy(jlp->joylink_server, _g_pLightMgr->jlp.joylink_server);
     jlp->server_port =  _g_pLightMgr->jlp.server_port;
+#endif
+#if defined(ESP_8266)
+    static bool inited = false;
+    if (!inited){
+        uint8 macaddr[8] = {0};
+        wifi_get_macaddr(0,macaddr);
+        snprintf(_g_pLightMgr->jlp.mac, sizeof(_g_pLightMgr->jlp.mac), MACSTR, MAC2STR(macaddr));
+    }
 #endif
 
 	jlp->devtype = _g_pLightMgr->jlp.devtype;

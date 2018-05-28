@@ -1,7 +1,7 @@
 /* Copyright 2015, Kenneth MacKay. Licensed under the BSD 2-clause license. */
 
-#ifndef _UECC_TYPES_H_
-#define _UECC_TYPES_H_
+#ifndef _ESP_UECC_TYPES_H_
+#define _ESP_UECC_TYPES_H_
 
 #ifndef uECC_PLATFORM
 

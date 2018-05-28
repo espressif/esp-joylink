@@ -166,8 +166,11 @@ static const struct uECC_Curve_t curve_secp160r1 = {
 #endif
 };
 
-uECC_Curve uECC_secp160r1(void) { return &curve_secp160r1; }
+uECC_Curve uECC_secp160r1_rename(void) { return &curve_secp160r1; }
 
+#if defined(ESP_8266)
+#define asm_mmod_fast_secp160r1 0
+#endif
 #if (uECC_OPTIMIZATION_LEVEL > 0 && !asm_mmod_fast_secp160r1)
 /* Computes result = product % curve_p
     see http://www.isys.uni-klu.ac.at/PDF/2001-0126-MT.pdf page 354
@@ -768,9 +771,12 @@ static const struct uECC_Curve_t curve_secp256r1 = {
 #endif
 };
 
+#if defined(ESP_8266)
+uECC_Curve uECC_secp256r1_he(void) { return &curve_secp256r1; }
+#define asm_mmod_fast_secp256r1 0
+#else
 uECC_Curve uECC_secp256r1(void) { return &curve_secp256r1; }
-
-
+#endif
 #if (uECC_OPTIMIZATION_LEVEL > 0 && !asm_mmod_fast_secp256r1)
 /* Computes result = product % curve_p
    from http://www.nsa.gov/ia/_files/nist-routines.pdf */

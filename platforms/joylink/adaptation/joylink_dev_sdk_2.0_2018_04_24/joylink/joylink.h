@@ -6,7 +6,12 @@ extern "C"{
 #endif /* __cplusplus */
 
 #include "joylink_log.h"
+#if defined(ESP_8266)
+#include "stdint.h"
+#include "joylink_auth_uECC.h"
+#else
 #include "auth/joylink_auth_uECC.h"
+#endif
 #include "joylink_ret_code.h"
 
 #define _VERSION_  "2.0.7"
@@ -40,6 +45,12 @@ extern "C"{
 
 #define JL_BZCODE_GET_SNAPSHOT      (1004)
 #define JL_BZCODE_CTRL              (1002)
+#if defined(ESP_8266)
+#define JL_BZCODE_CLOUD_MENU        (1050)
+#define JL_JSON_CMD_GET             (4)
+#define JL_JSON_CMD_CTRL            (5)
+#define JL_STR_MAC_LEN	            (17 + 1)
+#endif
 #define JL_BZCODE_UNBIND            (1060)
 
 #pragma pack(1)

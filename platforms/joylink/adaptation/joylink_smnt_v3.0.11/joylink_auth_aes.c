@@ -57,6 +57,9 @@ static int joylinkUnPadding(uint8_t *data, uint32_t len, int isPKCS5)
     }
 }
 
+#if defined(ESP_8266)
+#define HARDWARE_AES 0
+#endif
 #if ( HARDWARE_AES == 0 )
 
 typedef struct

@@ -6,8 +6,8 @@
 //  Copyright (c) 2015年 broadlink. All rights reserved.
 //
 
-#ifndef JoyLink_joylinkErrno_h
-#define JoyLink_joylinkErrno_h
+#ifndef esp_JoyLink_joylinkErrno_h
+#define esp_JoyLink_joylinkErrno_h
 
 #ifdef __cplusplus
 extern "C"

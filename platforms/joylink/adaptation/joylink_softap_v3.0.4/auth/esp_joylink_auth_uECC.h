@@ -7,8 +7,8 @@ Copyright (c) 2015-2050, JD Smart All rights reserved.
 
 /* Copyright 2014, Kenneth MacKay. Licensed under the BSD 2-clause license. */
 
-#ifndef _UECC_H_
-#define _UECC_H_
+#ifndef _ESP_UECC_H_
+#define _ESP_UECC_H_
 
 #include "stdint.h"
 
@@ -74,7 +74,7 @@ extern "C"
 #endif
 
 #if uECC_SUPPORTS_secp160r1
-uECC_Curve uECC_secp160r1(void);
+uECC_Curve uECC_secp160r1_rename(void);
 #endif
 #if uECC_SUPPORTS_secp192r1
 uECC_Curve uECC_secp192r1(void);
@@ -83,7 +83,7 @@ uECC_Curve uECC_secp192r1(void);
 uECC_Curve uECC_secp224r1(void);
 #endif
 #if uECC_SUPPORTS_secp256r1
-uECC_Curve uECC_secp256r1(void);
+uECC_Curve uECC_secp256r1_he(void);
 #endif
 #if uECC_SUPPORTS_secp256k1
 uECC_Curve uECC_secp256k1(void);
@@ -94,11 +94,11 @@ The RNG function should fill 'size' random bytes into 'dest'. It should return 1
 'dest' was filled with random data, or 0 if the random data could not be generated.
 The filled-in values should be either truly random, or from a cryptographically-secure PRNG.
 
-A correctly functioning RNG function must be set (using uECC_set_rng()) before calling
-uECC_make_key() or uECC_sign().
+A correctly functioning RNG function must be set (using esp_uECC_set_rng()) before calling
+esp_uECC_make_key() or uECC_sign().
 
 Setting a correctly functioning RNG function improves the resistance to side-channel attacks
-for uECC_shared_secret() and uECC_sign_deterministic().
+for esp_uECC_shared_secret() and esp_uECC_sign_deterministic().
 
 A correct RNG function is set by default when building for Windows, Linux, or OS X.
 If you are building on another POSIX-compliant system that supports /dev/random or /dev/urandom,
@@ -107,17 +107,17 @@ RNG function; you must provide your own.
 */
 typedef int (*uECC_RNG_Function)(uint8_t *dest, unsigned size);
 
-/* uECC_set_rng() function.
+/* esp_uECC_set_rng() function.
 Set the function that will be used to generate random bytes. The RNG function should
 return 1 if the random data was generated, or 0 if the random data could not be generated.
 
 On platforms where there is no predefined RNG function (eg embedded platforms), this must
-be called before uECC_make_key() or uECC_sign() are used.
+be called before esp_uECC_make_key() or uECC_sign() are used.
 
 Inputs:
     rng_function - The function that will be used to generate random bytes.
 */
-void uECC_set_rng(uECC_RNG_Function rng_function);
+void esp_uECC_set_rng(uECC_RNG_Function rng_function);
 
 /* uECC_get_rng() function.
 
@@ -129,10 +129,11 @@ uECC_RNG_Function uECC_get_rng(void);
 /*
 rng generate
 */
-uECC_RNG_Function	uECC_generate_rng(uint8_t *buf,unsigned size);
+//uECC_RNG_Function	uECC_generate_rng(uint8_t *buf,unsigned size);
+int   uECC_generate_rng(uint8_t *buf,unsigned size);
 
 
-/* uECC_make_key() function.
+/* esp_uECC_make_key() function.
 Create a public/private key pair.
 
 Outputs:
@@ -148,11 +149,11 @@ Outputs:
 
 Returns 1 if the key pair was generated successfully, 0 if an error occurred.
 */
-int uECC_make_key(uint8_t *public_key, uint8_t *private_key, uECC_Curve curve);
+int esp_uECC_make_key(uint8_t *public_key, uint8_t *private_key, uECC_Curve curve);
 
-/* uECC_shared_secret() function.
+/* esp_uECC_shared_secret() function.
 Compute a shared secret given your secret key and someone else's public key.
-Note: It is recommended that you hash the result of uECC_shared_secret() before using it for
+Note: It is recommended that you hash the result of esp_uECC_shared_secret() before using it for
 symmetric encryption or HMAC.
 
 Inputs:
@@ -165,13 +166,13 @@ Outputs:
 
 Returns 1 if the shared secret was generated successfully, 0 if an error occurred.
 */
-int uECC_shared_secret(const uint8_t *public_key,
+int esp_uECC_shared_secret(const uint8_t *public_key,
                        const uint8_t *private_key,
                        uint8_t *secret,
                        uECC_Curve curve);
 
 #if uECC_SUPPORT_COMPRESSED_POINT
-/* uECC_compress() function.
+/* esp_uECC_compress() function.
 Compress a public key.
 
 Inputs:
@@ -182,9 +183,9 @@ Outputs:
                  (curve size + 1) bytes long; for example, if the curve is secp256r1,
                  compressed must be 33 bytes long.
 */
-void uECC_compress(const uint8_t *public_key, uint8_t *compressed, uECC_Curve curve);
+void esp_uECC_compress(const uint8_t *public_key, uint8_t *compressed, uECC_Curve curve);
 
-/* uECC_decompress() function.
+/* esp_uECC_decompress() function.
 Decompress a compressed public key.
 
 Inputs:
@@ -193,10 +194,10 @@ Inputs:
 Outputs:
     public_key - Will be filled in with the decompressed public key.
 */
-void uECC_decompress(const uint8_t *compressed, uint8_t *public_key, uECC_Curve curve);
+void esp_uECC_decompress(const uint8_t *compressed, uint8_t *public_key, uECC_Curve curve);
 #endif /* uECC_SUPPORT_COMPRESSED_POINT */
 
-/* uECC_valid_public_key() function.
+/* esp_uECC_valid_public_key() function.
 Check to see if a public key is valid.
 
 Note that you are not required to check for a valid public key before using any other uECC
@@ -208,9 +209,9 @@ Inputs:
 
 Returns 1 if the public key is valid, 0 if it is invalid.
 */
-int uECC_valid_public_key(const uint8_t *public_key, uECC_Curve curve);
+int esp_uECC_valid_public_key(const uint8_t *public_key, uECC_Curve curve);
 
-/* uECC_compute_public_key() function.
+/* esp_uECC_compute_public_key() function.
 Compute the corresponding public key for a private key.
 
 Inputs:
@@ -221,7 +222,7 @@ Outputs:
 
 Returns 1 if the key was computed successfully, 0 if an error occurred.
 */
-int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key, uECC_Curve curve);
+int esp_uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key, uECC_Curve curve);
 
 /* uECC_sign() function.
 Generate an ECDSA signature for a given hash value.
@@ -240,14 +241,14 @@ Outputs:
 
 Returns 1 if the signature generated successfully, 0 if an error occurred.
 */
-int uECC_sign(const uint8_t *private_key,
+int esp_uECC_sign(const uint8_t *private_key,
               const uint8_t *message_hash,
               unsigned hash_size,
               uint8_t *signature,
               uECC_Curve curve);
 
 /* uECC_HashContext structure.
-This is used to pass in an arbitrary hash function to uECC_sign_deterministic().
+This is used to pass in an arbitrary hash function to esp_uECC_sign_deterministic().
 The structure will be used for multiple hash computations; each time a new hash
 is computed, init_hash() will be called, followed by one or more calls to
 update_hash(), and finally a call to finish_hash() to produce the resulting hash.
@@ -281,7 +282,7 @@ void finish_SHA256(uECC_HashContext *base, uint8_t *hash_result) {
 {
     uint8_t tmp[32 + 32 + 64];
     SHA256_HashContext ctx = {{&init_SHA256, &update_SHA256, &finish_SHA256, 64, 32, tmp}};
-    uECC_sign_deterministic(key, message_hash, &ctx.uECC, signature);
+    esp_uECC_sign_deterministic(key, message_hash, &ctx.uECC, signature);
 }
 */
 typedef struct uECC_HashContext {
@@ -295,9 +296,9 @@ typedef struct uECC_HashContext {
     uint8_t *tmp; /* Must point to a buffer of at least (2 * result_size + block_size) bytes. */
 } uECC_HashContext;
 
-/* uECC_sign_deterministic() function.
+/* esp_uECC_sign_deterministic() function.
 Generate an ECDSA signature for a given hash value, using a deterministic algorithm
-(see RFC 6979). You do not need to set the RNG using uECC_set_rng() before calling
+(see RFC 6979). You do not need to set the RNG using esp_uECC_set_rng() before calling
 this function; however, if the RNG is defined it will improve resistance to side-channel
 attacks.
 
@@ -316,14 +317,14 @@ Outputs:
 
 Returns 1 if the signature generated successfully, 0 if an error occurred.
 */
-int uECC_sign_deterministic(const uint8_t *private_key,
+int esp_uECC_sign_deterministic(const uint8_t *private_key,
                             const uint8_t *message_hash,
                             unsigned hash_size,
                             const uECC_HashContext *hash_context,
                             uint8_t *signature,
                             uECC_Curve curve);
 
-/* uECC_verify() function.
+/* esp_uECC_verify() function.
 Verify an ECDSA signature.
 
 Usage: Compute the hash of the signed data using the same hash as the signer and
@@ -337,7 +338,7 @@ Inputs:
 
 Returns 1 if the signature is valid, 0 if it is invalid.
 */
-int uECC_verify(const uint8_t *public_key,
+int esp_uECC_verify(const uint8_t *public_key,
                 const uint8_t *message_hash,
                 unsigned hash_size,
                 const uint8_t *signature,

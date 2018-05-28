@@ -22,7 +22,11 @@
 #ifndef _STDINT_H
 #define _STDINT_H	1
 
-#if defined(__MTK_7687__)
+#if defined(ESP_8266)
+#include <sys/features.h>
+#include <wchar.h>
+//#include <bits/wordsize.h>
+#define __WORDSIZE 32
 #else
 #include <features.h>
 #include <bits/wchar.h>
@@ -144,13 +148,13 @@ typedef unsigned long long int	uintmax_t;
 #endif
 
 
-# if __WORDSIZE == 64
-#  define __INT64_C(c)	c ## L
-#  define __UINT64_C(c)	c ## UL
-# else
-#  define __INT64_C(c)	c ## LL
-#  define __UINT64_C(c)	c ## ULL
-# endif
+#if __WORDSIZE == 64
+//#define __INT64_C(c)	//c ## L
+//#define __UINT64_C(c)	//c ## UL
+#else
+#define __INT64_C(c)	c ## LL
+#define __UINT64_C(c)	c ## ULL
+#endif
 
 /* Limits of integral types.  */
 

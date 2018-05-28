@@ -1,9 +1,9 @@
 /* Copyright 2015, Kenneth MacKay. Licensed under the BSD 2-clause license. */
 
-#ifndef _UECC_VLI_H_
-#define _UECC_VLI_H_
+#ifndef _ESP_UECC_VLI_H_
+#define _ESP_UECC_VLI_H_
 
-#include "joylink_auth_uECC.h"
+#include "esp_joylink_auth_uECC.h"
 #include "joylink_auth_uECC_types.h"
 
 /* Functions for raw large-integer manipulation. These are only available
@@ -147,7 +147,7 @@ const uECC_word_t *uECC_curve_n(uECC_Curve curve);
 const uECC_word_t *uECC_curve_G(uECC_Curve curve);
 const uECC_word_t *uECC_curve_b(uECC_Curve curve);
 
-int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve);
+int uECC_valid_point_rename(const uECC_word_t *point, uECC_Curve curve);
 
 /* Multiplies a point by a scalar. Points are represented by the X coordinate followed by
    the Y coordinate in the same array, both coordinates are curve->num_words long. Note
