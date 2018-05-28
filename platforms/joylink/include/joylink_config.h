@@ -1,7 +1,7 @@
 /*
  * ESPRESSIF MIT License
  *
- * Copyright (c) 2017 <ESPRESSIF SYSTEMS (SHANGHAI) PTE LTD>
+ * Copyright (c) 2018 <ESPRESSIF SYSTEMS (SHANGHAI) PTE LTD>
  *
  * Permission is hereby granted for use on ESPRESSIF SYSTEMS ESP8266 only, in which case,
  * it is free of charge, to any person obtaining a copy of this software and associated
@@ -61,12 +61,12 @@ extern "C" {
 #define JOYLINK_DEVTYPE      E_JLDEV_TYPE_NORMAL
 #define JOYLINK_SERVER       "live.smart.jd.com"
 #define JOYLINK_SERVER_PORT  2002
-#define JOYLINK_BRAND        "38C4"
-#define JOYLINK_CID          "011c022b"
+#define JOYLINK_BRAND        "0226"
+#define JOYLINK_CID          "0024"
 #define JOYLINK_FW_VERSION   "0.1.1"
 #define JOYLINK_MODEL_CODE   "A3"
 #define JOYLINK_UUID         "CF1484"
-#define JOYLINK_LAN_CTRL     E_LAN_CTRL_DISABLE
+#define JOYLINK_LAN_CTRL     E_LAN_CTRL_ENABLE
 #define JOYLINK_CMD_TYPE     E_CMD_TYPE_JSON
 #define CLOUD_PUB_KEY        "03D5A54ACF235E77FC1240754DB26BC0E20949E5A3C68338A635CA646EC336D1D9"
 

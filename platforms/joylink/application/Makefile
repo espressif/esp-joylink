@@ -31,7 +31,7 @@ endif
 # Each subtree potentially has an include directory
 #   corresponding to the common APIs applicable to modules
 #   rooted at that subtree. Accordingly, the INCLUDE PATH
-#   of a module can only contain the include directories up
+#   of a module can only contain the include directories up 
 #   its parent path, and not its siblings
 #
 # Required for each makefile to inherit from the parent
@@ -39,6 +39,11 @@ endif
 
 INCLUDES := $(INCLUDES) -I $(PDIR)include
 INCLUDES += -I ./
+INCLUDES += -I ../adaptation/joylink_smnt_v3.0.11
+INCLUDES += -I ../adaptation/joylink_softap_v3.0.4/softap 
+INCLUDES += -I ../include 
+INCLUDES += -I ../adaptation/joylink_dev_sdk_2.0_2018_04_24/joylink 
+INCLUDES += -I ../adaptation/joylink_dev_sdk_2.0_2018_04_24/auth 
 PDIR := ../$(PDIR)
 sinclude $(PDIR)Makefile
 
