@@ -5,7 +5,7 @@
 
 #if defined(__MTK_7687__)
 #else
-#include <errno.h>
+//#include <errno.h>
 #include <pthread.h>
 #include <stdarg.h>
 #include <time.h>
@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <sys/time.h>
+//#include <sys/time.h>
 #include <sys/types.h>
 #include <dirent.h>
 #endif

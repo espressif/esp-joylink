@@ -1,63 +1,46 @@
-include ../Makefile.rule
 
-HEADERS = $(wildcard *.h)
-ORG_SOURCES = $(wildcard *.c)
-OUT_SRC =  test.c
-
-SOURCES=$(filter-out ${OUT_SRC}, ${ORG_SOURCES})
-OBJS = $(patsubst %.c, %.o, $(SOURCES))
-
-LIBNAME = $(strip ${shell pwd |xargs basename})
-
-INCLUDES += -I${PROJECT_ROOT_PATH}/json
-INCLUDES += -I${PROJECT_ROOT_PATH}/joylink
-INCLUDES += -I${PROJECT_ROOT_PATH}/extern
-INCLUDES += -I${PROJECT_ROOT_PATH}/auth
-INCLUDES += -I${PROJECT_ROOT_PATH}/list
-
-ifeq ($(TARGET_SRC), extern)
-STATIC_LIBS += ${TARGET_LIB}/libextern.a
-else
-#STATIC_LIBS += ${TARGET_LIB}/libexample.a
+#############################################################
+# Required variables for each makefile
+# Discard this section from all parent makefiles
+# Expected variables (with automatic defaults):
+#   CSRCS (all "C" files in the dir)
+#   SUBDIRS (all subdirs with a Makefile)
+#   GEN_LIBS - list of libs to be generated ()
+#   GEN_IMAGES - list of images to be generated ()
+#   COMPONENTS_xxx - a list of libs/objs in the form
+#     subdir/lib to be extracted and rolled up into
+#     a generated lib/image xxx.a ()
+#
+ifndef PDIR
+GEN_LIBS = libjoy_link.a
 endif
 
-#STATIC_LIBS += ${TARGET_LIB}/libauth.a
-#STATIC_LIBS += ${TARGET_LIB}/libjson.a
-#STATIC_LIBS += ${TARGET_LIB}/liblist.a
-STATIC_LIBS += ${TARGET_LIB}/libjoylinksdk.a
-LIBS += 
 
-ifeq (${ARCH}, x86)  
-#all:${OBJS} liba libso jt test
-all:${OBJS} liba libso 
-else
-#all:${OBJS} liba jt
-all:${OBJS} liba 
-endif
+#############################################################
+# Configuration i.e. compile options etc.
+# Target specific stuff (defines etc.) goes in here!
+# Generally values applying to a tree are captured in the
+#   makefile at its root level - these are then overridden
+#   for a subtree within the makefile rooted therein
+#
+#DEFINES += 
 
-.SUFFIXES: .c .o
-.c.o:
-	${CC} ${CFLAGS} -c $(INCLUDES)  $*.c
+#############################################################
+# Recursion Magic - Don't touch this!!
+#
+# Each subtree potentially has an include directory
+#   corresponding to the common APIs applicable to modules
+#   rooted at that subtree. Accordingly, the INCLUDE PATH
+#   of a module can only contain the include directories up
+#   its parent path, and not its siblings
+#
+# Required for each makefile to inherit from the parent
+#
 
-liba:${OBJS}
-	${AR} -crs lib${LIBNAME}.a ${OBJS}
-	${MV} lib${LIBNAME}.a ${TARGET_LIB}
+INCLUDES := $(INCLUDES) -I $(PDIR)include
+INCLUDES += -I ./
+INCLUDES += -I ../example
+INCLUDES += -I ../auth 
+PDIR := ../$(PDIR)
+sinclude $(PDIR)Makefile
 
-libso:${OBJS}
-	${CC}  ${OBJS} -shared -fPIC -o lib${LIBNAME}.so
-	${MV} lib${LIBNAME}.so ${TARGET_LIB} 
-
-jt:
-	${CC} -D_TEST_ test.c ${OBJS} -o $@ ${CFLAGS} ${INCLUDES} ${STATIC_LIBS} ${LIBS} 
-	${MV} $@ ${TARGET_BIN} 
-
-test:
-	${CC} -D_TEST_ test.c joylink_utils.c -o $@ ${CFLAGS} ${INCLUDES} ${STATIC_LIBS} ${LIBS} 
-
-clean:
-	${RM} *.o *.so *.a test ${TARGET_BIN}/jt
-
-distclean:clean
-	${RM} ./*.a ./*.so ${TARGET_LIB}/lib${LIBNAME}.*
-
-.PHONY:all clean test jt

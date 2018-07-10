@@ -4,7 +4,10 @@
 #include <stdio.h>
 #include <time.h>
 
-#if defined(__MTK_7687__)
+#if defined(ESP_8266)
+#include "esp_common.h"
+#include "lwip/sockets.h"
+#include "lwip/netdb.h"
 #else
 #include <locale.h>
 #include <string.h>

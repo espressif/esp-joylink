@@ -1,12 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#if defined(__MTK_7687__)
+#if defined(ESP_8266)
+#include "esp_common.h"
 #include "lwip/sockets.h"
 #include "lwip/netdb.h"
-#include "lwip/netif.h"
-#include "wifi_api.h"
-#include "os_util.h"
 #else
 #include <time.h>
 #include <fcntl.h>
@@ -23,6 +21,9 @@
 #include "joylink_utils.h"
 #include "joylink.h"
 
+#if defined(ESP_8266)
+extern void print_buf(uint8 *buf,uint8 size);
+#endif
 /**
  * brief: 
  *
@@ -196,7 +197,15 @@ joylink_util_getsys_ms(void)
     gettimeofday(&now, NULL); 
 	return  1000UL * now.tv_sec + (now.tv_usec / 1000UL);
 #else
-#error("System time error!\r\n");
+// #error("System time error!\r\n");
+ #include <time.h>  
+    #include <sys/time.h>
+      
+    struct timeval	now;
+
+	gettimeofday(&now,NULL);
+	ret = 1000UL * now.tv_sec + (now.tv_usec / 1000UL);
+
 #endif
 	return ret;
 }

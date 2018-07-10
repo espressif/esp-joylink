@@ -429,7 +429,11 @@ joylink_agent_server_ctrl(uint8_t* recPainText, int32_t src_len)
  * @Param: recPainText
  * @Param: src_len
  */
+#if defined(ESP_8266)
+E_JLRetCode_t
+#else
 void
+#endif
 joylink_agent_cloud_ota_to_dev(char * feedid, 
         uint8_t* recPainText, int32_t src_len,
         uint8_t* o_result, int32_t o_max, int32_t *o_len)

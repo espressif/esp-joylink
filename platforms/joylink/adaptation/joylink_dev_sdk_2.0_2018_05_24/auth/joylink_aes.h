@@ -57,6 +57,10 @@ extern void joylinkENC3(UINT8 *input, UINT32 inputlen, UINT8 output[16]);
 #define HARDWARE_RSA    1
 extern int joylinkEnc4Crypt(UINT8 *input, UINT32 inputLen, UINT8 *output, UINT32 maxLen, UINT8 *key, int type);
 
+#if defined(ESP_8266)
+void joylink_init_aes_table(void);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

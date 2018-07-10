@@ -11,12 +11,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(ESP_8266)
+#include "lwip/sockets.h"
+#else
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
+#endif
 #include <netinet/in.h>
 #include <net/if.h>
 
-#include <arpa/inet.h>
 #include "joylink_agent.h"
 #include "joylink_agent_devs.h"
 #include "joylink_log.h"
@@ -875,6 +879,9 @@ joylink_agent_proc_dev_del(uint8_t *src, struct sockaddr_in *sin_recv, socklen_t
  *
  * @Returns: 
  */
+
+extern char * joylink_agent_json_packet_dev_list(int32_t ret_code, char* ret_msg);
+
 E_JLRetCode_t 
 joylink_agent_proc_get_dev_list(uint8_t *src, struct sockaddr_in *sin_recv, socklen_t addrlen)
 {

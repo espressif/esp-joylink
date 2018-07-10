@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#if defined(__MTK_7687__)
-#include <stdint.h>
+#if defined(ESP_8266)
+#include "esp_common.h"
 #include "lwip/sockets.h"
 #include "lwip/netdb.h"
 #else
@@ -28,8 +28,12 @@
 #include "joylink_sub_dev.h"
 
 JLDevice_t  _g_dev = {
-    .jlp.feedid = "12345678901234567890123456789012",
-    .jlp.accesskey = "key45678901234567890123456789012",
+    .jlp.feedid = "151503237730077867",
+    .jlp.accesskey = "d973d154744c3439d50f58cc0230931f",
+    .jlp.localkey = "412fcb845baf15670b8e9860534fb156",
+    .jlp.joylink_server = "live.smart.jd.com",
+    .jlp.server_port = 2002,
+
     .server_socket = -1,
     .server_st = 0,
     .hb_lost_count = 0,

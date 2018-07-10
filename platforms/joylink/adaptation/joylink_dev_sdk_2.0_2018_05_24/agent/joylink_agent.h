@@ -10,8 +10,12 @@ extern "C"{
 #endif /* __cplusplus */
 
 #include "joylink.h"
+#if defined(ESP_8266)
+#include "lwip/sockets.h"
+#else
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#endif
 #include <netinet/in.h>
 #include <net/if.h>
 
@@ -81,6 +85,10 @@ typedef struct {
     int32_t random;
     int agent_st;
 }AgentDev_t;
+
+#if defined(ESP_8266)
+typedef unsigned int pthread_t;
+#endif
 
 #define JL_AGENT_GW_PORT                (33000)
 #define JL_AGENT_GW_CLIENT_MAX          (20)

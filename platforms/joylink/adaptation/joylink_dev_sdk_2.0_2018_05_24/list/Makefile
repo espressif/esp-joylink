@@ -1,43 +1,45 @@
-include ../Makefile.rule 
-HEADERS = $(wildcard *.h)
-ORG_SOURCES = $(wildcard *.c)
-OUT_SRC = test.c 
 
-SOURCES=$(filter-out ${OUT_SRC}, ${ORG_SOURCES})
-OBJS = $(patsubst %.c, %.o, $(SOURCES))
-
-LIBNAME = $(strip ${shell pwd |xargs basename})
-
-INCLUDES += -I${PROJECT_ROOT_PATH}/joylink
-INCLUDES += -I${PROJECT_ROOT_PATH}/extern
-STATIC_LIBS += 
-LIBS += -lm  
-
-ifeq (${ARCH}, x86)  
-all:${OBJS} liba libso
-else
-all:${OBJS} liba 
+#############################################################
+# Required variables for each makefile
+# Discard this section from all parent makefiles
+# Expected variables (with automatic defaults):
+#   CSRCS (all "C" files in the dir)
+#   SUBDIRS (all subdirs with a Makefile)
+#   GEN_LIBS - list of libs to be generated ()
+#   GEN_IMAGES - list of images to be generated ()
+#   COMPONENTS_xxx - a list of libs/objs in the form
+#     subdir/lib to be extracted and rolled up into
+#     a generated lib/image xxx.a ()
+#
+ifndef PDIR
+GEN_LIBS = liblist.a
 endif
 
-.SUFFIXES: .c .o
-.c.o:
-	${CC} ${CFLAGS} -c $(INCLUDES) ${STATIC_LIBS} $(LIBS) $*.c
 
-liba:${OBJS}
-	${AR} -crs lib${LIBNAME}.a ${OBJS}
-	${MV} lib${LIBNAME}.a ${TARGET_LIB}
+#############################################################
+# Configuration i.e. compile options etc.
+# Target specific stuff (defines etc.) goes in here!
+# Generally values applying to a tree are captured in the
+#   makefile at its root level - these are then overridden
+#   for a subtree within the makefile rooted therein
+#
+#DEFINES += 
 
-libso:${OBJS}
-	${CC}  ${OBJS} -shared -fPIC -o lib${LIBNAME}.so
-	${MV} lib${LIBNAME}.so ${TARGET_LIB} 
+#############################################################
+# Recursion Magic - Don't touch this!!
+#
+# Each subtree potentially has an include directory
+#   corresponding to the common APIs applicable to modules
+#   rooted at that subtree. Accordingly, the INCLUDE PATH
+#   of a module can only contain the include directories up
+#   its parent path, and not its siblings
+#
+# Required for each makefile to inherit from the parent
+#
 
-test:${OBJS}
-	${CC} -DLIB_TEST test.c ${OBJS} -o $@ ${CFLAGS} ${INCLUDES} ${STATIC_LIBS} ${LIBS} 
+INCLUDES := $(INCLUDES) -I $(PDIR)include
+INCLUDES += -I ./
+INCLUDES += -I $(PDIR)list
+PDIR := ../$(PDIR)
+sinclude $(PDIR)Makefile
 
-clean:
-	${RM} *.o *.so *.a test
-
-distclean:clean
-	${RM} ./*.a ./*.so ${TARGET_LIB}/lib${LIBNAME}.*
-
-.PHONY:all clean test

@@ -22,7 +22,11 @@
 #ifndef _STDINT_H
 #define _STDINT_H	1
 
-#if defined(__MTK_7687__)
+#if defined(ESP_8266)
+#include <sys/features.h>
+#include <wchar.h>
+//#include <bits/wordsize.h>
+#define __WORDSIZE 32
 #else
 #include <features.h>
 #include <bits/wchar.h>
