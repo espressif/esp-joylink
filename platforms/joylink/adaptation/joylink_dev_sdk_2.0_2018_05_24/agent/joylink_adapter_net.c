@@ -27,6 +27,13 @@
 #include "lwip/netif.h"
 #include "lwip/stats.h"
 #include "lwip/tcp.h"
+#elif defined(__ESP32__)
+#include "lwip/sockets.h"
+#include "lwip/netdb.h"
+#include "lwip/inet.h"
+#include "lwip/netif.h"
+#include "lwip/stats.h"
+#include "lwip/tcp.h"
 #elif defined(ESP_8266)
 #include  <fcntl.h>
 #include "lwip/sockets.h"

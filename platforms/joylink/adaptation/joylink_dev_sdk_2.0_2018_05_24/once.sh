@@ -54,7 +54,8 @@ make_date()
 release_sdk(){  
     DATE_V=`date "+%Y_%m_%d"`
     SDK_NAME=`pwd |xargs basename`
-    R_SDK_NAME=${SDK_NAME}_${DATE_V}
+    TVER=`awk '/VERSION:/{n++}n==1{print;exit}' RELEASENOTES |awk '{split($0,a,"[:]");print a[2]}'`
+    R_SDK_NAME=joylink_dev_sdk_${TVER}_${DATE_V}
 
     make clean
 

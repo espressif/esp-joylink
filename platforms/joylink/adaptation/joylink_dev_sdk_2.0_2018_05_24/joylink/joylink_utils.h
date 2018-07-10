@@ -5,7 +5,7 @@
 #include <stdint.h>
 #endif
 
-#if defined(__MTK_8877__)
+#if defined(__MTK_7687__)
 #include <stdint.h>
 #include "lwip/sockets.h"
 #else

@@ -43,7 +43,7 @@ DEFINES += -D__AVR__=0 -D_GET_HOST_BY_NAME_
 
 INCLUDES := $(INCLUDES) -I $(PDIR)include
 INCLUDES += -I ./
-INCLUDES += -I ./adaptation/joylink_dev_sdk_2.0_2018_04_24/joylink
+INCLUDES += -I ./adaptation/joylink_dev_sdk_2.0_2018_05_24/joylink
 PDIR := ../$(PDIR)
 sinclude $(PDIR)Makefile
 

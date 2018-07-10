@@ -30,7 +30,11 @@ MV = mv -f
 
 LIBS += -lm 
 
-#CFLAGS += -D_AGENT_GW_
+#AGENT_GW_EN=yes
+ifeq (${AGENT_GW_EN}, yes)  
+CFLAGS += -D_AGENT_GW_
+endif
+
 #CFLAGS += -D_SAVE_FILE_
 
 DEBUG=y

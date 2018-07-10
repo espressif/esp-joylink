@@ -200,12 +200,12 @@ joylink_main_loop(void)
 
         UNLOOK_FD:
         joylink_cloud_fd_unlock();
-
+#ifdef _AGENT_GW_
         if(E_RET_TRUE == is_joylink_server_st_work()){
             /*log_debug("proc agent_req_cloud proc");*/
             joylink_agent_req_cloud_proc();
         }
-
+#endif
 	}
 }
 

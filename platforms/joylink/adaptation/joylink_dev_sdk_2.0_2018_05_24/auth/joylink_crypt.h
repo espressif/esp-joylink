@@ -1,6 +1,5 @@
 #ifndef _NODECACHE_H
-#define _NODECACHE_H
-
+#define _NODECACHE_H 
 #include "joylink.h"
 #include "joylink_aes.h"
 

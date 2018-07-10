@@ -104,6 +104,7 @@ joylink_package_scan(const char *retMsg, const int retCode,
     cJSON_AddStringToObject(root, "firmwareVersion", dv->jlp.firmwareVersion); 
     cJSON_AddStringToObject(root, "modelCode", dv->jlp.modelCode); 
     
+    /*joylink_dev_get_jlp_info(&_g_pdev->jlp);*/
     if(!_g_pdev->jlp.is_actived){
         cJSON *idt;
         idt = cJSON_CreateObject();

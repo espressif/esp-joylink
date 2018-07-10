@@ -353,7 +353,16 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
     jlp->lancon = _g_pLightMgr->jlp.lancon;
     jlp->cmd_tran_type = _g_pLightMgr->jlp.cmd_tran_type;
     jlp->version = _g_pLightMgr->jlp.version;
+
+    /**
+     *MUST TODO
+     *This jlp->mac must return the device real mac.
+     */
     strcpy(jlp->mac, _g_pLightMgr->jlp.mac);
+    /**
+     *MUST TODO
+     *This jlp->uuid must return the device real uuid.
+     */
     strcpy(jlp->uuid, _g_pLightMgr->jlp.uuid);
 
 
