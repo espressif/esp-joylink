@@ -2,8 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if defined(__MTK_7687__)
-#include <stdint.h>
+#if defined(ESP_8266)
 #include "lwip/sockets.h"
 #include "lwip/netdb.h"
 #else

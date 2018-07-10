@@ -1,5 +1,10 @@
 /* Copyright 2014, Kenneth MacKay. Licensed under the BSD 2-clause license. */
-#ifdef QCOM_4004B
+#include "joylink_auth_uECC.h"
+
+#if defined(ESP_8266)
+#include "adaptation.h"
+#include "string.h"
+#else
 #include "scw_common.h"
 #define __AVR__ 0
 #define asm_clear 0
@@ -18,8 +23,6 @@
 #define asm_modSub_fast 0
 #define asm_mmod_fast 0
 #define asm_modInv 0
-#else
-#include "joylink_auth_uECC.h"
 #endif
 
 #ifndef uECC_PLATFORM
@@ -81,7 +84,7 @@
     #define uECC_WORD_SIZE 4
 #endif
 
-#ifdef QCOM_4004B
+#ifdef ESP_8266
 #define RESTRICT
 #else
 #if __STDC_VERSION__ >= 199901L
@@ -495,8 +498,12 @@ static int default_RNG(uint8_t *dest, unsigned size) {
 }
 
 #else /* Some other platform */
-
+#if defined(ESP_8266)
+int default_RNG(uint8_t *dest, unsigned size) {
+#else
 static int default_RNG(uint8_t *dest, unsigned size) {
+#endif
+
 #ifdef QCOM_4004B
     memset(dest, 2, size);    
     return 1;
@@ -1018,8 +1025,9 @@ static void vli_mmod_fast(uint64_t *RESTRICT result, uint64_t *RESTRICT product)
     }
 }
 #endif /* uECC_WORD_SIZE */
-
-#elif uECC_CURVE == uECC_secp256r1
+#if defined(ESP_8266)
+#elif uECC_CURVE == uECC_secp256r1_rename
+#endif
 
 /* Computes result = product % curve_p
    from http://www.nsa.gov/ia/_files/nist-routines.pdf */

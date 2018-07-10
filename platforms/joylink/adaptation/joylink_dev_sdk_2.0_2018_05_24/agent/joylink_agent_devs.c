@@ -18,6 +18,11 @@
 
 AgentDev_t _g_adevs[AGENT_DEV_MAX];
 
+#if defined(ESP_8266)
+typedef unsigned int pthread_mutex_t;
+#define PTHREAD_MUTEX_INITIALIZER  ((pthread_mutex_t) 0xFFFFFFFF)
+#endif
+
 pthread_mutex_t    devs_lock = PTHREAD_MUTEX_INITIALIZER;
 
 #ifdef _SAVE_FILE_

@@ -630,6 +630,16 @@ int device_aes_decrypt(const UINT8 * key, int keyLength,
 
 	return dlen;
 }
+#if defined(ESP_8266)
+void joylink_init_aes_table(void)
+{
+    if( joylink_enc2_init_done == 0 )
+    {
+        joylink_enc2_gen_tables();
+        joylink_enc2_init_done = 1;
+    }
+}
+#endif
 #else
 
 #if defined (__MRVL_MW300__) || defined(__BOARDLINK__)

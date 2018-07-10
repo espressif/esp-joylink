@@ -39,8 +39,6 @@ endif
 
 INCLUDES := $(INCLUDES) -I $(PDIR)include
 INCLUDES += -I ./
-#INCLUDES += -I ../joylink_dev_sdk_2.0_2018_04_24/joylink 
-#INCLUDES += -I ../joylink_softap_v3.0.4/softap 
 PDIR := ../$(PDIR)
 sinclude $(PDIR)Makefile
 
