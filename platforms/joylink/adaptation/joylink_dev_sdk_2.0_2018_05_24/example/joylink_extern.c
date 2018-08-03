@@ -17,6 +17,7 @@
 #include "joylink_auth_crc.h"
 #if defined(ESP_8266)
 #include "esp_misc.h"
+#include "esp_joylink.h"
 #endif
 #ifdef __MTK_7687__
 #include "mtk_ctrl.h"
@@ -573,6 +574,17 @@ joylink_dev_ota(JLOtaOrder_t *otaOrder)
     otaOrder->serial, otaOrder->feedid, otaOrder->productuuid, otaOrder->version, 
     otaOrder->versionname, otaOrder->crc32, otaOrder->url);
 
+#if defined(ESP_8266)
+    extern joylink_upgrade_start(const char * url);
+    ret = joylink_upgrade_start((const char*)otaOrder->url);
+    if (E_RET_OK == ret) {
+        joylink_event_param_t *param;
+        param = (joylink_event_param_t *)malloc(sizeof(joylink_event_param_t));
+        param->ota.version = otaOrder->version;
+        strcpy(param->ota.url, otaOrder->url);
+        joylink_event_send(JOYLINK_EVENT_OTA_START, param);
+    }
+#else
 #ifdef __MTK_7687__
     strcpy(_g_fota_ctx.download_url, (const char*)otaOrder->url);
 	//strcpy(_g_fota_ctx.download_url, (const char*)"http://192.168.1.96/mt7687_iot_sdk.bin");
@@ -583,6 +595,7 @@ joylink_dev_ota(JLOtaOrder_t *otaOrder)
     char *folder = "/home/yn/workspace/";
     sprintf(cmd_download, "wget -b %s -P %s", otaOrder->url, folder);
     system(cmd_download);
+#endif
 #endif
 
     return ret;
