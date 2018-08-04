@@ -44,7 +44,7 @@ typedef struct {
 
 joylink_upgrade_t *g_joylink_upgrade = NULL;
 
-#define JOYLINK_OTA_TASK_STACK  (256+128)
+#define JOYLINK_OTA_TASK_STACK  (512)
 #define JOYLINK_OTA_TASK_PRIOTY (3)
 #define JOYLINK_OTA_TIMEOUT     (120000) /*!< 120000ms */
 #define DNS_GET_HOST_RETRY      (5)
@@ -90,10 +90,8 @@ LOCAL void upgrade_recycle( xTimerHandle xTimer )
         printf("[ota] HighWater %d\n", uxTaskGetStackHighWaterMark(NULL));
         //save version to flash
 		vTaskDelay(100 / portTICK_RATE_MS);
-//		uart_swap_switch_off(); 
         system_upgrade_reboot(); // if need
     } else {
-//    	uart_swap_switch_off();
         joylink_dev_ota_status_upload(3, 100, "ota fail", 1);
         vTaskDelay(100 / portTICK_RATE_MS);
 		system_restart();
@@ -112,13 +110,16 @@ LOCAL void upgrade_recycle( xTimerHandle xTimer )
 *******************************************************************************/
 void upgrade_download(int sta_socket,char *pusrdata, unsigned short length)
 {
-    char *ptr = NULL;
+    char *ptr = NULL, *ptr1 = NULL, *ptr2 = NULL;
     char *ptmp2 = NULL;
     char lengthbuffer[32];
     static int s_up_cnt = 0;
-    if (totallength == 0 && (ptr = (char *)strstr(pusrdata, "\r\n\r\n")) != NULL &&
-            (ptr = (char *)strstr(pusrdata, "Content-Length")) != NULL) {
-        printf("recv header: %s\r\n",pusrdata);
+
+    ptr1 = (char *)strstr(pusrdata, "\r\n\r\n");
+    ptr2 = (char *)strstr(pusrdata, "Content-Length");
+
+    if (totallength == 0 && ptr1 != NULL && ptr2 != NULL)  {
+        log_debug("recv header: %s\r\n",pusrdata);
         ptr = (char *)strstr(pusrdata, "\r\n\r\n");
         length -= ptr - pusrdata;
         length -= 4;
@@ -131,18 +132,20 @@ void upgrade_download(int sta_socket,char *pusrdata, unsigned short length)
                 memcpy(lengthbuffer, ptr, ptmp2 - ptr);
                 sumlength = atoi(lengthbuffer);
                 if(sumlength > 0) {
+                    log_debug("sumlength = %d\n",sumlength);
                 	if (false == system_upgrade(pusrdata, sumlength)) {
                 		system_upgrade_flag_set(UPGRADE_FLAG_IDLE);	
                         goto ota_recycle;
                 	}
                 	flash_erased = true;
                 	ptr = (char *)strstr(pusrdata, "\r\n\r\n");
+                	log_debug("length = %d\n",length);
                 	if (false == system_upgrade(ptr + 4, length)){
                 		system_upgrade_flag_set(UPGRADE_FLAG_IDLE);	
                         goto ota_recycle;
                 	}
                 	totallength += length;
-                	printf("sumlength = %d\n",sumlength);
+                	log_debug("totallength = %d\n",totallength);
                     s_up_cnt = 0;
                 	return;
                 }
@@ -165,7 +168,6 @@ void upgrade_download(int sta_socket,char *pusrdata, unsigned short length)
         }
         if (totallength >= sumlength) {
 	        printf("upgrade file download finished.\n");
-//            joylink_dev_ota_status_upload(1, 100, "fw installing", 0);
 	        if(upgrade_crc_check(system_get_fw_start_sec(),sumlength) != true) {
 				printf("upgrade crc check failed !\n");
 		        system_upgrade_flag_set(UPGRADE_FLAG_IDLE);	
@@ -175,11 +177,6 @@ void upgrade_download(int sta_socket,char *pusrdata, unsigned short length)
             goto ota_recycle;      
         } else {
             /* count num upload once process */
-//            s_up_cnt++;
-//            if (0 == s_up_cnt%80) {
-//                joylink_dev_ota_status_upload(0, totallength*100/sumlength, "downloading", 0);
-//                printf("[ota] HighWater %d\n", uxTaskGetStackHighWaterMark(NULL));
-//            }
             return;
         }        
     }
@@ -289,10 +286,10 @@ void fota_begin(void *pvParameters)
 	    if(0 != connect(sta_socket,(struct sockaddr *)(remote_ip),sizeof(struct sockaddr)))
 	    {
 	        close(sta_socket);
-	        printf("connect fail!\r\n");
+	        log_debug("connect fail!\r\n");
 	        system_upgrade_flag_set(UPGRADE_FLAG_IDLE);	
 	        upgrade_recycle(NULL);
-	    }//inet_ntoa(g_joylink_upgrade->sockaddrin.sin_addr)
+	    }
 	    sprintf(pbuf, pheadbuffer, g_joylink_upgrade->ota_bin_path,\
                                    g_joylink_upgrade->ota_server,\
                                    g_joylink_upgrade->ota_server);
@@ -336,10 +333,6 @@ int joylink_upgrade_start(const char *url)
     system_upgrade_flag_set(UPGRADE_FLAG_START);
     system_upgrade_init();
 	xTaskCreate(fota_begin, "fota_task", JOYLINK_OTA_TASK_STACK, NULL, JOYLINK_OTA_TASK_PRIOTY, ota_task_handle);
-
-//    os_timer_disarm(&upgrade_timer);
-//    os_timer_setfn(&upgrade_timer, (os_timer_func_t *)upgrade_recycle, NULL);
-//    os_timer_arm(&upgrade_timer, JOYLINK_OTA_TIMEOUT, 0);
 
     if (NULL != xTimeOtaCheck) {
         xTimerStop(xTimeOtaCheck,portMAX_DELAY);
