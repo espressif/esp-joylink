@@ -129,6 +129,7 @@ static void  joylink_smnt_finish(void)
 		if((ret> 0) && (ret <= 96)){
 			smnt_result.jd_password_len = pSmnt->result.encData[1];
 			smnt_result.jd_ssid_len	 = ret - smnt_result.jd_password_len -1 -6;
+
 			memcpy(smnt_result.jd_password,pSmnt->result.encData+2,smnt_result.jd_password_len);
 			memcpy(smnt_result.jd_ssid,pSmnt->result.encData + 2 + smnt_result.jd_password_len +6,smnt_result.jd_ssid_len);	
 
@@ -141,6 +142,10 @@ static void  joylink_smnt_finish(void)
 			printf("ERROR:joylink_smnt_finish->get_result_callback NULL\n");
 			goto RET;
 		}
+
+#ifdef CONFIG_TARGET_PLATFORM_ESP8266
+		esp_wifi_set_promiscuous(0);
+#endif
 		
 		joylink_smnt_gobal.get_result_callback(smnt_result);
 	}

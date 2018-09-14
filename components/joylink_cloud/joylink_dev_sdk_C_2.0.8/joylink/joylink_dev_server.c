@@ -732,7 +732,7 @@ joylink_proc_server_ota_upload(uint8_t* json)
  * @Returns: 
  */
 int
-#if defined(__ESP32__)
+#ifdef ESP_PLATFORM
 joylink_server_recv(int fd, char *rec_buff, int max)
 #else
 joylink_server_recv(char fd, char *rec_buff, int max)

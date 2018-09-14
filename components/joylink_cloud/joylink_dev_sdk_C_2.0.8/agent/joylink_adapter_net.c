@@ -27,7 +27,7 @@
 #include "lwip/netif.h"
 #include "lwip/stats.h"
 #include "lwip/tcp.h"
-#elif defined(__ESP32__)
+#elif defined(ESP_PLATFORM)
 #include "lwip/sockets.h"
 #include "lwip/netdb.h"
 #include "lwip/inet.h"
@@ -118,7 +118,7 @@ joylink_adapter_net_non_block(char *err, int32_t fd)
     /* Set the socket non-blocking.
      * Note that fcntl(2) for F_GETFL and F_SETFL can't be
      * interrupted by a signal. */
-#if defined (__MTK_7687__) || defined(__MW300__) || defined(__REALTEK_8711__) || defined(__ESP32__)
+#if defined (__MTK_7687__) || defined(__MW300__) || defined(__REALTEK_8711__) || defined(ESP_PLATFORM)
 	if ((flags = fcntl(fd, F_GETFL, 0)) == -1)
 #else
     if ((flags = fcntl(fd, F_GETFL)) == -1)
@@ -765,7 +765,7 @@ SEND:
             case EAGAIN:        //Try again
                 log_info("count:%d", count);
                 if (count <= 3) {
-#if defined(__MICOKIT_3166__) || defined(__MW300__) || defined(__ESP32__)
+#if defined(__MICOKIT_3166__) || defined(__MW300__) || defined(ESP_PLATFORM)
 #elif defined(__MTK_7687__)
                     os_sleep(0, 10);
 #else
