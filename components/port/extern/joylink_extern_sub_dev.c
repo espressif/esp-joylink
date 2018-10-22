@@ -12,7 +12,7 @@
 #include "joylink_json.h"
 #include "joylink_extern_json.h"
 
-#define JL_MAX_SUB      (20)
+#define JL_MAX_SUB      (1)
 int tail_index = 0;
 /*
 JLDevInfo_t _g_sub_dev[JL_MAX_SUB] = { 

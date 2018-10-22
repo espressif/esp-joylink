@@ -2,8 +2,6 @@
 # Component Makefile
 #
 
-ifdef CONFIG_JOYLINK_ENABLE
-
 JOYLINK_SDK ?= joylink_dev_sdk_C_2.0.8
 JOYLINK_SMNT ?= joylink_smnt_v3.0.11
 JOYLINK_SOFTAP ?= joylink_softap_V3.0.4
@@ -92,6 +90,5 @@ COMPONENT_ADD_INCLUDEDIRS += $(addprefix $(JOYLINK_PORT)/,$(JOYLINK_PORT_INCLUDE
 COMPONENT_SRCDIRS += $(addprefix  $(JOYLINK_PORT)/,$(JOYLINK_PORT_SRCDIRS))
 COMPONENT_OBJS += $(addprefix  $(JOYLINK_PORT)/,$(JOYLINK_PORT_C_FILES:%.c=%.o))
 
-CFLAGS += -D__LINUX_UB2__ -D__LINUX__ -DJLdevice_aes_decrypt=device_aes_decrypt -D_GET_HOST_BY_NAME_ -D__ESP32__
+CFLAGS += -D__LINUX_UB2__ -D__LINUX__ -DJLdevice_aes_decrypt=device_aes_decrypt -D_GET_HOST_BY_NAME_
 CFLAGS += -Wno-error=unused-label -Wno-error=maybe-uninitialized -Wno-error=implicit-function-declaration -Wno-error=pointer-sign -Wno-error=char-subscripts -Wno-error=sizeof-pointer-memaccess -Wno-error=format
-endif

@@ -564,7 +564,7 @@ joylink_dev_ota(JLOtaOrder_t *otaOrder)
 	//strcpy(_g_fota_ctx.download_url, (const char*)"http://192.168.1.96/mt7687_iot_sdk.bin");
     _g_fota_ctx.crc32 = otaOrder->crc32;
 	joylink_fota_download_package();
-#elif defined(PLATFORM_ESP32)
+#elif defined(ESP_PLATFORM)
 	JLOtaUpload_t otaUpload;
     strcpy(otaUpload.feedid, _g_pdev->jlp.feedid);
     strcpy(otaUpload.productuuid, _g_pdev->jlp.uuid);
@@ -617,7 +617,7 @@ esp_joylink_config_network_t esp_joylink_get_config_network(void)
 	}
 
 	nvs_close(out_handle);
-	ets_printf("esp_joylink_get_config_network:%d\r\n",config_network);
+	printf("esp_joylink_get_config_network:%d\r\n",config_network);
 	if ((config_network >= ESP_JOYLINK_CONFIG_NETWORK_NONE)
             && (config_network <= ESP_JOYLINK_CONFIG_NETWORK_MAX)) {
         return config_network;
@@ -642,7 +642,7 @@ void esp_joylink_set_config_network(esp_joylink_config_network_t config_network)
 		return;
 	}
 	nvs_close(out_handle);
-	ets_printf("esp_joylink_set_config_network:%d\r\n",config_network);
+	printf("esp_joylink_set_config_network:%d\r\n",config_network);
 	if (config_network) {
 		esp_restart();
 		for(;;){

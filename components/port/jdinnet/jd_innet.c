@@ -54,8 +54,12 @@ static void jd_innet_pack_callback(void *buf, wifi_promiscuous_pkt_type_t type)
 
     if (type != WIFI_PKT_MISC) {
         pack_all = (wifi_promiscuous_pkt_t *)buf;
-        frame = (PHEADER_802_11)pack_all->payload;
-        len = pack_all->rx_ctrl.sig_len;
+        frame = (PHEADER_802_11)pack_all->payload;        
+#ifdef CONFIG_TARGET_PLATFORM_ESP8266
+    len = pack_all->rx_ctrl.sig_mode ? pack_all->rx_ctrl.HT_length : pack_all->rx_ctrl.legacy_length;
+#else
+    len = pack_all->rx_ctrl.sig_len;
+#endif
 		joylink_smnt_datahandler(frame, len);
 
     }
@@ -83,7 +87,25 @@ void esp_get_result_callback(joylink_smnt_result_t result)
 	wifi_config_t config;
 	if (result.smnt_result_status == smnt_result_ok) {
         memset(&config,0x0,sizeof(config));
-                    
+#ifdef CONFIG_TARGET_PLATFORM_ESP8266
+        esp_wifi_set_promiscuous(0);
+        esp_wifi_set_promiscuous_rx_cb(NULL);
+        memcpy(config.sta.ssid,result.jd_ssid,result.jd_ssid_len);
+        log_debug("ssid:%s\r\n",config.sta.ssid);
+        log_debug("password:%s\r\n",config.sta.password);
+        esp_wifi_disconnect();
+        if (esp_wifi_set_config(ESP_IF_WIFI_STA,&config) != ESP_OK) {
+            log_debug("set sta fail\r\n");
+        } else {
+            if (esp_wifi_connect() != ESP_OK) {
+                log_debug("sta connect fail\r\n");
+            } else {
+                if (jd_innet_timer_task_handle != NULL) {
+                    jd_innet_timer_task_flag = true;
+                }
+            }
+        }
+#else
         memcpy(config.sta.password,result.jd_password,result.jd_password_len);
         memcpy(config.sta.ssid,result.jd_ssid,result.jd_ssid_len);
         log_debug("ssid:%s\r\n",config.sta.ssid);
@@ -106,6 +128,7 @@ void esp_get_result_callback(joylink_smnt_result_t result)
 				// joylink_smnt_release();
             }
         }
+#endif
 	}
 }
 
@@ -146,6 +169,10 @@ static void jd_innet_start (void *pvParameters)
 	param.switch_channel_callback = esp_switch_channel_callback;
 	param.get_result_callback = esp_get_result_callback;
     joylink_smnt_init(param);
+
+#ifdef CONFIG_TARGET_PLATFORM_ESP8266
+    esp_wifi_set_promiscuous_data_len(32);
+#endif
     if (ESP_OK != esp_wifi_set_promiscuous_rx_cb(jd_innet_pack_callback)){
         log_debug ("[%s] set_promiscuous fail\n\r",__func__);
     }

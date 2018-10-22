@@ -33,13 +33,14 @@
 #include "esp_wifi.h"
 #include "esp_event_loop.h"
 
+#ifndef CONFIG_TARGET_PLATFORM_ESP8266
 #include "esp_bt.h"
-#include "bta_api.h"
-
 #include "esp_bt_device.h"
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"
 #include "esp_bt_main.h"
+#include "esp_log.h"
+#endif
 
 #include "apps/sntp/sntp.h"
 
@@ -55,7 +56,7 @@
 #define PROFILE_NUM 1
 #define PROFILE_JD_APP_ID 0
 
-
+#ifndef CONFIG_TARGET_PLATFORM_ESP8266
 struct gatts_profile_inst {
     esp_gatts_cb_t gatts_cb;
     uint16_t gatts_if;
@@ -116,7 +117,7 @@ void initialise_ble(void)
 
     ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
     if (ret) {
-        ets_printf("%s enable bt controller failed\n", __func__);
+        printf("%s enable bt controller failed\n", __func__);
         return;
     }
 
@@ -143,6 +144,7 @@ void initialise_ble(void)
     }
 	
 }
+#endif
 
 esp_err_t event_handler(void *ctx, system_event_t *event)
 {
@@ -156,8 +158,7 @@ static void initialise_wifi(void)
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
     ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
-
-    ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_NULL) );
+    ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK( esp_wifi_start() );
 }
 
@@ -191,7 +192,6 @@ static void initialise_key(void)
 
 static void initialize_sntp(void)
 {
-    ESP_LOGI(TAG, "Initializing SNTP");
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
     sntp_setservername(0, "pool.ntp.org");
     sntp_init();
@@ -206,9 +206,12 @@ void app_main(void)
     printf("================================================\n");
     nvs_flash_init();
     initialise_wifi();
-	initialize_sntp();
+    initialize_sntp();
     initialise_key();
+
+#ifndef CONFIG_TARGET_PLATFORM_ESP8266
     initialise_ble();
+#endif
 
     esp_joylink_app_start();
 }
