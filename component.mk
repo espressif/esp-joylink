@@ -1,13 +1,14 @@
 #
-# Component Makefile
+# component Makefile.
 #
+# (Uses default behaviour of compiling all source files in directory, adding 'include' to include path.)
 
-JOYLINK_SDK ?= joylink_dev_sdk_C_2.0.8
-JOYLINK_SMNT ?= joylink_smnt_v3.0.11
-JOYLINK_SOFTAP ?= joylink_softap_V3.0.4
-JOYLINK_PORT ?= ../port
+JOYLINK_SDK ?= joylink_cloud/joylink_dev_sdk_C_2.0.8
+JOYLINK_SMNT ?= joylink_cloud/joylink_smnt_v3.0.11
+JOYLINK_SOFTAP ?= joylink_cloud/joylink_softap_V3.0.4
+JOYLINK_PORT ?= port
 
-COMPONENT_ADD_INCLUDEDIRS :=
+COMPONENT_ADD_INCLUDEDIRS := 
 JOYLINK_SDK_INCLUDEDIRS = agent auth joylink json list
 JOYLINK_SDK_SRCDIRS = agent auth joylink json list
 COMPONENT_ADD_INCLUDEDIRS += $(addprefix $(JOYLINK_SDK)/,$(JOYLINK_SDK_INCLUDEDIRS)) \
@@ -17,13 +18,15 @@ COMPONENT_SRCDIRS += $(addprefix $(JOYLINK_SDK)/,$(JOYLINK_SDK_SRCDIRS))
 COMPONENT_ADD_INCLUDEDIRS += $(JOYLINK_SMNT)
 COMPONENT_SRCDIRS += $(JOYLINK_SMNT)
 
+ifndef CONFIG_TARGET_PLATFORM_ESP8266
 
 LIBS += joylink_ble
 
-COMPONENT_ADD_LDFLAGS += -L $(COMPONENT_PATH)/joylink_ble/lib \
+COMPONENT_ADD_LDFLAGS += -L $(COMPONENT_PATH)/joylink_cloud/joylink_ble/lib \
                            $(addprefix -l,$(LIBS))
+endif
 
-COMPONENT_ADD_INCLUDEDIRS += joylink_ble/include
+COMPONENT_ADD_INCLUDEDIRS += joylink_cloud/joylink_ble/include
 
 JOYLINK_SDK_C_FILES =   agent/joylink_adapter_net.c		\
 			agent/joylink_agent.c			\
@@ -73,7 +76,7 @@ COMPONENT_OBJS += $(addprefix $(JOYLINK_SOFTAP)/,$(JOYLINK_SOFTAP_C_FILES:%.c=%.
 
 
 JOYLINK_PORT_SRCDIRS = app ble extern jdinnet softap
-JOYLINK_PORT_INCLUDEDIRS = include jdinnet extern include
+JOYLINK_PORT_INCLUDEDIRS = include jdinnet extern
 
 JOYLINK_PORT_C_FILES =	app/joylink_app.c			\
 			ble/joylink_ble.c						\
