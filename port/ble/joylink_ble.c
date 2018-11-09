@@ -139,8 +139,13 @@ uint8_t joy_sdk_pwd_rev[SIZE_PWD+1]  = {0};
 
 uint8_t seq_num = 0;
 
+#ifndef CONFIG_TARGET_PLATFORM_ESP8266
 extern uint8_t compressed_dev_pub_key[21]; 
-extern uint8_t compressed_app_pub_key[21]; 
+extern uint8_t compressed_app_pub_key[21];
+#else
+uint8_t compressed_dev_pub_key[21]; 
+uint8_t compressed_app_pub_key[21];
+#endif 
 
 extern JLDevice_t  *_g_pdev;
 //#define TEST_DEVICE_NAME            "DEMO"
@@ -627,7 +632,7 @@ static int joy_operate_read_handler(uint8_t *cmd)
         case JOY_PROPERTY_TAG_DEV_SNAPSHOT:
         case JOY_PROPERTY_TAG_PUBKEY_APP:
         case JOY_PROPERTY_TAG_SECLEVEL:
-        case JOY_PROPERTY_TAG_BRAND    :
+        case JOY_PROPERTY_TAG_BRAND:
         case JOY_PROPERTY_TAG_CID:
         default:
             offset++;
