@@ -91,6 +91,7 @@ void esp_get_result_callback(joylink_smnt_result_t result)
         esp_wifi_set_promiscuous(0);
         esp_wifi_set_promiscuous_rx_cb(NULL);
         memcpy(config.sta.ssid,result.jd_ssid,result.jd_ssid_len);
+        memcpy(config.sta.password,result.jd_password,result.jd_password_len);
         log_debug("ssid:%s\r\n",config.sta.ssid);
         log_debug("password:%s\r\n",config.sta.password);
         esp_wifi_disconnect();
