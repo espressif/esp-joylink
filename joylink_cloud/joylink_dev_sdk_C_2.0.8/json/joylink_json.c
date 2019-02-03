@@ -213,18 +213,19 @@ joylink_parse_lan_write_key(DevEnable_t *de, const char * pMsg)
                 free(out);
             }
         }
-    }
-
-    cJSON * idt = cJSON_GetObjectItem(pData, "c_idt");
-    if(NULL != idt){
-         cJSON * pSub = cJSON_GetObjectItem(idt, "cloud_sig");
-        if(NULL != pSub){
-            strcpy(de->cloud_sig, pSub->valuestring);
-        }                                                                                                         
+        cJSON * idt = cJSON_GetObjectItem(pData, "c_idt");
+        if(NULL != idt){
+             cJSON * pSub = cJSON_GetObjectItem(idt, "cloud_sig");
+            if(NULL != pSub){
+                strcpy(de->cloud_sig, pSub->valuestring);
+            }                                                                                                         
+        }
+        ret = 0;
+    } else {
+        ret = -1;
     }
 
     cJSON_Delete(pJson);
-    ret = 0;
     return ret;
 }
 
