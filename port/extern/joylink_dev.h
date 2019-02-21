@@ -6,6 +6,7 @@ extern "C"{
 #endif /* __cplusplus */
 
 #include "joylink.h"
+#include "joylink_sub_dev.h"
 
 #define LIGHT_CMD_NONE			(-1)
 #define LIGHT_CMD_POWER			(1)
@@ -140,7 +141,7 @@ joylink_dev_ota_status_upload();
  * @Returns: 
  */
 E_JLRetCode_t
-joylink_dev_sub_add(JLDevInfo_t *dev, int num);
+joylink_dev_sub_add(JLSubDevData_t *dev, int num);
 
 /**
  * brief: 
@@ -151,7 +152,7 @@ joylink_dev_sub_add(JLDevInfo_t *dev, int num);
  * @Returns: 
  */
 E_JLRetCode_t
-joylink_sub_dev_del(JLDevInfo_t *dev, int num);
+joylink_sub_dev_del(char *feedid);
 
 /**
  * brief: 
@@ -162,7 +163,7 @@ joylink_sub_dev_del(JLDevInfo_t *dev, int num);
  * @Returns: 
  */
 E_JLRetCode_t
-joylink_dev_sub_get_by_feedid(char *feedid, JLDevInfo_t *dev);
+joylink_dev_sub_get_by_feedid(char *feedid, JLSubDevData_t *dev);
 
 /**
  * brief: 
@@ -174,7 +175,7 @@ joylink_dev_sub_get_by_feedid(char *feedid, JLDevInfo_t *dev);
  * @Returns: 
  */
 E_JLRetCode_t
-joylink_sub_dev_get_by_uuid_mac(char *uuid, char *mac, JLDevInfo_t *dev);
+joylink_sub_dev_get_by_uuid_mac(char *uuid, char *mac, JLSubDevData_t *dev);
 
 /**
  * brief: 
@@ -186,7 +187,7 @@ joylink_sub_dev_get_by_uuid_mac(char *uuid, char *mac, JLDevInfo_t *dev);
  * @Returns: 
  */
 E_JLRetCode_t
-joylink_dev_sub_update_keys_by_uuid_mac(char *uuid, char *mac, JLDevInfo_t *dev);
+joylink_dev_sub_update_keys_by_uuid_mac(char *uuid, char *mac, JLSubDevData_t *dev);
 
 /**
  * brief: 
@@ -196,8 +197,8 @@ joylink_dev_sub_update_keys_by_uuid_mac(char *uuid, char *mac, JLDevInfo_t *dev)
  *
  * @Returns: 
  */
-JLDevInfo_t *
-joylink_dev_sub_devs_get(int *count, int scan_type);
+E_JLRetCode_t
+joylink_dev_sub_version_update(char *feedid, int version);
 
 /**
  * brief: 
@@ -251,6 +252,28 @@ joylink_dev_get_idt(jl2_d_idt_t *pidt);
  */
 int
 joylink_dev_get_random();
+
+/**
+ * brief:
+ *
+ * @Returns:
+ */
+int joylink_dev_get_user_mac(char *out);
+
+/**
+ * brief:
+ *
+ * @Returns:
+ */
+int joylink_dev_get_private_key(char *out);
+
+/**
+ * brief:
+ *
+ * @Returns:
+ */
+// int joylink_dev_user_data_set(char *cmd, user_dev_status_t *user_data);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

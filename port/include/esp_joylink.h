@@ -10,8 +10,6 @@
 #endif
 
 #define JOYLINK_VERSION     _VERSION_
-#define JOYLINK_COMMIT_ID   _GIT_HEAD_
-
 
 typedef enum {
     ESP_JOYLINK_CONFIG_NETWORK_NONE = 0,

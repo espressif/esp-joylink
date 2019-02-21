@@ -11,20 +11,14 @@
 #include "joylink_packets.h"
 #include "joylink_json.h"
 #include "joylink_extern_json.h"
+#include "joylink_sub_dev.h"
 
 #define JL_MAX_SUB      (1)
 int tail_index = 0;
-/*
-JLDevInfo_t _g_sub_dev[JL_MAX_SUB] = { 
-    {.jlp.mac = "mac001", .type = E_JLDEV_TYPE_SUB,  .jlp.uuid = "jdsmart", .jlp.lancon = 1, .jlp.cmd_tran_type = 0, .state = 1}, 
-    {.jlp.mac = "mac002", .type = E_JLDEV_TYPE_SUB,  .jlp.uuid = "jdsmart", .jlp.lancon = 1, .jlp.cmd_tran_type = 0, .state = 1}, 
-    {.jlp.mac = "mac003", .type = E_JLDEV_TYPE_SUB,  .jlp.uuid = "jdsmart", .jlp.lancon = 1, .jlp.cmd_tran_type = 1, .state = 1}
-};*/
-JLDevInfo_t _g_sub_dev[JL_MAX_SUB] = { 
-    {   .jlp.feedid="144739743326280531",.jlp.accesskey="9b5ccce967e4a818f1fb3f94f306d852",
-        .jlp.mac = "mac001", .type = E_JLDEV_TYPE_SUB,  
-        .jlp.uuid = "4GNIPK", .jlp.lancon = 1,
-        .jlp.cmd_tran_type = 0, .state = 1}
+int sub_dev_numb = 1;
+
+JLSubDevData_t _g_sub_dev[JL_MAX_SUB] = { 
+    {.mac = "001", .type = E_JLDEV_TYPE_SUB, .uuid = "3C939C", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .noSnapshort = E_SNAP_SHORT_N}
 };
 
 /**
@@ -36,16 +30,25 @@ JLDevInfo_t _g_sub_dev[JL_MAX_SUB] = {
  * @Returns: 
  */
 E_JLRetCode_t
-joylink_dev_sub_add(JLDevInfo_t *dev, int num)
+joylink_dev_sub_add(JLSubDevData_t *dev, int num)
 {
     /**
      *FIXME: todo
      */
+    int i = 0;
     int ret = E_RET_OK;
-    if(tail_index + 1 < JL_MAX_SUB){
-        memcpy(&_g_sub_dev[++tail_index], dev, sizeof(JLDevInfo_t));
-    }
 
+	for(i = 0; i < JL_MAX_SUB; i++){
+		if(!strcmp(dev->uuid, _g_sub_dev[i].uuid) && !strcmp(dev->mac, _g_sub_dev[i].mac))
+			return ret;
+	}
+	for(i = 0; i < JL_MAX_SUB; i++){
+	    if(strlen(_g_sub_dev[i].uuid) == 0){
+	        memcpy(&_g_sub_dev[i], dev, sizeof(JLSubDevData_t));
+		sub_dev_numb++;
+		break;
+	    }
+	}
     return ret;
 }
 
@@ -58,13 +61,21 @@ joylink_dev_sub_add(JLDevInfo_t *dev, int num)
  * @Returns: 
  */
 E_JLRetCode_t
-joylink_sub_dev_del(JLDevInfo_t *dev, int num)
+joylink_sub_dev_del(char *feedid)
 {
     /**
      *FIXME: todo
      */
     int ret = E_RET_OK;
-
+	int i = 0;
+	
+	for(i = 0; i < JL_MAX_SUB; i++){
+	    if(!strcmp(feedid, _g_sub_dev[i].feedid)){
+	        memset(&_g_sub_dev[i], 0, sizeof(JLSubDevData_t));
+		sub_dev_numb--;
+		break;
+	    }
+	}
     return ret;
 }
 
@@ -77,7 +88,7 @@ joylink_sub_dev_del(JLDevInfo_t *dev, int num)
  * @Returns: 
  */
 E_JLRetCode_t
-joylink_dev_sub_get_by_feedid(char *feedid, JLDevInfo_t *dev)
+joylink_dev_sub_get_by_feedid(char *feedid, JLSubDevData_t *dev)
 {
     /**
      *FIXME: todo
@@ -86,9 +97,10 @@ joylink_dev_sub_get_by_feedid(char *feedid, JLDevInfo_t *dev)
     int i; 
 
     for(i = 0; i < JL_MAX_SUB; i++){
-        if(!strcmp(feedid, _g_sub_dev[i].jlp.feedid)){
-            memcpy(dev, &_g_sub_dev[i], sizeof(JLDevInfo_t));
+        if(!strcmp(feedid, _g_sub_dev[i].feedid)){
+            memcpy(dev, &_g_sub_dev[i], sizeof(JLSubDevData_t));
             ret = E_RET_OK;
+	    break;
         }
     }
 
@@ -105,7 +117,7 @@ joylink_dev_sub_get_by_feedid(char *feedid, JLDevInfo_t *dev)
  * @Returns: 
  */
 E_JLRetCode_t
-joylink_sub_dev_get_by_uuid_mac(char *uuid, char *mac, JLDevInfo_t *dev)
+joylink_sub_dev_get_by_uuid_mac(char *uuid, char *mac, JLSubDevData_t *dev)
 {
     /**
      *FIXME: todo
@@ -114,10 +126,10 @@ joylink_sub_dev_get_by_uuid_mac(char *uuid, char *mac, JLDevInfo_t *dev)
     int i; 
 
     for(i = 0; i < JL_MAX_SUB; i++){
-        if(!strcmp(uuid, _g_sub_dev[i].jlp.uuid) && 
-                !strcmp(mac, _g_sub_dev[i].jlp.mac)){
-            memcpy(dev, &_g_sub_dev[i], sizeof(JLDevInfo_t));
+        if(!strcmp(uuid, _g_sub_dev[i].uuid) && !strcmp(mac, _g_sub_dev[i].mac)){
+            memcpy(dev, &_g_sub_dev[i], sizeof(JLSubDevData_t));
             ret = E_RET_OK;
+	    break;
         }
     }
 
@@ -134,24 +146,57 @@ joylink_sub_dev_get_by_uuid_mac(char *uuid, char *mac, JLDevInfo_t *dev)
  * @Returns: 
  */
 E_JLRetCode_t
-joylink_dev_sub_update_keys_by_uuid_mac(char *uuid, char *mac, JLDevInfo_t *dev)
+joylink_dev_sub_update_keys_by_uuid_mac(char *uuid, char *mac, JLSubDevData_t *dev)
 {
     /**
      *FIXME: todo
      */
-    int ret = E_RET_OK;
+    int ret = E_RET_ERROR;
     int i; 
 
     for(i = 0; i < JL_MAX_SUB; i++){
-        if(!strcmp(uuid, _g_sub_dev[i].jlp.uuid) && 
-                !strcmp(mac, _g_sub_dev[i].jlp.mac)){
+        if(!strcmp(uuid, _g_sub_dev[i].uuid) && !strcmp(mac, _g_sub_dev[i].mac)){
+            memcpy(_g_sub_dev[i].accesskey, dev->accesskey, sizeof(dev->accesskey));
+            memcpy(_g_sub_dev[i].localkey, dev->localkey, sizeof(dev->localkey));
+            memcpy(_g_sub_dev[i].feedid, dev->feedid, sizeof(dev->feedid));
 
-            memcpy(_g_sub_dev[i].jlp.accesskey, dev->jlp.accesskey, sizeof(dev->jlp.accesskey));
-            memcpy(_g_sub_dev[i].jlp.localkey, dev->jlp.localkey, sizeof(dev->jlp.localkey));
-            memcpy(_g_sub_dev[i].jlp.feedid, dev->jlp.feedid, sizeof(dev->jlp.feedid));
+	    _g_sub_dev[i].lancon = dev->lancon;
+            _g_sub_dev[i].cmd_tran_type = dev->cmd_tran_type;
     
-            _g_sub_dev[i].state = E_JLDEV_ST_CONFD;
+            _g_sub_dev[i].state = E_JLDEV_ONLINE;
             ret = E_RET_OK;
+	    break;
+        }
+    }
+#ifdef _SAVE_FILE_
+	joylink_dev_sub_data_save();
+#endif
+
+    return ret;
+}
+
+/**
+ * brief: 
+ *
+ * @Param: feedid
+ * @Param: version
+ *
+ * @Returns: 
+ */
+E_JLRetCode_t
+joylink_dev_sub_version_update(char *feedid, int version)
+{
+    /**
+     *FIXME: todo
+     */
+    int ret = E_RET_ERROR;
+    int i; 
+
+    for(i = 0; i < JL_MAX_SUB; i++){
+        if(!strcmp(feedid, _g_sub_dev[i].feedid)){
+            _g_sub_dev[i].version = version;
+            ret = E_RET_OK;
+	    break;
         }
     }
 
@@ -166,62 +211,34 @@ joylink_dev_sub_update_keys_by_uuid_mac(char *uuid, char *mac, JLDevInfo_t *dev)
  *
  * @Returns: 
  */
-JLDevInfo_t *
-joylink_dev_sub_devs_get(int *count, int scan_type)
+JLSubDevData_t *
+joylink_dev_sub_devs_get(int *count)
 {
     /**
      *FIXME: todo must lock
      */
-    int i, sum = 0; 
-    JLDevInfo_t *devs = NULL;
+    int i = 0, j = 0, sum = 0; 
+    JLSubDevData_t *devs = NULL;
+
+	#ifdef _SAVE_FILE_
+	if(sub_dev_numb <= 0){
+		joylink_dev_sub_data_read();
+	}
+	#endif
     
-    switch(scan_type){
-        case 0: //All devs
-            sum = tail_index + 1;
-            devs = (JLDevInfo_t *)malloc(sizeof(JLDevInfo_t) * sum);
-            bzero(devs, sizeof(JLDevInfo_t) * sum);
-            if(devs != NULL){
-                for(i = 0; i < JL_MAX_SUB && i < sum; i++){
-                    memcpy(&devs[i], &_g_sub_dev[i], sizeof(JLDevInfo_t));
-                }
-            }
-            break;
-        case 1: //devs no conf
-            for(i = 0; i < JL_MAX_SUB; i++){
-                if(E_JLDEV_ST_NO_CONF == _g_sub_dev[i].state){
-                    sum ++;
-                }
-            }
-            devs = (JLDevInfo_t *)malloc(sizeof(JLDevInfo_t) * sum);
-            if(devs != NULL){
-                for(i = 0; i < JL_MAX_SUB && i < sum; i++){
-                    if(E_JLDEV_ST_NO_CONF == _g_sub_dev[i].state){
-                        memcpy(&devs[i], &_g_sub_dev[i], sizeof(JLDevInfo_t));
-                    }
-                }
-            }
-            break;
-        case 2: //devs confd
-            for(i = 0; i < JL_MAX_SUB; i++){
-                if(E_JLDEV_ST_CONFD == _g_sub_dev[i].state){
-                    sum ++;
-                }
-            }
-            devs = (JLDevInfo_t *)malloc(sizeof(JLDevInfo_t) * sum);
-            if(devs != NULL){
-                for(i = 0; i < JL_MAX_SUB && i < sum; i++){
-                    if(E_JLDEV_ST_CONFD == _g_sub_dev[i].state){
-                        memcpy(&devs[i], &_g_sub_dev[i], sizeof(JLDevInfo_t));
-                    }
-                }
-            }
-            break;
-        default:
-            break;
+    sum = sub_dev_numb;
+    devs = (JLSubDevData_t *)malloc(sizeof(JLSubDevData_t) * sum);
+    bzero(devs, sizeof(JLSubDevData_t) * sum);
+    if(devs != NULL){
+        for(i = 0; i < JL_MAX_SUB; i++){
+		if(strlen(_g_sub_dev[i].uuid) != 0){
+            		memcpy(&devs[j], &_g_sub_dev[i], sizeof(JLSubDevData_t));
+			j++;
+		}
+        }
     }
-
+   
     *count = sum;
-
     return devs;
 }
 
@@ -234,6 +251,9 @@ joylink_dev_sub_devs_get(int *count, int scan_type)
  *
  * @Returns: 
  */
+
+static int sub_power = 0;
+
 E_JLRetCode_t
 joylink_dev_sub_ctrl(const char* cmd, int cmd_len, char* feedid)
 {
@@ -242,6 +262,11 @@ joylink_dev_sub_ctrl(const char* cmd, int cmd_len, char* feedid)
      */
     log_debug("cmd:%s:feedid:%s\n", cmd, feedid);
     int ret = E_RET_OK;
+
+    if(sub_power == 0)
+	sub_power = 1;
+    else if(sub_power == 1)
+	sub_power = 0;
 
     return ret;
 }
@@ -260,10 +285,17 @@ joylink_dev_sub_get_snap_shot(char *feedid, int *out_len)
     /**
      *FIXME: todo must lock
      */
-    log_debug("");
-    char *tp ="{\"code\": 0,  \"streams\": [{ \"current_value\": 0, \"stream_id\": \"power\" }]}";
+    char on[] = "{\"code\": 0,  \"streams\": [{ \"current_value\": \"1\", \"stream_id\": \"power\" }]}";
+    char off[] = "{\"code\": 0,  \"streams\": [{ \"current_value\": \"0\", \"stream_id\": \"power\" }]}";
+
+    char *tp = 	NULL;
 
     char *ss = (char*)malloc(100);
+
+    if(sub_power == 0)
+	tp = off;
+    else if(sub_power == 1)
+	tp = on;
 
     if(ss != NULL){
         memset(ss, 0, 100);
@@ -288,7 +320,21 @@ joylink_dev_sub_unbind(const char *feedid)
      *FIXME: todo must lock
      */
     int ret = E_RET_OK;
+	int i = 0;
+	
     log_debug("feedid:%s\n", feedid);
+	
+	for(i = 0; i < JL_MAX_SUB; i++){
+		if(!strcmp(feedid, _g_sub_dev[i].feedid)){
+			//_g_sub_dev[i].state = 2;//E_JLDEV_UNBIND;
+			memset(&_g_sub_dev[i], 0, sizeof(JLSubDevData_t));
+			sub_dev_numb--;
+			break;
+		}
+	}
+#ifdef _SAVE_FILE_
+	joylink_dev_sub_data_save();
+#endif
 
     return ret;
 }

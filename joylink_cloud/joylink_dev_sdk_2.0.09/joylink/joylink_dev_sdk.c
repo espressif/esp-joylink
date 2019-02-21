@@ -155,16 +155,6 @@ joylink_main_loop(void)
 	while (1){
         /*joylink_test();*/
 
-	if(getin_config_flag == 1){
-		getin_config_flag = 0;
-		joylink_config_start(60*1000);
-	}
-	else if(getin_config_flag == 2)
-	{
-		getin_config_flag = 0;
-		joylink_config_stop();
-	}
-
         joylink_cloud_fd_lock();
 
 		if (joylink_util_is_time_out(serverTimer, interval)){
@@ -252,33 +242,6 @@ joylink_dev_init()
      *Please set _g_pdev->model_code_flag = 1. 
      */
     /*_g_pdev->model_code_flag = 1;*/
-	char mac[16] = {0};
-	char key[68] = {0};
-
-	printf("\n/**************info********************/\n");
-	printf("sdk version: %s\n", _VERSION_);
-	printf("dev version: %d\n",JLP_VERSION);
-	printf("dev uuid: %s\n", JLP_UUID);
-	printf("dev type: %d\n", E_JLDEV_TYPE_GW);
-	printf("dev lan strl: %d\n", JLP_LAN_CTRL);
-	printf("dev cmd type: %d\n", JLP_CMD_TYPE);
-
-	if(joylink_dev_get_user_mac(mac) < 0){
-    		printf("dev mac: error!\n");
-	}else{
-		printf("dev mac: %s\n", mac);
-	}
-	if(joylink_dev_get_private_key(key) < 0){
-    		printf("dev key: error!\n");
-	}else{
-		printf("dev key: %s\n", key);
-	}
-	if(joylink_check_cpu_mode() == 0){
-    		printf("plt mode: --ok! little-endian--\n");
-	}else{
-		printf("plt mode: --error! big-endian--\n");
-	}
-	printf("/*************************************/\n\n");
 
 	joylink_dev_get_jlp_info(&_g_pdev->jlp);
 	joylink_dev_get_idt(&_g_pdev->idt);

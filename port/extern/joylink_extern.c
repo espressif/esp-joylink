@@ -32,6 +32,9 @@
 #define JOYLINK_NVS_NAMESPACE       "joylink"
 #define JOYLINK_NVS_CONFIG_NETWORK  "config_network"
 
+#define JLP_MAC "12:34:56:78:68:88"
+#define JLP_PRIVATE_KEY CONFIG_JOYLINK_PRIVATE_KEY
+
 extern int joylink_parse_jlp(JLPInfo_t *jlp, char * pMsg);
 
 typedef struct _light_manage_{
@@ -48,33 +51,13 @@ char  *file = "joylink_info.txt";
 
 LightManage_t _g_lightMgr = {
 	.conn_st = -1,	
-	.jlp.mac= "A2:55:44:33:22:11",
-    .jlp.devtype = E_JLDEV_TYPE_NORMAL,
-    /*.jlp.devtype = E_JLDEV_TYPE_AGENT_GW,*/
-    /*.jlp.devtype = E_JLDEV_TYPE_GW,*/
+
     .jlp.version = 1,
-    .jlp.uuid = CONFIG_JOYLINK_DEVICE_UUID,	
+    .jlp.devtype = E_JLDEV_TYPE_NORMAL,
     .jlp.lancon = E_LAN_CTRL_ENABLE,
-    .jlp.cmd_tran_type = E_CMD_TYPE_JSON,
-#if 1
-    .jlp.accesskey = "d973d154744c3439d50f58cc0230931f",
-    .jlp.localkey = "412fcb845baf15670b8e9860534fb156",
-    .jlp.feedid = "151503237730077867",
-
-    .jlp.joylink_server = "live.smart.jd.com",
-    .jlp.server_port = 2002,
-#else
-    /*.jlp.feedid = "12345678901234567890123456789012",*/
-    /*.jlp.accesskey = "key45678901234567890123456789012",*/
-    /*.jlp.joylink_server = "127.0.0.1",*/
-    /*.jlp.server_port = 33000,*/
-#endif
-
-    /*.jlp.feedid = "152273544521843989",*/
-    /*.jlp.accesskey = "2a877b75ca6514b81ba4483d304dc521",*/
-    /*.jlp.joylink_server = "sbdevicegw.jd.com",*/
-    /*.jlp.localkey = "cada2a0afbfb6c09ca0191912245200f",*/
-    /*.jlp.server_port = 2002,*/
+    .jlp.cmd_tran_type = E_CMD_TYPE_LUA_SCRIPT,
+    .jlp.noSnapShort = E_SNAP_SHORT_N,
+    .jlp.uuid = CONFIG_JOYLINK_DEVICE_UUID,	
 
     .idt.type = 0,
     .idt.cloud_pub_key = CONFIG_JOYLINK_PUBLIC_KEY,
@@ -258,7 +241,6 @@ joylink_dev_get_idt(jl2_d_idt_t *pidt)
 
     strcpy(pidt->pub_key, _g_pLightMgr->idt.pub_key);
     strcpy(pidt->sig, _g_pLightMgr->idt.sig);
-    strcpy(pidt->rand, _g_pLightMgr->idt.rand);
     strcpy(pidt->f_sig, _g_pLightMgr->idt.f_sig);
     strcpy(pidt->f_pub_key, _g_pLightMgr->idt.f_pub_key);
     strcpy(pidt->cloud_pub_key, _g_pLightMgr->idt.cloud_pub_key);
@@ -278,6 +260,7 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
 {
     nvs_handle out_handle;
     uint8_t mac[6];
+    uint8_t temp_L = 0xF, temp_H = 0xF0;
     if(NULL == jlp){
         return E_RET_ERROR;
     }
@@ -290,9 +273,6 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
     log_debug("--joylink_dev_get_jlp_info");
 
 	if (!init_flag) {
-	    if (esp_wifi_get_mac(ESP_IF_WIFI_STA, mac) == ESP_OK) {
-	        sprintf(_g_pLightMgr->jlp.mac,MACSTR,MAC2STR(mac));
-	    }
 
 	    if (nvs_open(JOYLINK_NVS_NAMESPACE, NVS_READONLY, &out_handle) != ESP_OK) {
 	        
@@ -325,6 +305,14 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
 		}
 		init_flag = true;
 	}
+
+    if(joylink_dev_get_user_mac(jlp->mac) < 0){
+		log_info("can't get mac!\n");
+	}
+
+	if(joylink_dev_get_private_key(jlp->prikey) < 0){
+		log_info("can't get private_key!\n");
+	}
     
     strcpy(jlp->feedid, _g_pLightMgr->jlp.feedid);
     strcpy(jlp->accesskey, _g_pLightMgr->jlp.accesskey);
@@ -337,7 +325,6 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
     jlp->version = _g_pLightMgr->jlp.version;
     strcpy(jlp->mac, _g_pLightMgr->jlp.mac);
     strcpy(jlp->uuid, _g_pLightMgr->jlp.uuid);
-
 
     return ret;
 }
@@ -663,4 +650,50 @@ void esp_restore_factory_setting(void)
 	for(;;){
 
 	}
+}
+
+/**
+ * brief: 
+ *
+ * @Returns: 
+ */
+int
+joylink_dev_get_user_mac(char *out)
+{
+	/**
+	*FIXME:must to do
+	*/
+    uint8_t mac[6];
+
+	if (esp_wifi_get_mac(ESP_IF_WIFI_STA, mac) == ESP_OK) {
+	    sprintf(_g_pLightMgr->jlp.mac,MACSTR,MAC2STR(mac));
+        for(int i = 0; i < 17; i++){
+            if((_g_pLightMgr->jlp.mac[i] >= 'a') && (_g_pLightMgr->jlp.mac[i] <= 'z')){
+                _g_pLightMgr->jlp.mac[i] = _g_pLightMgr->jlp.mac[i] - ('a' - 'A');
+            }
+        }
+
+        memcpy(out, _g_pLightMgr->jlp.mac, strlen(JLP_MAC));
+
+        return 0;
+
+	}
+
+	return -1;
+}
+
+/**
+ * brief: 
+ *
+ * @Returns: 
+ */
+int
+joylink_dev_get_private_key(char *out)
+{
+	/**
+	*FIXME:must to do
+	*/
+    memcpy(out, JLP_PRIVATE_KEY, strlen(JLP_PRIVATE_KEY));
+
+	return 0;
 }
