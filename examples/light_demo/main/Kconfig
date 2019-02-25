@@ -21,6 +21,9 @@ config JOYLINK_SMNT_AES_KEY
 config JOYLINK_PUBLIC_KEY
     string "The public key, you can get it from Joylink"
 
+config JOYLINK_PRIVATE_KEY
+    string "The private key, you can get it from Joylink"
+
 config JOYLINK_SOFTAP_ENABLE
     bool "Enabe Joylink softap configure wifi"
 	default y

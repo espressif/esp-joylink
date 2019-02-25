@@ -8,7 +8,7 @@
 ## 1. 概述
 ESP 平台实现了京东微联 Joylink2.0.8 协议。用户可以参考 Espressif 提供的设备端 Demo 进行二次开发，快速接入京东微联云平台。
 
-Demo 参考京东官方 [Joylink2.0.8 SDK](https://smartdev.jd.com/docCenterDownload/list/2)，添加了 WiFi 相关、OTA、Flash 存储、button 等适配层，用户只需要关心少部分 API，如初始化、数据收发、事件回调等，加快了用户的二次开发速度。适配层具有一定的通用性且开源，用户可根据产品需求自行修改。
+Demo 参考京东官方 [Joylink2.0.09 SDK](https://smartdev.jd.com/docCenterDownload/list/2)，添加了 WiFi 相关、OTA、Flash 存储、button 等适配层，用户只需要关心少部分 API，如初始化、数据收发、事件回调等，加快了用户的二次开发速度。适配层具有一定的通用性且开源，用户可根据产品需求自行修改。
 Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发者中心上传空实现的 lua 脚本： `only_trans.lua`。
 
 ## 2. Demo 使用
@@ -84,7 +84,7 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
     ├── joylink_cloud                           // joylink SDK source code
     │    ├── docs
     │    ├── joylink_ble
-    │    ├── joylink_dev_sdk_C_2.0.8
+    │    ├── joylink_dev_sdk_2.0.09
     │    ├── joylink_smnt_v3.0.11
     │    └── joylink_softap_V3.0.4
     ├── port                                    // joylink SDK adaptation

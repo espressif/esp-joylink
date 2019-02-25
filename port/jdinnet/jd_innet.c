@@ -37,7 +37,7 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 
-#define AES_KEY  CONFIG_JOYLINK_SMNT_AES_KEY
+#define AES_KEY CONFIG_JOYLINK_SMNT_AES_KEY 
 
 xTaskHandle jd_innet_timer_task_handle = NULL;
 bool jd_innet_timer_task_flag = false;

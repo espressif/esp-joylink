@@ -11,15 +11,68 @@
 #include "joylink_packets.h"
 #include "joylink_json.h"
 #include "joylink_extern_json.h"
-#include "joylink_sub_dev.h"
+#include "joylink_extern_sub_dev.h"
 
-#define JL_MAX_SUB      (1)
-int tail_index = 0;
-int sub_dev_numb = 1;
+#define JL_MAX_SUB 30
 
-JLSubDevData_t _g_sub_dev[JL_MAX_SUB] = { 
-    {.mac = "001", .type = E_JLDEV_TYPE_SUB, .uuid = "3C939C", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .noSnapshort = E_SNAP_SHORT_N}
+#if ADD_SUBDEV_TYPE == FIND_SUB_DEV
+int sub_dev_numb = 3;
+JLSubDevData_t _g_sub_dev[JL_MAX_SUB] = {
+    	{.mac = "001", .type = E_JLDEV_TYPE_SUB, .uuid = "3C939C", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .noSnapshort = E_SNAP_SHORT_N},
+    	{.mac = "002", .type = E_JLDEV_TYPE_SUB, .uuid = "3C939C", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .noSnapshort = E_SNAP_SHORT_N},
+    	{.mac = "003", .type = E_JLDEV_TYPE_SUB, .uuid = "3C939C", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .noSnapshort = E_SNAP_SHORT_N},
+	//{.mac = "mac003", .type = E_JLDEV_TYPE_SUB, .uuid = "87B580", .lancon = 1, .cmd_tran_type = 1, .state = 0, .noSnapshort = E_SNAP_SHORT_N},
+	//{.mac = "mac004", .type = E_JLDEV_TYPE_SUB, .uuid = "87B580", .lancon = 1, .cmd_tran_type = 1, .state = 0, .noSnapshort = E_SNAP_SHORT_N},
+	//{.mac = "mac005", .type = E_JLDEV_TYPE_SUB, .uuid = "87B580", .lancon = 1, .cmd_tran_type = 1, .state = 0, .noSnapshort = E_SNAP_SHORT_N}
 };
+#endif
+
+#if ADD_SUBDEV_TYPE == SCAN_QR_CODE
+int sub_dev_numb = 0;
+JLSubDevData_t _g_sub_dev[JL_MAX_SUB] = {0};
+#endif
+
+#ifdef _SAVE_FILE_
+
+char *sub_file = "joylink_subdev_info.txt";
+
+void joylink_dev_sub_data_save(void)
+{
+	FILE *outfile;
+	int i;
+	
+	if(sub_dev_numb <= 0){
+		system("rm joylink_subdev_info.txt");
+		sub_dev_numb = 0;
+		return;
+	}
+		
+	outfile = fopen(sub_file, "wb+" );
+	for(i = 0; i < JL_MAX_SUB; i++){
+		if(strlen(_g_sub_dev[i].uuid) > 0)
+			fwrite(&_g_sub_dev[i], sizeof(JLSubDevData_t), 1, outfile);
+	}
+	fclose(outfile);
+}
+
+void joylink_dev_sub_data_read(void)
+{
+	int ret;
+	FILE *infile;
+
+	infile = fopen(sub_file, "rb+");
+	if(infile > 0){
+		while(1){
+			ret = fread(&_g_sub_dev[sub_dev_numb], sizeof(JLSubDevData_t), 1, infile);
+			if(ret <= 0){
+				fclose(infile);
+				break;
+			}
+			sub_dev_numb++;
+		}
+	}
+}
+#endif
 
 /**
  * brief: 
@@ -279,6 +332,8 @@ joylink_dev_sub_ctrl(const char* cmd, int cmd_len, char* feedid)
  *
  * @Returns: 
  */
+
+
 char *
 joylink_dev_sub_get_snap_shot(char *feedid, int *out_len)
 {

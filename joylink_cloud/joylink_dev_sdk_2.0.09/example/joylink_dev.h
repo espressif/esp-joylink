@@ -6,7 +6,6 @@ extern "C"{
 #endif /* __cplusplus */
 
 #include "joylink.h"
-#include "joylink_sub_dev.h"
 
 #define LIGHT_CMD_NONE			(-1)
 #define LIGHT_CMD_POWER			(1)
@@ -17,7 +16,10 @@ extern "C"{
 
 typedef struct __light_ctrl{
     char cmd;
-    int para_value;
+    int para_power;
+    int para_state;
+    int para_look;
+    int para_move;
 }LightCtrl_t;
 
 /**
@@ -58,13 +60,16 @@ joylink_dev_set_attr_jlp(JLPInfo_t *jlp);
 E_JLRetCode_t
 joylink_dev_get_jlp_info(JLPInfo_t *jlp);
 
-
-
+/**
+ * brief: 
+ *
+ * @Param: out_modelcode
+ * @Param: out_max
+ *
+ * @Returns: 
+ */
 int
 joylink_dev_get_modelcode(char *out_modelcode, int32_t out_max);
-
-
-
 
 /**
  * brief: 
@@ -129,109 +134,12 @@ joylink_dev_ota(JLOtaOrder_t *otaOrder);
 void
 joylink_dev_ota_status_upload();
 
-
-/*---------------- sub dev api ---------------*/
-
 /**
  * brief: 
- *
- * @Param: dev
- * @Param: num
- *
- * @Returns: 
  */
-E_JLRetCode_t
-joylink_dev_sub_add(JLSubDevData_t *dev, int num);
+int 
+joylink_test_ota_crc();
 
-/**
- * brief: 
- *
- * @Param: dev
- * @Param: num
- *
- * @Returns: 
- */
-E_JLRetCode_t
-joylink_sub_dev_del(char *feedid);
-
-/**
- * brief: 
- *
- * @Param: feedid
- * @Param: dev
- *
- * @Returns: 
- */
-E_JLRetCode_t
-joylink_dev_sub_get_by_feedid(char *feedid, JLSubDevData_t *dev);
-
-/**
- * brief: 
- *
- * @Param: uuid
- * @Param: mac
- * @Param: dev
- *
- * @Returns: 
- */
-E_JLRetCode_t
-joylink_sub_dev_get_by_uuid_mac(char *uuid, char *mac, JLSubDevData_t *dev);
-
-/**
- * brief: 
- *
- * @Param: uuid
- * @Param: mac
- * @Param: dev
- *
- * @Returns: 
- */
-E_JLRetCode_t
-joylink_dev_sub_update_keys_by_uuid_mac(char *uuid, char *mac, JLSubDevData_t *dev);
-
-/**
- * brief: 
- *
- * @Param: count
- * @Param: scan_type
- *
- * @Returns: 
- */
-E_JLRetCode_t
-joylink_dev_sub_version_update(char *feedid, int version);
-
-/**
- * brief: 
- *
- * @Param: cmd
- * @Param: cmd_len
- * @Param: feedid
- *
- * @Returns: 
- */
-E_JLRetCode_t
-joylink_dev_sub_ctrl(const char* cmd, int cmd_len, char* feedid);
-
-/**
- * brief: 
- *
- * @Param: feedid
- * @Param: out_len
- *
- * @Returns: 
- */
-char *
-joylink_dev_sub_get_snap_shot(char *feedid, int *out_len);
-
-/**
- * brief: 
- *
- * @Param: feedid
- *
- * @Returns: 
- */
-E_JLRetCode_t
-joylink_dev_sub_unbind(const char *feedid);
 
 /**
  * brief: 
@@ -252,28 +160,6 @@ joylink_dev_get_idt(jl2_d_idt_t *pidt);
  */
 int
 joylink_dev_get_random();
-
-/**
- * brief:
- *
- * @Returns:
- */
-int joylink_dev_get_user_mac(char *out);
-
-/**
- * brief:
- *
- * @Returns:
- */
-int joylink_dev_get_private_key(char *out);
-
-/**
- * brief:
- *
- * @Returns:
- */
-// int joylink_dev_user_data_set(char *cmd, user_dev_status_t *user_data);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

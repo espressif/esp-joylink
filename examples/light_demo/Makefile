@@ -8,6 +8,7 @@ PROJECT_NAME := esp-joylink
 ESP_JOYLINK_VER := $(shell git rev-parse --short HEAD)
 
 CFLAGS += -DESP_JOYLINK_COMMIT_ID=\"$(ESP_JOYLINK_VER)\"
+CFLAGS += -DJOYLINK_CLOUD_AUTH
 
 EXTRA_COMPONENT_DIRS += $(realpath ../..)
 EXTRA_COMPONENT_DIRS += ./button

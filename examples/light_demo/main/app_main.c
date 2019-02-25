@@ -201,7 +201,7 @@ void app_main(void)
 {
     printf("================== ESPRESSIF ===================\n");
     printf("    ESP_IDF VERSION: %s\n",esp_get_idf_version());
-    printf("    JOYLINK VERSION: %s(%s)\n",JOYLINK_VERSION,JOYLINK_COMMIT_ID);
+    printf("    JOYLINK VERSION: %s\n",JOYLINK_VERSION);
     printf("    Compile time: %s %s\n",__DATE__,__TIME__);
     printf("================================================\n");
     nvs_flash_init();
