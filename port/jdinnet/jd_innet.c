@@ -94,6 +94,7 @@ void esp_get_result_callback(joylink_smnt_result_t result)
         memcpy(config.sta.password,result.jd_password,result.jd_password_len);
         log_debug("ssid:%s\r\n",config.sta.ssid);
         log_debug("password:%s\r\n",config.sta.password);
+        esp_joylink_wifi_save_info(config.sta.ssid,config.sta.password);
         esp_wifi_disconnect();
         if (esp_wifi_set_config(ESP_IF_WIFI_STA,&config) != ESP_OK) {
             log_debug("set sta fail\r\n");
@@ -111,6 +112,7 @@ void esp_get_result_callback(joylink_smnt_result_t result)
         memcpy(config.sta.ssid,result.jd_ssid,result.jd_ssid_len);
         log_debug("ssid:%s\r\n",config.sta.ssid);
         log_debug("password:%s\r\n",config.sta.password);
+        esp_joylink_wifi_save_info(config.sta.ssid,config.sta.password);
         if (esp_wifi_set_config(ESP_IF_WIFI_STA,&config) != ESP_OK) {
             log_debug("set sta fail\r\n");
         } else {
