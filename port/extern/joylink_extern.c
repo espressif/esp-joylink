@@ -269,41 +269,37 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
      */
     int ret = E_RET_ERROR;
     size_t size = 0;
-	static bool init_flag = false;
     log_debug("--joylink_dev_get_jlp_info");
 
-	if (!init_flag) {
+	if (nvs_open(JOYLINK_NVS_NAMESPACE, NVS_READONLY, &out_handle) == ESP_OK) {        
 
-	    if (nvs_open(JOYLINK_NVS_NAMESPACE, NVS_READONLY, &out_handle) != ESP_OK) {
-	        
-
-		    size = sizeof(_g_pLightMgr->jlp.feedid);
-		    if (nvs_get_str(out_handle,"feedid",_g_pLightMgr->jlp.feedid,&size) != ESP_OK) {
-		        log_debug("--get feedid fail");
-		    }
-
-		    size = sizeof(_g_pLightMgr->jlp.accesskey);
-		    if (nvs_get_str(out_handle,"accesskey",_g_pLightMgr->jlp.accesskey,&size) != ESP_OK) {
-		        log_debug("--get accesskey fail");
-		    }
-
-		    size = sizeof(_g_pLightMgr->jlp.localkey);
-		    if (nvs_get_str(out_handle,"localkey",_g_pLightMgr->jlp.localkey,&size) != ESP_OK) {
-		        log_debug("--get localkey fail");
-		    }
-
-		    size = sizeof(_g_pLightMgr->jlp.joylink_server);
-		    if (nvs_get_str(out_handle,"joylink_server",_g_pLightMgr->jlp.joylink_server,&size) != ESP_OK) {
-		        log_debug("--get joylink_server fail");
-		    }
-
-		    if (nvs_get_u16(out_handle,"server_port",&_g_pLightMgr->jlp.server_port) != ESP_OK) {
-		        log_debug("--get server_port fail");
-		    }
-			
-	    	nvs_close(out_handle);
+		size = sizeof(_g_pLightMgr->jlp.feedid);
+	    if (nvs_get_str(out_handle,"feedid",_g_pLightMgr->jlp.feedid,&size) != ESP_OK) {
+		    log_debug("--get feedid fail");
 		}
-		init_flag = true;
+
+		size = sizeof(_g_pLightMgr->jlp.accesskey);
+	    if (nvs_get_str(out_handle,"accesskey",_g_pLightMgr->jlp.accesskey,&size) != ESP_OK) {
+	        log_debug("--get accesskey fail");
+		}
+
+		size = sizeof(_g_pLightMgr->jlp.localkey);
+		if (nvs_get_str(out_handle,"localkey",_g_pLightMgr->jlp.localkey,&size) != ESP_OK) {
+	        log_debug("--get localkey fail");
+		}
+
+		size = sizeof(_g_pLightMgr->jlp.joylink_server);
+		if (nvs_get_str(out_handle,"joylink_server",_g_pLightMgr->jlp.joylink_server,&size) != ESP_OK) {
+		    log_debug("--get joylink_server fail");
+	    }
+
+		if (nvs_get_u16(out_handle,"server_port",&_g_pLightMgr->jlp.server_port) != ESP_OK) {
+		    log_debug("--get server_port fail");
+	    }
+
+        _g_pLightMgr->jlp.is_actived = 1;
+
+		nvs_close(out_handle);
 	}
 
     if(joylink_dev_get_user_mac(jlp->mac) < 0){
@@ -323,6 +319,7 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
     jlp->lancon = _g_pLightMgr->jlp.lancon;
     jlp->cmd_tran_type = _g_pLightMgr->jlp.cmd_tran_type;
     jlp->version = _g_pLightMgr->jlp.version;
+    jlp->is_actived = _g_pLightMgr->jlp.is_actived;
     strcpy(jlp->mac, _g_pLightMgr->jlp.mac);
     strcpy(jlp->uuid, _g_pLightMgr->jlp.uuid);
 
@@ -552,15 +549,11 @@ joylink_dev_ota(JLOtaOrder_t *otaOrder)
     _g_fota_ctx.crc32 = otaOrder->crc32;
 	joylink_fota_download_package();
 #elif defined(ESP_PLATFORM)
-	JLOtaUpload_t otaUpload;
-    strcpy(otaUpload.feedid, _g_pdev->jlp.feedid);
-    strcpy(otaUpload.productuuid, _g_pdev->jlp.uuid);
-
     /**
      *FIXME:must to do
      *status,status_desc, progress
      */
-    joylink_server_ota_status_upload_req(&otaUpload);
+    esp_ota_task_start((const char*)otaOrder->url);
 #else
     char cmd_download[1024] = {0};
     char *folder = "/home/yn/workspace/";
