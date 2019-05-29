@@ -15,6 +15,9 @@ static int joySlaveAESEncrypt(uint8_t *pPlanin,int plainlength,uint8_t *pencout,
 static int joySlaveDevSigGen(char *sig_buf,tc_vl_t *cloud_random);
 static int joyCloudSigVerify(tc_vl_t *sig);
 static int joyThunderProbeReqSend(uint8_t *cmddata,uint8_t len,void *prob_req);
+static int joyDevRandomReSend(void);
+
+
 
 const char version_thunder[] = "JOYL_V1.0";
 
@@ -41,16 +44,14 @@ static int joySlaveRamReset(void)
 */
 	memset(&tthunder_ctl->thunder_state, 0, sizeof(tc_slave_state_t));
 	tthunder_ctl->tcount = 0;
-	
+	tthunder_ctl->randSendTimes = 0;
 	memset(tthunder_ctl->vendor_tx, 0, MAX_CUSTOM_VENDOR_LEN);
 	tthunder_ctl->vendor_tx_len = 0;
 	tthunder_ctl->current_channel = 1;
 
-	tthunder_ctl->thunder_state = sReqChannel;
-	
-	memset(tthunder_ctl->mac_master, 0, JOY_MAC_ADDRESS_LEN);
-	memset(tthunder_ctl->dev_random, 0, JOY_RANDOM_LEN);
-		
+    memset(tthunder_ctl->mac_master, 0, JOY_MAC_ADDRESS_LEN);
+    memset(tthunder_ctl->dev_random, 0, JOY_RANDOM_LEN);
+
 	//memset(tthunder_ctl,0,sizeof(tc_slave_ctl_t));
 
 	if(tthunder_result->ap_password.value != NULL && tthunder_result->ap_password.length != 0){
@@ -108,16 +109,35 @@ static int joySlaveCommCheck(tc_ins_t cmd,void *probe_req)
 {
 	int ret = E_RET_ERROR;
 
-//	tc_slave_state_t tstate;
-//	tstate = joySlaveStateGet();
-
-	switch(cmd){
-		
-		default:
-			break;
+	tc_slave_state_t tstate;
+	tstate = joySlaveStateGet();
+	if(cmd == INS_LOCK_CHANNEL){
+		if(tstate > sReqChannel){
+			log_error("cmd INS_LOCK_CHANNEL not right,now state is %d",tstate);
+			goto RET;
+		}
+	}else if(cmd == INS_AUTH_ALLOWED){
+		if(tstate != sDevInfoUp){
+			log_error("cmd INS_AUTH_ALLOWED not sDevInfoUp,now state is %d",tstate);
+			goto RET;
+		}
+	}else if(cmd == INS_CHALLENGE_CLOUD_ACK){
+		if(tstate != sDevChallengeUp){
+			log_error("cmd INS_CHALLENGE_CLOUD_ACK not sDevChallengeUp,now state is %d",tstate);
+			goto RET;
+		}
+	}else if(cmd == INS_AUTH_INFO_B){
+		if(tstate != sDevSigUp){
+			log_error("cmd INS_AUTH_INFO_B not sDevSigUp,now state is %d",tstate);
+			goto RET;
+		}
+	}else{
+		log_error("cmd not support");
+		goto RET;
 	}
+
 	ret = E_RET_OK;
-	
+RET:	
 	return ret;
 }
 
@@ -327,8 +347,7 @@ static uint8_t joyGenDevSigData(uint8_t *txbuf,tc_msg_value_t msg,tc_vl_t *cloud
 	if((msg == MSG_OK) && (joySlaveDevSigGen(sig_cloud_random,cloud_random) == E_RET_ERROR)){
 		msg = MSG_ERROR_UNKNOWN;
 	}
-
-	msg = MSG_OK;  /*!!!*/
+	
 	if(msg != MSG_OK){
 		lc = joyTLVDataAdd(value+offset_value,TLV_TAG_MSG,sizeof(msg),(uint8_t *)&msg);
 		tc_packet->lc		= lc;
@@ -443,6 +462,9 @@ static int joyLockChlCommH(uint8_t *tlvsdata,uint8_t lc,tc_packet_type_t ttype,v
 			log_info("verify channel to %d",fixchl);
 		}
 	}
+
+    joySlaveStateSet(sDevInfoUp);
+
 #if 0
 	//must check param set
 	if((tthunder_ctl->deviceid.length == 0) || (tthunder_ctl->deviceid.value == NULL)){
@@ -492,6 +514,11 @@ static int joyAuthAllowCommH(uint8_t *tlvsdata,uint8_t lc,tc_packet_type_t ttype
 	uint8_t txlen;
 	
 	tc_msg_value_t rmsg = MSG_OK;
+	tc_slave_state_t state;
+	state = joySlaveStateGet();
+	if(state != sDevInfoUp){
+		log_error("now state is not right:%d",state);
+	}
 	
 	if(tlvsdata == NULL || probe_req == NULL){
 		log_error("NULL");
@@ -552,6 +579,38 @@ RET:
 }
 
 
+static int joyDevRandomReSend(void)
+{
+	int ret = E_RET_OK;
+	tc_slave_ctl_t *tthunder_ctl = &tc_slave_ctl;
+	uint8_t txlen;
+
+	memset(tthunder_ctl->vendor_tx,0,sizeof(tthunder_ctl->vendor_tx));
+	txlen = joyGenDevRandomData(tthunder_ctl->vendor_tx,MSG_OK);
+	if(txlen == 0){
+		ret = E_RET_ERROR;
+		goto RET;
+	}
+	
+	tthunder_ctl->vendor_tx_len = txlen;
+	log_info("joyDevRandomReSend tx");
+	joylink_util_fmt_p("vendor data:",tthunder_ctl->vendor_tx,tthunder_ctl->vendor_tx_len);
+		
+	ret = joyThunderProbeReqSend(tthunder_ctl->vendor_tx,tthunder_ctl->vendor_tx_len,NULL);
+	if(ret != E_RET_OK){
+		log_error("pobe request send error");
+		goto RET;
+	}
+
+	joySlaveStateSet(sDevChallengeUp);
+	joySlaveTxbufSetClaType(tthunder_ctl->vendor_tx,joy_cla_resendpacket);
+	log_info("joyAuthAllowCommH Finish");
+RET:
+	return ret;
+}
+
+
+
 
 static int joyCloudChanngeCommH(uint8_t *tlvsdata,uint8_t lc,tc_packet_type_t ttype,void *probe_req)
 {
@@ -564,6 +623,11 @@ static int joyCloudChanngeCommH(uint8_t *tlvsdata,uint8_t lc,tc_packet_type_t tt
 	
 	tc_msg_value_t rmsg = MSG_OK;
 
+	tc_slave_state_t state;
+	state = joySlaveStateGet();
+	if(state != sDevChallengeUp){
+		log_error("now state is not right:%d",state);
+	}
 	
 	if(tlvsdata == NULL || probe_req == NULL){
 		log_error("NULL");
@@ -652,6 +716,7 @@ static int joyCloudChanngeCommH(uint8_t *tlvsdata,uint8_t lc,tc_packet_type_t tt
 	}
 
 	joySlaveStateSet(sDevSigUp);
+	tthunder_ctl->randSendTimes = 0;
 	joySlaveTxbufSetClaType(tthunder_ctl->vendor_tx,joy_cla_resendpacket);
 	log_info("joyAuthAllowCommH Finish");
 RET:
@@ -676,6 +741,11 @@ static int joyCloudAuthInfoCommH(uint8_t *tlvsdata,uint8_t lc,tc_packet_type_t t
 	
 	tc_msg_value_t rmsg = MSG_OK;
 
+	tc_slave_state_t state;
+	state = joySlaveStateGet();
+	if(state != sDevSigUp){
+		log_error("now state is not right:%d",state);
+	}
 	
 	if(tlvsdata == NULL || probe_req == NULL){
 		log_error("NULL");
@@ -834,6 +904,7 @@ static int joySlaveCommHandle(uint8_t *venderspecific,uint8_t len,void *probe_re
 //	log_info("joy packet from address %02x:%02x:%02x:%02x:%02x:%02x len=%d\n",MAC2STR(mgmt->sa), len);
 		
 	crc16_src = *(uint16_t *)(vdata+len-2);
+tcmmand->cla &= 0xDF;//clear resend tag
 	crc16_ds  = CRC16((uint8_t *)&(tcmmand->magic),(unsigned int)(tcmmand->lc + JOY_PACKET_HEADER_LEN));//+1
 	if(crc16_src != crc16_ds){
 		log_error("crc error:calc=0x%04X,src=0x%04X\n",crc16_ds,crc16_src);
@@ -1181,6 +1252,12 @@ RET:
 static int joyThunderSlaveFinish(tc_msg_value_t errorcode)
 {
 	tc_slave_result_t	*tthunderresult = &tc_slave_result;
+	if(errorcode == MSG_ERROR_TIMEOUT){
+		log_info("TIMEOUT ,restart now");
+		joyThunderSlaveStart();
+		return E_RET_ERROR;
+	}
+	
 	if(result_notify_cb == NULL){
 		log_error("result_notify_cb NULL");
 	}
@@ -1233,7 +1310,7 @@ int joyThunderSlaveInit(tc_slave_func_param_t *para)
 	}
 	get_random = para->get_random;
 	
-	jl3_uECC_set_rng((uECC_RNG_Function)para->get_random);
+	//jl3_uECC_set_rng((uECC_RNG_Function)para->get_random);
 
 	if(para->result_notify_cb == NULL){
 		log_error("result_notify_cb NULL");
@@ -1247,21 +1324,20 @@ int joyThunderSlaveInit(tc_slave_func_param_t *para)
 	
 	//uuid
 	memcpy(tthunder_ctl->uuid,para->uuid,JOY_UUID_LEN);
-	//joylink_util_fmt_p("set UUID:",tthunder_ctl->uuid,JOY_UUID_LEN);
+	joylink_util_fmt_p("set UUID:",tthunder_ctl->uuid,JOY_UUID_LEN);
 
 	//pubkey_c
 	memcpy(tthunder_ctl->pubkey_c,para->pubkey_c,JOY_ECC_PUBKEY_LEN);
-	//joylink_util_fmt_p("set pubkey_c:",tthunder_ctl->pubkey_c,JOY_ECC_PUBKEY_LEN);
+	joylink_util_fmt_p("set pubkey_c:",tthunder_ctl->pubkey_c,JOY_ECC_PUBKEY_LEN);
 
 	//prikey_d
 	memcpy(tthunder_ctl->prikey_d,para->prikey_d,JOY_ECC_PRIKEY_LEN);
-	//joylink_util_fmt_p("set prikey_d:",tthunder_ctl->prikey_d,JOY_ECC_PRIKEY_LEN);
+	joylink_util_fmt_p("set prikey_d:",tthunder_ctl->prikey_d,JOY_ECC_PRIKEY_LEN);
 
 	//mac adress
 	memcpy(tthunder_ctl->mac_dev,para->mac_dev,JOY_MAC_ADDRESS_LEN);
-	memcpy(g_own_mac, para->mac_dev, JOY_MAC_ADDRESS_LEN);
-	
-	//joylink_util_fmt_p("set MAC:",tthunder_ctl->mac_dev,JOY_MAC_ADDRESS_LEN);
+	memcpy(g_own_mac,para->mac_dev,JOY_MAC_ADDRESS_LEN);
+	joylink_util_fmt_p("set MAC:",tthunder_ctl->mac_dev,JOY_MAC_ADDRESS_LEN);
 	
 	if((para->deviceid.value != NULL) && (para->deviceid.length > 0)){
 	    if(tthunder_ctl->deviceid.value != NULL){
@@ -1394,7 +1470,6 @@ void joyThunderSlave50mCycle(void)
 		case sInit:					//init
 			break;	
 		case sReqChannel:				//requeset channel of thunderconfig master
-/*		
 			tthunder_ctl->tcount++;
 			if(tthunder_ctl->tcount == JOY_REQCHANNEL_STAY_COUNT){
 				if(tthunder_ctl->current_channel >= 13) 
@@ -1402,25 +1477,52 @@ void joyThunderSlave50mCycle(void)
 				else 
 					tthunder_ctl->current_channel++;
 				
+				//tthunder_ctl->current_channel = 13;
 				if(switch_channel != NULL){
 					log_info("-->switch channel to:%d",tthunder_ctl->current_channel);
 					switch_channel(tthunder_ctl->current_channel);
 					joySlaveTimeReset();
 				}
 			}
-*/			
+			
 			//send channel requeset packet every 3*50ms
 			if(tthunder_ctl->tcount % 3 == 0){
 				joySlaveChanelReq();
 			}
 			
 			break;
-		case sDevInfoUp: 			//devinfo transfer
+		case sDevInfoUp: 			//devinfo transfer		//user confirm
+			tthunder_ctl->tcount++;
+			if(tthunder_ctl->tcount > JOY_DEVINFO_UP_TIMEOUT){
+				joyThunderSlaveFinish(MSG_ERROR_TIMEOUT);
+			}
+
+			break;
 		case sDevChallengeUp:		//device challenge up
+		
+			tthunder_ctl->tcount++;
+			if(tthunder_ctl->tcount > JOY_DEVRAND_UP_TIMEOUT){
+				
+				if(tthunder_ctl->randSendTimes > JOY_THUNDER_RANDOM_SEND_TIME){
+					joyThunderSlaveFinish(MSG_ERROR_TIMEOUT);
+					tthunder_ctl->randSendTimes++;
+				}else{
+					tthunder_ctl->randSendTimes++;
+					joyDevRandomReSend();
+				}
+			}
+			break;
 		case sDevSigUp:				//device signature up
 			tthunder_ctl->tcount++;
-			if(tthunder_ctl->tcount > JOY_THUNDER_TIMEOUT_COUNT){
-				joyThunderSlaveFinish(MSG_ERROR_TIMEOUT);
+			if(tthunder_ctl->tcount > JOY_DEVSIG_UP_TIMEOUT){
+				
+				if(tthunder_ctl->randSendTimes > JOY_THUNDER_RANDOM_SEND_TIME){
+					joyThunderSlaveFinish(MSG_ERROR_TIMEOUT);
+					tthunder_ctl->randSendTimes++;
+				}else{
+					tthunder_ctl->randSendTimes++;
+					joyDevRandomReSend();
+				}
 			}
 			break;
 		case sFinish:

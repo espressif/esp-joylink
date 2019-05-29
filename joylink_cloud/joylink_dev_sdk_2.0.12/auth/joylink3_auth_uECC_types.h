@@ -9,9 +9,9 @@
 
 #ifndef uECC_PLATFORM
     #if __AVR__
-        #define uECC_PLATFORM uECC_avr
+        #define uECC_PLATFORM jl3_uECC_avr
     #elif defined(__thumb2__) || defined(_M_ARMT) /* I think MSVC only supports Thumb-2 targets */
-        #define uECC_PLATFORM uECC_arm_thumb2
+        #define uECC_PLATFORM jl3_uECC_arm_thumb2
     #elif defined(__thumb__)
         #define uECC_PLATFORM uECC_arm_thumb
     #elif defined(__arm__) || defined(_M_ARM)
@@ -28,7 +28,7 @@
 #endif
 
 #ifndef uECC_WORD_SIZE
-    #if uECC_PLATFORM == uECC_avr
+    #if uECC_PLATFORM == jl3_uECC_avr
         #define uECC_WORD_SIZE 1
     #elif (uECC_PLATFORM == uECC_x86_64 || uECC_PLATFORM == uECC_arm64)
         #define uECC_WORD_SIZE 8
@@ -41,14 +41,14 @@
     #error "Unsupported value for uECC_WORD_SIZE"
 #endif
 
-#if ((uECC_PLATFORM == uECC_avr) && (uECC_WORD_SIZE != 1))
+#if ((uECC_PLATFORM == jl3_uECC_avr) && (uECC_WORD_SIZE != 1))
     #pragma message ("uECC_WORD_SIZE must be 1 for AVR")
     #undef uECC_WORD_SIZE
     #define uECC_WORD_SIZE 1
 #endif
 
 #if ((uECC_PLATFORM == uECC_arm || uECC_PLATFORM == uECC_arm_thumb || \
-        uECC_PLATFORM ==  uECC_arm_thumb2) && \
+        uECC_PLATFORM ==  jl3_uECC_arm_thumb2) && \
      (uECC_WORD_SIZE != 4))
     #pragma message ("uECC_WORD_SIZE must be 4 for ARM")
     #undef uECC_WORD_SIZE

@@ -67,26 +67,26 @@ static void
 joylink_server_st_time_out_check()
 {
     log_debug("server st :%d", _g_pdev->server_st);
-	if(_g_pdev->hb_lost_count > JL_MAX_SERVER_HB_LOST){
-		if (_g_pdev->server_st == JL_SERVER_ST_WORK){
-			log_info("Server HB Lost, Retry Auth!\r\n");
-			_g_pdev->hb_lost_count = 0;
-			_g_pdev->server_st = JL_SERVER_ST_AUTH;
-		}
-
-		if(_g_pdev->server_st == JL_SERVER_ST_AUTH){
-			log_info("Auth ERR, Reconnect!\r\n");
-			_g_pdev->hb_lost_count = 0;
-			_g_pdev->server_st = JL_SERVER_ST_INIT;
-			close(_g_pdev->server_socket);
-			_g_pdev->server_socket = -1;
-		}
-	}
+    if(_g_pdev->hb_lost_count >= JL_MAX_SERVER_HB_LOST){
+        if(_g_pdev->server_st == JL_SERVER_ST_WORK){
+            log_info("Server HB Lost, Reconnect!\r\n");
+            _g_pdev->hb_lost_count = 0;
+            _g_pdev->server_st = JL_SERVER_ST_INIT;
+            close(_g_pdev->server_socket);
+            _g_pdev->server_socket = -1;
+        }
+    }
 }
 
 /**
  * brief: 
  */
+
+static struct hostent *host_save = NULL;
+static struct hostent *host_temp = NULL;
+
+static char joylink_server_save[128] = {0};
+
 static void 
 joylink_server_st_init()
 {
@@ -95,16 +95,26 @@ joylink_server_st_init()
     bzero(&saServer, sizeof(saServer)); 
 
     saServer.sin_family = AF_INET;
-
     saServer.sin_port = htons(_g_pdev->jlp.server_port);
 
 #ifdef _GET_HOST_BY_NAME_
-    struct hostent *host;
-    if((host=gethostbyname(_g_pdev->jlp.joylink_server)) == NULL) {
-        perror("gethostbyname error");
-        return ;
+    struct hostent *host = NULL;
+
+    if(strcmp(joylink_server_save, _g_pdev->jlp.joylink_server) != 0){
+	memset(joylink_server_save, 0, 128);
+	memcpy(joylink_server_save, _g_pdev->jlp.joylink_server, strlen(_g_pdev->jlp.joylink_server));
+	host_save = NULL;
     }
-    saServer.sin_addr = *((struct in_addr *)host->h_addr);
+    if(host_save == NULL){
+	    log_info("gethostbyname start!");
+	    if((host_temp = gethostbyname(_g_pdev->jlp.joylink_server)) == NULL) {
+		log_info("gethostbyname error!");
+		return;
+	    }
+	    log_info("gethostbyname ok!");
+    }
+
+    saServer.sin_addr = *((struct in_addr *)host_temp->h_addr);
 #else
    saServer.sin_addr.s_addr = inet_addr(_g_pdev->jlp.joylink_server);
 #endif
@@ -128,6 +138,8 @@ joylink_server_st_init()
         _g_pdev->server_st = 1;
     }
     _g_pdev->hb_lost_count = 0;
+
+    host_save = host_temp;
 
 #if 1
     int32_t fd  = _g_pdev->server_socket;
@@ -376,7 +388,7 @@ joylink_server_subdev_upload_req()
         }
     }
 
-    if(NULL == alldevinfo){
+    if(NULL != alldevinfo){
         free(alldevinfo);
     }
 

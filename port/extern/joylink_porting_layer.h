@@ -79,7 +79,6 @@ typedef enum _fota_error_code{
     FOTA_ERROR_CODE_CONNECT_SERVER_ERROR
 }joylink_fota_error_code_t;
 
-
 extern joylink_fota_ctx_t _g_fota_ctx;
 
 extern void joylink_v2_init();

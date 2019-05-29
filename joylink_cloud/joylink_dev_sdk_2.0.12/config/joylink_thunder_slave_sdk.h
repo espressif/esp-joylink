@@ -4,12 +4,17 @@
 #include "joylink_thunder.h"
 
 #define JOY_REQCHANNEL_STAY_COUNT		5
-#define JOY_THUNDER_TIMEOUT_COUNT		(20*5)		//5s
-#define JOY_THUNDER_TIMEOUT_FINISH		5
-#define JOY_THUNDER_TIMEOUT_REJECT		5
+#define JOY_DEVINFO_UP_TIMEOUT			(2*20)		//2s
+//#define JOY_THUNDER_TIMEOUT_COUNT		(20*10)		//5s
+#define JOY_DEVSIG_UP_TIMEOUT			(2*20)		//2s
+#define JOY_DEVRAND_UP_TIMEOUT			JOY_DEVSIG_UP_TIMEOUT
+#define JOY_THUNDER_TIMEOUT_FINISH		10*10
+#define JOY_THUNDER_TIMEOUT_REJECT		10*10
 
 #define JOY_UUID_LEN					6
 #define JOY_RANDOM_LEN					0x20
+
+#define JOY_THUNDER_RANDOM_SEND_TIME	2
 
 #define JOY_ECC_PRIKEY_LEN				0x20
 #define JOY_ECC_PUBKEY_LEN				0x40
@@ -46,7 +51,7 @@ typedef struct
 {
 	tc_slave_state_t thunder_state;
 	uint8_t 		tcount;
-	
+	uint8_t			randSendTimes;
 	uint8_t 		vendor_tx[MAX_CUSTOM_VENDOR_LEN];
 	uint8_t 		vendor_tx_len;
 	uint8_t 		current_channel;

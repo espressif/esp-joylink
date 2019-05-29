@@ -36,8 +36,6 @@ int joylink_get_feedid(char *buf, unsigned int buf_sz)
         buf, 
         &buf_sz);
     
-    // log_debug("joylink_get_feedid() status:%d, buf_sz:%d", status, buf_sz);
-    
     if('\0' == *buf)
         return 1;    
     
@@ -52,23 +50,11 @@ void* joylink_malloc(size_t sz)
     if(NULL == buf)
         log_error("joylink_malloc() Error! size:%d", sz);
     
-    /*
-        uint32_t  free_size;
-        free_size = xPortGetFreeHeapSize();
-        log_debug("joylink_malloc() free_size:%d, buf:%p, sz:%d", free_size, buf, sz);
-     */
-
     return buf;
 }
 
 void joylink_free(void *ptr)
 {
-    /*
-        uint32_t  free_size;    
-        free_size = xPortGetFreeHeapSize();
-        log_debug("joylink_free() free_size:%d, buf:%p", free_size, ptr);
-     */
-     
     if(ptr)
         vPortFree(ptr);
 }
@@ -84,8 +70,6 @@ int joylink_set_feedid(const char *json_in)
         (uint8_t *)json_in, 
         strlen(json_in));
     
-    // log_debug("joylink_set_feedid() status:%d", status);
-    
     return (NVDM_STATUS_OK == status) ? 0 : 1;
 }
 
@@ -98,8 +82,6 @@ int joylink_get_accesskey(char *buf, unsigned int buf_sz)
         "joylink_accesskey", 
         buf, 
         &buf_sz);
-    
-    // log_debug("joylink_get_accesskey() status:%d, buf_sz:%d", status, buf_sz);
     
     if('\0' == *buf)
         return 1;        
@@ -118,8 +100,6 @@ int joylink_set_accesskey(const char *json_in)
         (uint8_t *)json_in, 
         strlen(json_in));
     
-    // log_debug("joylink_set_accesskey() status:%d", status);
-    
     return (NVDM_STATUS_OK == status) ? 0 : 1;
 }
 
@@ -132,8 +112,6 @@ int joylink_get_localkey(char *buf, unsigned int buf_sz)
         "joylink_localkey", 
         buf, 
         &buf_sz);
-    
-    // log_debug("joylink_get_localkey() status:%d, buf_sz:%d", status, buf_sz);
     
     if('\0' == *buf)
         return 1;    
@@ -152,8 +130,6 @@ int joylink_set_localkey(const char *json_in)
         (uint8_t *)json_in, 
         strlen(json_in));
 
-    // log_debug("joylink_set_localkey() status:%d", status);
-    
     return (NVDM_STATUS_OK == status) ? 0 : 1;
 }
 
@@ -166,8 +142,6 @@ int joylink_get_server_info(char *buf, unsigned int buf_sz)
         "joylink_server_info", 
         buf, 
         &buf_sz);
-    
-    // log_debug("joylink_get_server_info() status:%d, buf_sz:%d", status, buf_sz);
     
     if('\0' == *buf)
         return 1;   
@@ -186,8 +160,6 @@ int joylink_set_server_info(const char *json_in)
         (uint8_t *)json_in, 
         strlen(json_in));
 
-    // log_debug("joylink_set_server_info() status:%d", status);
-    
     return (NVDM_STATUS_OK == status) ? 0 : 1;
 }
 
@@ -201,8 +173,6 @@ int joylink_get_version(char *buf, unsigned int buf_sz)
         buf, 
         &buf_sz);
     
-    // log_debug("joylink_get_version() status:%d, buf_sz:%d", status, buf_sz);
-
     if('\0' == *buf)
         return 1;
     
@@ -220,8 +190,6 @@ int joylink_set_version(const char *json_in)
         (uint8_t *)json_in, 
         strlen(json_in));
 
-    // log_debug("joylink_set_version() status:%d", status);
-    
     return (NVDM_STATUS_OK == status) ? 0 : 1;
 }
 
@@ -248,9 +216,6 @@ int32_t joylink_fota_http_retrieve_get(char* buf, uint32_t len, uint32_t *crc32)
 
 	uint32_t crc = 0;
 	
-	//CRC32 init.
-	//make_crc32_table();
-	
     client_data.response_buf = buf;
     client_data.response_buf_len = len;		
 
@@ -270,11 +235,9 @@ int32_t joylink_fota_http_retrieve_get(char* buf, uint32_t len, uint32_t *crc32)
             recv_temp = client_data.response_content_len;
         }
 
-        //data_len = strlen(client_data.response_buf);
 		data_len = recv_temp - client_data.retrieve_len;
         count += data_len;
 		recv_temp = client_data.retrieve_len;
-        //vTaskDelay(100);/* Print log may block other task, so sleep some ticks */             
 		
         write_ret = fota_write(FOTA_PARITION_TMP, (const uint8_t*)client_data.response_buf, data_len);
         if (FOTA_STATUS_OK != write_ret) {
@@ -282,11 +245,7 @@ int32_t joylink_fota_http_retrieve_get(char* buf, uint32_t len, uint32_t *crc32)
             return ret;
         }
 		
-		//crc32 calc.
-		//crc = make_crc(crc, client_data.response_buf, data_len);
-		
         joylink_fota_set_upgrade_status(FOTA_STATUS_DOWNLOAD, count/client_data.response_content_len * 100, FOTA_ERROR_CODE_NONE);
-		
 		printf("data received %d, total %d, retrieve %d\n", data_len, count, recv_temp); 
         
     } while (ret == HTTPCLIENT_RETRIEVE_MORE_DATA);

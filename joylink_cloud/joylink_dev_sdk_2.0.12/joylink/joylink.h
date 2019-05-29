@@ -9,7 +9,7 @@ extern "C"{
 #include "auth/joylink_auth_uECC.h"
 #include "joylink_ret_code.h"
 
-#define _VERSION_  "2.0.09"
+#define _VERSION_  "2.0.12"
 
 #define JL_MAX_PACKET_LEN	    (1400)
 #define JL_MAX_IP_LEN               (20)
@@ -20,13 +20,13 @@ extern "C"{
 #define JL_MAX_KEY_STR_LEN          (21*2+1)
 #define JL_MAX_DBG_LEN              (128)
 #define JL_MAX_OPT_LEN              (128)
-#define JL_MAX_SERVER_HB_LOST       (10)
+#define JL_MAX_SERVER_HB_LOST       (3)
 #define JL_MAX_SERVER_NUM           (5)
 #define JL_MAX_SERVER_NAME_LEN      (128)
 #define JL_MAX_SUB_DEV              (4)
-#define JL_MAX_VERSION_NAME_LEN    	(100)
-#define JL_MAX_URL_LEN             	(100)
-#define JL_MAX_MSG_LEN 				(1024)
+#define JL_MAX_VERSION_NAME_LEN     (100)
+#define JL_MAX_URL_LEN              (100)
+#define JL_MAX_MSG_LEN 		    (1024)
 #define JL_MAX_STATUS_DESC_LEN      (100)
 #define JL_MAX_CUT_PACKET_LEN       (1000)
 #define JL_MAX_ACKEY_LEN            (33)
@@ -167,8 +167,8 @@ typedef enum _lan_ctrl_type{
 }E_JLLanCtrlType_t;
 
 typedef enum _lan_snap_short{
-    E_SNAP_SHORT_Y = 0,
-    E_SNAP_SHORT_N = 1
+    E_SNAPSHOT_YES = 0,
+    E_SNAPSHOT_NO = 1
 }E_JLLanSnapShort_t;
 
 typedef struct {
@@ -190,7 +190,8 @@ typedef struct {
 
 	char prikey[65];
 
-    	char noSnapShort;
+	char joySdkVersion[8]; 
+    	char noSnapshot;
 
 	uint8_t pubkeyC[JL_MAX_KEY_BIN_LEN];
 	char pubkeyS[JL_MAX_KEY_STR_LEN];
@@ -204,10 +205,21 @@ typedef struct {
     char joylink_server[JL_MAX_SERVER_NAME_LEN];
     int server_port;
 
+    char javs_server[64];
+    char opengw_server[64];
+    char router_server[64];
+
     char CID[10];
     char firmwareVersion[10];
     char modelCode[66];
     char is_actived;
+
+    int batchBind;
+
+    char devSn[65];
+
+    char ps_th_d2c[1024];
+    char ps_th_c2d[1024];
 
     unsigned int crc32;
 }JLPInfo_t;
@@ -286,8 +298,13 @@ typedef struct __dev_enable{
     char cmd_tran_type;
     char joylink_server[JL_MAX_SERVER_NAME_LEN];
     int server_port;
+    char javs_server[64];
+    char opengw_server[64];
+    char router_server[64];
     char opt[JL_MAX_SERVER_NAME_LEN];
     char cloud_sig[64 * 2 + 1];
+
+    char ps_th_c2d[1024];
 }DevEnable_t;
 
 typedef enum __scan_type{
