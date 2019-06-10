@@ -246,7 +246,7 @@ joylink_util_print_buffer(const char *msg, int is_fmt, int num_line, const uint8
     }
     int cut_num = 4;
     int i = 0;
-    printf("------:%s\n", msg);
+    printf("%s\n", msg);
     for(i =0; i < len; i++){
         printf("%02x ", (int)buff[i]);
         if(is_fmt && !(num_line%cut_num)){

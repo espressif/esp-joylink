@@ -40,13 +40,13 @@
 static char esp_ota_url_schema[8];
 static char* esp_ota_server_ip = NULL;
 static uint16_t esp_ota_server_port = 0;
-static char esp_ota_file_name[64];
+static char esp_ota_file_name[80];
 #define ESP_OTA_URL_SCHEMA   esp_ota_url_schema
 #define ESP_OTA_SERVER_IP    esp_ota_server_ip
 #define ESP_OTA_SERVER_PORT  esp_ota_server_port
 #define ESP_OTA_FILE_NAME    esp_ota_file_name
 
-#define TEXT_BUFFSIZE 1024
+#define TEXT_BUFFSIZE (1024 + 256)
 
 #define ESP_OTA_TIMEOUT_MS               (60*3*1000)
 
@@ -54,8 +54,7 @@ static xTimerHandle esp_joylink_timeout_timer = NULL;
 static bool esp_at_ota_timeout_flag = false;
 static int esp_at_ota_socket_id = -1;
 
-#define ESP_JOYLINK_OTA_DEBUG  printf
-
+#define ESP_JOYLINK_OTA_DEBUG  log_debug
 
 typedef struct URLInfo {
     char schema[8];
@@ -213,9 +212,7 @@ bool esp_ota_upgrade_process(const char* url)
     if (data_buffer == NULL) {
         goto OTA_ERROR;
     }
-//    snprintf((char*)http_request,TEXT_BUFFSIZE,"GET /v1/device/rom/?is_format_simple=true HTTP/1.0\r\nHost: "IPSTR":%d\r\n"pheadbuffer"",
-//             IP2STR(&ip_address.u_addr.ip4),
-//             ESP_OTA_SERVER_PORT, ESP_AT_BIN_KEY);
+
     snprintf((char*)http_request,TEXT_BUFFSIZE,"GET %s HTTP/1.1\nHost: %s\nAccept: */*\nReferer:http://%s\nUser-Agent: Mozilla/4.0 (compatible; MSIE 5.00; Windows 98)\nPragma: no-cache\nCache-Control: no-cache\nConnection: close\n\n",
             ESP_OTA_FILE_NAME, ESP_OTA_SERVER_IP,ESP_OTA_SERVER_IP);
     /*send GET request to http server*/
@@ -249,7 +246,6 @@ bool esp_ota_upgrade_process(const char* url)
     }
     partition.type = ESP_PARTITION_TYPE_APP;
 
-    // partition = (esp_partition_t*)esp_partition_find_first(partition->type,partition->subtype,NULL);
     partition_ptr = (esp_partition_t*)esp_partition_find_first(partition.type,partition.subtype,NULL);
     if (partition_ptr == NULL) {
         ESP_JOYLINK_OTA_DEBUG("partition NULL!\r\n");

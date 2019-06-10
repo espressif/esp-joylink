@@ -162,11 +162,11 @@ static cmpresult_t uECC_vli_cmp_unsafe(const uECC_word_t *left,
                                        wordcount_t num_words);
 
 #if (uECC_PLATFORM == uECC_arm || uECC_PLATFORM == uECC_arm_thumb || \
-        uECC_PLATFORM == uECC_arm_thumb2)
+        uECC_PLATFORM == jl3_uECC_arm_thumb2)
     #include "asm_arm.inc"
 #endif
 
-#if (uECC_PLATFORM == uECC_avr)
+#if (uECC_PLATFORM == jl3_uECC_avr)
     #include "asm_avr.inc"
 #endif
 
@@ -1235,7 +1235,7 @@ int jl3_uECC_sign(const uint8_t *private_key,
 
 /* Compute an HMAC using K as a key (as in RFC 6979). Note that K is always
    the same size as the hash result size. */
-static void HMAC_init(const uECC_HashContext *hash_context, const uint8_t *K) {
+static void HMAC_init(const jl3_uECC_HashContext *hash_context, const uint8_t *K) {
     uint8_t *pad = hash_context->tmp + 2 * hash_context->result_size;
     unsigned i;
     for (i = 0; i < hash_context->result_size; ++i)
@@ -1247,13 +1247,13 @@ static void HMAC_init(const uECC_HashContext *hash_context, const uint8_t *K) {
     hash_context->update_hash(hash_context, pad, hash_context->block_size);
 }
 
-static void HMAC_update(const uECC_HashContext *hash_context,
+static void HMAC_update(const jl3_uECC_HashContext *hash_context,
                         const uint8_t *message,
                         unsigned message_size) {
     hash_context->update_hash(hash_context, message, message_size);
 }
 
-static void HMAC_finish(const uECC_HashContext *hash_context,
+static void HMAC_finish(const jl3_uECC_HashContext *hash_context,
                         const uint8_t *K,
                         uint8_t *result) {
     uint8_t *pad = hash_context->tmp + 2 * hash_context->result_size;
@@ -1272,7 +1272,7 @@ static void HMAC_finish(const uECC_HashContext *hash_context,
 }
 
 /* V = HMAC_K(V) */
-static void update_V(const uECC_HashContext *hash_context, uint8_t *K, uint8_t *V) {
+static void update_V(const jl3_uECC_HashContext *hash_context, uint8_t *K, uint8_t *V) {
     HMAC_init(hash_context, K);
     HMAC_update(hash_context, V, hash_context->result_size);
     HMAC_finish(hash_context, K, V);
@@ -1287,7 +1287,7 @@ static void update_V(const uECC_HashContext *hash_context, uint8_t *K, uint8_t *
 int jl3_uECC_sign_deterministic(const uint8_t *private_key,
                             const uint8_t *message_hash,
                             unsigned hash_size,
-                            const uECC_HashContext *hash_context,
+                            const jl3_uECC_HashContext *hash_context,
                             uint8_t *signature,
                             uECC_Curve curve) {
     uint8_t *K = hash_context->tmp;

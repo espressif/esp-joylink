@@ -28,7 +28,7 @@ extern "C"{
  * @Returns: 
  */
 int 
-joylink_dev_parse_ctrl(LightCtrl_t *pCtrl, const char * pMsg);
+joylink_dev_parse_ctrl(const char * pMsg, user_dev_status_t *userDev);
 
 /**
  * brief: 
@@ -39,14 +39,18 @@ joylink_dev_parse_ctrl(LightCtrl_t *pCtrl, const char * pMsg);
  * @Returns: 
  */
 char * 
-joylink_dev_package_info(const int retCode, const LightCtrl_t *pCtrl);
+joylink_dev_package_info(const int retCode, user_dev_status_t *userDev);
 
-
+/**
+ * brief: 
+ *
+ * @Param: retCode
+ * @Param: pCtrl
+ *
+ * @Returns: 
+ */
 char * 
-joylink_dev_modelcode_info(const int retCode, const LightCtrl_t *pCtrl);
-
-
-
+joylink_dev_modelcode_info(const int retCode, user_dev_status_t *userDev);
 
 #ifdef __cplusplus
 }

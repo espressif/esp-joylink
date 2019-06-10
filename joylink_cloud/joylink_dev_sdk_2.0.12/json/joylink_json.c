@@ -106,9 +106,11 @@ joylink_package_scan(const char *retMsg, const int retCode, DevScan_t *scan, JLD
     cJSON_AddStringToObject(root, "CID", dv->jlp.CID); 
     cJSON_AddStringToObject(root, "firmwareVersion", dv->jlp.firmwareVersion); 
     cJSON_AddStringToObject(root, "modelCode", dv->jlp.modelCode); 
-    cJSON_AddNumberToObject(root, "noSnapShort", dv->jlp.noSnapShort); 
-    
-   
+    cJSON_AddStringToObject(root, "joySdkVersion", dv->jlp.joySdkVersion); 
+    cJSON_AddNumberToObject(root, "noSnapshot", dv->jlp.noSnapshot); 
+    cJSON_AddNumberToObject(root, "batchBind", dv->jlp.batchBind);
+    //cJSON_AddStringToObject(root, "devSn", "AABBCCDDEEFF");//dv->jlp.devSn);
+
     int i;
     for(i = 0; i < 128; i++)
     {
@@ -218,7 +220,11 @@ joylink_parse_lan_write_key(DevEnable_t *de, const char * pMsg)
         pSub = cJSON_GetObjectItem(pData, "trantype");
         if(NULL != pSub){
             de->cmd_tran_type = pSub->valueint;
-        }                                                                                                         
+        }   
+        pSub = cJSON_GetObjectItem(pData, "ps_th_c2d");
+        if(NULL != pSub){
+            strcpy(de->ps_th_c2d, pSub->valuestring);
+        }                                                                                                        
         pSub = cJSON_GetObjectItem(pData, "joylink_server");
         if(NULL != pSub){
             if(cJSON_GetArraySize(pSub) > 0){
@@ -228,7 +234,37 @@ joylink_parse_lan_write_key(DevEnable_t *de, const char * pMsg)
                     strcpy(de->joylink_server, pv->valuestring);
                 }
             }
-        }                                                                                                        
+        }
+	pSub = cJSON_GetObjectItem(pData, "javs_server");
+        if(NULL != pSub){
+            if(cJSON_GetArraySize(pSub) > 0){
+                cJSON *pv;
+                pv = cJSON_GetArrayItem(pSub, 0);
+                if(NULL != pv){
+                    strcpy(de->javs_server, pv->valuestring);
+                }
+            }
+        }
+	pSub = cJSON_GetObjectItem(pData, "opengw_server");
+        if(NULL != pSub){
+            if(cJSON_GetArraySize(pSub) > 0){
+                cJSON *pv;
+                pv = cJSON_GetArrayItem(pSub, 0);
+                if(NULL != pv){
+                    strcpy(de->opengw_server, pv->valuestring);
+                }
+            }
+        }
+	pSub = cJSON_GetObjectItem(pData, "router_server");
+        if(NULL != pSub){
+            if(cJSON_GetArraySize(pSub) > 0){
+                cJSON *pv;
+                pv = cJSON_GetArrayItem(pSub, 0);
+                if(NULL != pv){
+                    strcpy(de->router_server, pv->valuestring);
+                }
+            }
+        }                                                                                               
         cJSON *pOpt = cJSON_GetObjectItem(pData, "opt");
         char *out = NULL;
         if(NULL != pOpt){

@@ -163,6 +163,13 @@ joylink_parse_sub_auth(const uint8_t* pMsg, JLSubDevData_t *dev)
         if(NULL != pSub){
             strcpy(dev->uuid, pSub->valuestring);
         }
+        pSub = cJSON_GetObjectItem(jdev, "cloudAuthValue");
+        if(NULL != pSub){
+	    memset(dev->cloudAuthValue, 0, sizeof(dev->cloudAuthValue));
+	    if(pSub->valuestring != NULL){
+            	strcpy(dev->cloudAuthValue, pSub->valuestring);
+	    }
+        }
 	pSub = cJSON_GetObjectItem(jdev, "lancon");
         if(NULL != pSub){
             dev->lancon = pSub->valueint;
@@ -265,7 +272,8 @@ joylink_package_subdev(JLSubDevData_t *sdev, int count)
             cJSON_AddNumberToObject(js_devs[i], "trantype", sdev[i].cmd_tran_type);
             cJSON_AddStringToObject(js_devs[i], "feedid", sdev[i].feedid);
             cJSON_AddStringToObject(js_devs[i], "devkey", sdev[i].pubkey);
-	    cJSON_AddNumberToObject(js_devs[i], "noSnapshort", sdev[i].noSnapshort);
+	    cJSON_AddStringToObject(js_devs[i], "devAuthValue", sdev[i].devAuthValue);
+	    cJSON_AddNumberToObject(js_devs[i], "subNoSnapshot", sdev[i].subNoSnapshot);
         }
     }
 

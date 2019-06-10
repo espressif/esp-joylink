@@ -18,7 +18,7 @@ int tail_index = 0;
 int sub_dev_numb = 1;
 
 JLSubDevData_t _g_sub_dev[JL_MAX_SUB] = { 
-    {.mac = "001", .type = E_JLDEV_TYPE_SUB, .uuid = "3C939C", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .noSnapshort = E_SNAP_SHORT_N}
+    {.mac = "AA00112233DD", .type = E_JLDEV_TYPE_SUB, .uuid = "514C0E", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .subNoSnapshot = E_SNAPSHOT_NO, .devAuthValue = "dbc499de2517fe99e7246a5f9b32ef54"}
 };
 
 /**
@@ -279,6 +279,8 @@ joylink_dev_sub_ctrl(const char* cmd, int cmd_len, char* feedid)
  *
  * @Returns: 
  */
+
+
 char *
 joylink_dev_sub_get_snap_shot(char *feedid, int *out_len)
 {

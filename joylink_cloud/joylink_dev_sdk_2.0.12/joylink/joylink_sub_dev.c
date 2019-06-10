@@ -107,6 +107,28 @@ joylink_proc_lan_sub_auth(uint8_t *src, struct sockaddr_in *sin_recv, socklen_t 
 
         log_error("dev is alread actived, not response write key");
     }else{
+	JLSubDevData_t new_dev;
+    	bzero(&new_dev, sizeof(new_dev));
+
+	if(E_RET_OK == joylink_sub_dev_get_by_uuid_mac(dev.uuid, dev.mac, &new_dev)){
+		if(DEV_AUTH_VALUE == 1){
+			if(strlen(dev.cloudAuthValue) == 0){
+				log_info("cloudAuthValue is null");
+				return E_RET_ERROR;
+			}
+			log_info("cloudAuthValue data:%s:len:%d", dev.cloudAuthValue, strlen(dev.cloudAuthValue));
+
+			if(strncmp(new_dev.devAuthValue, dev.cloudAuthValue, strlen(dev.devAuthValue))){
+				log_info("cloudAuthValue is error");
+				return E_RET_ERROR;
+			}
+			log_info("cloudAuthValue is ok");		
+		}
+	}else{
+		log_info("get dev is error");
+		return E_RET_ERROR;
+	}
+	
         if(E_RET_OK == joylink_dev_sub_update_keys_by_uuid_mac(dev.uuid, dev.mac, &dev)){
             dev.state = E_JLDEV_ONLINE;
 	    _g_pdev->jlp.is_actived = 1;
@@ -297,7 +319,7 @@ joylink_packet_server_sub_hb_req(void)
         memcpy(rsp_data + offset, &alldevinfo[i].version, 2); 
         offset += 2;
         /*no rssi only offset + 2*/
-	printf("dev verison %d\n", alldevinfo[i].version);
+	//printf("dev verison %d\n", alldevinfo[i].version);
         offset += 2;
         memcpy(rsp_data + offset, alldevinfo[i].feedid, 32); 
         offset += 32;

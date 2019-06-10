@@ -27,9 +27,9 @@ Possible values for uECC_PLATFORM are defined below: */
 #define uECC_x86_64     2
 #define uECC_arm        3
 #define uECC_arm_thumb  4
-#define uECC_arm_thumb2 5
+#define jl3_uECC_arm_thumb2 5
 #define uECC_arm64      6
-#define uECC_avr        7
+#define jl3_uECC_avr        7
 
 /* If desired, you can define uECC_WORD_SIZE as appropriate for your platform (1, 4, or 8 bytes).
 If uECC_WORD_SIZE is not explicitly defined then it will be automatically set based on your
@@ -81,7 +81,7 @@ extern "C"
 #endif
 
 #if uECC_SUPPORTS_secp160r1
-uECC_Curve uECC_secp160r1(void);
+uECC_Curve jl3_uECC_secp160r1(void);
 #endif
 #if uECC_SUPPORTS_secp192r1
 uECC_Curve uECC_secp192r1(void);
@@ -284,16 +284,16 @@ void finish_SHA256(uECC_HashContext *base, uint8_t *hash_result) {
     jl3_uECC_sign_deterministic(key, message_hash, &ctx.uECC, signature);
 }
 */
-typedef struct uECC_HashContext {
-    void (*init_hash)(const struct uECC_HashContext *context);
-    void (*update_hash)(const struct uECC_HashContext *context,
+typedef struct jl3_uECC_HashContext {
+    void (*init_hash)(const struct jl3_uECC_HashContext *context);
+    void (*update_hash)(const struct jl3_uECC_HashContext *context,
                         const uint8_t *message,
                         unsigned message_size);
-    void (*finish_hash)(const struct uECC_HashContext *context, uint8_t *hash_result);
+    void (*finish_hash)(const struct jl3_uECC_HashContext *context, uint8_t *hash_result);
     unsigned block_size; /* Hash function block size in bytes, eg 64 for SHA-256. */
     unsigned result_size; /* Hash function result size in bytes, eg 32 for SHA-256. */
     uint8_t *tmp; /* Must point to a buffer of at least (2 * result_size + block_size) bytes. */
-} uECC_HashContext;
+} jl3_uECC_HashContext;
 
 /* jl3_uECC_sign_deterministic() function.
 Generate an ECDSA signature for a given hash value, using a deterministic algorithm
@@ -319,7 +319,7 @@ Returns 1 if the signature generated successfully, 0 if an error occurred.
 int jl3_uECC_sign_deterministic(const uint8_t *private_key,
                             const uint8_t *message_hash,
                             unsigned hash_size,
-                            const uECC_HashContext *hash_context,
+                            const jl3_uECC_HashContext *hash_context,
                             uint8_t *signature,
                             uECC_Curve curve);
 

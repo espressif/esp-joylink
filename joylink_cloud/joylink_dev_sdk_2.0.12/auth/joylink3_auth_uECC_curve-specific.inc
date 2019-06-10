@@ -166,7 +166,7 @@ static const struct uECC_Curve_t curve_secp160r1 = {
 #endif
 };
 
-uECC_Curve uECC_secp160r1(void) { return &curve_secp160r1; }
+uECC_Curve jl3_uECC_secp160r1(void) { return &curve_secp160r1; }
 
 #if (uECC_OPTIMIZATION_LEVEL > 0 && !asm_mmod_fast_secp160r1)
 /* Computes result = product % curve_p

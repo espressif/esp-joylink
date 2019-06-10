@@ -70,7 +70,7 @@ typedef struct {
 
 	char version;
 
-	char state;
+	int state;
 	char type;
 	char lancon;
 	char cmd_tran_type;
@@ -83,7 +83,10 @@ typedef struct {
 
 	char pubkey[65];
 
-	char noSnapshort;
+	char devAuthValue[33];
+	char cloudAuthValue[33];
+
+	int subNoSnapshot;
 }JLSubDevData_t;
 
 #pragma pack()

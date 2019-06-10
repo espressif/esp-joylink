@@ -29,6 +29,7 @@
 #include "auth/joylink_auth_crc.h"
 #include "joylink_dev.h"
 #include "joylink_extern.h"
+#include "auth/joylink3_auth_uECC.h"
 
 #define USR_TIMESTAMP_MAX      (4)
 
@@ -315,30 +316,33 @@ joylink_proc_lan_write_key(uint8_t *src, struct sockaddr_in *sin_recv, socklen_t
     }else{
         joylink_parse_lan_write_key(&de, (const char*)src + 4);
 
-        log_info("-->feedid:%s:accesskey:%s\n", de.feedid, de.accesskey);
-        log_info("-->localkey:%s\n", de.localkey);
-        log_info("-->joylink_server:%s\n", de.joylink_server);
-	log_info("-->cloud sig:%s\n", de.cloud_sig);
-
         joylink_util_hexStr2bytes(_g_pdev->idt.cloud_pub_key, pubkey, sizeof(pubkey));
         joylink_util_hexStr2bytes(de.cloud_sig, sig, sizeof(sig));
 
+#ifdef JOYLINK_DEVICE_AUTH
         if(1 == jl3_uECC_verify_256r1((uint8_t *)pubkey, 
                     (uint8_t *)_g_pdev->idt.rand, 
                     strlen(_g_pdev->idt.rand), 
                     (uint8_t *)sig)){
-
+#else
+	if(1){
+#endif
             strcpy(_g_pdev->jlp.feedid, de.feedid);
             strcpy(_g_pdev->jlp.accesskey, de.accesskey);
             strcpy(_g_pdev->jlp.localkey, de.localkey);
 
+            strcpy(_g_pdev->jlp.javs_server, de.javs_server);
+            strcpy(_g_pdev->jlp.opengw_server, de.opengw_server);
+            strcpy(_g_pdev->jlp.router_server, de.router_server);
+
             joylink_util_cut_ip_port(de.joylink_server, _g_pdev->jlp.joylink_server, &_g_pdev->jlp.server_port);
 
-            _g_pdev->jlp.is_actived = 1;
+            //_g_pdev->jlp.is_actived = 1;
             joylink_dev_set_attr_jlp(&_g_pdev->jlp);
             len = joylink_packet_lan_write_key_rsp(0, "write accesskey ok");
 
             memset(_g_pdev->idt.rand, 0, sizeof(_g_pdev->idt.rand));
+	    log_info("\nWrite accesskey ok!\n");
         }else{
             len = joylink_packet_lan_write_key_rsp(-1, "verify cloud sig error");
             log_error("-->verify cloud sig error:%s\n cloud_public_key:%s", de.cloud_sig, _g_pdev->idt.cloud_pub_key);
@@ -681,11 +685,12 @@ joylink_proc_lan()
     }
 
 RET:
+/*
     if(NULL != pHead
             && pHead->total > 1
             && NULL != recPainText){
             free(recPainText);
     }
-
+*/
     return;
 }

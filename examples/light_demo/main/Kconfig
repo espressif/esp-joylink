@@ -19,7 +19,12 @@ config JOYLINK_SMNT_AES_KEY
     string "The secret key for smnt, you can get it from Joylink"
 
 config JOYLINK_PUBLIC_KEY
+    default "02F325ACDDD9A3EBF0B4BAE97B0E8E0BF3E781031E06B06C4B27B42FFBBE0FD2C0"
     string "The public key, you can get it from Joylink"
+
+config JOYLINK_DEVICE_MAC
+    default "240AAEEBCF01"
+    string "DEVICE MAC"
 
 config JOYLINK_PRIVATE_KEY
     string "The private key, you can get it from Joylink"

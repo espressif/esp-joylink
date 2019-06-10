@@ -15,12 +15,21 @@ extern "C"{
 #define LIGHT_CTRL_ON           (1)
 #define LIGHT_CTRL_OFF          (0)
 
+#define USER_DATA_POWER   "Power"
+
 typedef struct __light_ctrl{
     char cmd;
-    int para_value;
+    int para_power;
+    int para_state;
+    int para_look;
+    int para_move;
 }LightCtrl_t;
 
-/**
+typedef struct _user_dev_status_t {
+    int Power;
+} user_dev_status_t;
+
+/*
  * brief: 
  *
  * @Returns: 
@@ -58,13 +67,16 @@ joylink_dev_set_attr_jlp(JLPInfo_t *jlp);
 E_JLRetCode_t
 joylink_dev_get_jlp_info(JLPInfo_t *jlp);
 
-
-
+/**
+ * brief: 
+ *
+ * @Param: out_modelcode
+ * @Param: out_max
+ *
+ * @Returns: 
+ */
 int
 joylink_dev_get_modelcode(char *out_modelcode, int32_t out_max);
-
-
-
 
 /**
  * brief: 
@@ -129,6 +141,54 @@ joylink_dev_ota(JLOtaOrder_t *otaOrder);
 void
 joylink_dev_ota_status_upload();
 
+/**
+ * brief: 
+ *
+ * @Param: pidt
+ *
+ * @Returns: 
+ */
+E_JLRetCode_t
+joylink_dev_get_idt(jl2_d_idt_t *pidt);
+
+/**
+ * brief: 
+ *
+ * @Param: 
+ *
+ * @Returns: 
+ */
+int
+joylink_dev_get_random();
+
+/**
+ * brief:
+ *
+ * @Returns:
+ */
+int joylink_dev_get_user_mac(char *out);
+
+/**
+ * brief:
+ *
+ * @Returns:
+ */
+int joylink_dev_get_private_key(char *out);
+
+/**
+ * brief:
+ *
+ * @Returns:
+ */
+int joylink_dev_user_data_set(char *cmd, user_dev_status_t *user_data);
+
+/**
+ * brief: 
+ *
+ * @Returns: 
+ */
+int
+joylink_dev_user_data_get(user_dev_status_t *user_data);
 
 /*---------------- sub dev api ---------------*/
 
@@ -232,47 +292,6 @@ joylink_dev_sub_get_snap_shot(char *feedid, int *out_len);
  */
 E_JLRetCode_t
 joylink_dev_sub_unbind(const char *feedid);
-
-/**
- * brief: 
- *
- * @Param: pidt
- *
- * @Returns: 
- */
-E_JLRetCode_t
-joylink_dev_get_idt(jl2_d_idt_t *pidt);
-
-/**
- * brief: 
- *
- * @Param: 
- *
- * @Returns: 
- */
-int
-joylink_dev_get_random();
-
-/**
- * brief:
- *
- * @Returns:
- */
-int joylink_dev_get_user_mac(char *out);
-
-/**
- * brief:
- *
- * @Returns:
- */
-int joylink_dev_get_private_key(char *out);
-
-/**
- * brief:
- *
- * @Returns:
- */
-// int joylink_dev_user_data_set(char *cmd, user_dev_status_t *user_data);
 
 #ifdef __cplusplus
 }
