@@ -160,12 +160,6 @@ static void jd_innet_start (void *pvParameters)
     unsigned char* pBuffer = NULL;
     joylink_smnt_param_t param;
     esp_wifi_set_promiscuous(0);
-
-    pBuffer = (unsigned char*)malloc(1024);
-    if (pBuffer == NULL) {
-        log_debug("%s,%d\r\n",__func__,__LINE__);
-        vTaskDelete(NULL);
-    }
     
 	memset(&param,0x0,sizeof(param));
 	memcpy(param.secretkey,AES_KEY,sizeof(param.secretkey));
