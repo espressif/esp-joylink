@@ -3,7 +3,7 @@
 #
 # (Uses default behaviour of compiling all source files in directory, adding 'include' to include path.)
 
-JOYLINK_SDK ?= joylink_cloud/joylink_dev_sdk_2.0.12
+JOYLINK_SDK ?= joylink_cloud/joylink_dev_sdk
 JOYLINK_SMNT ?= joylink_cloud/joylink_smnt_v3.0.11
 JOYLINK_SOFTAP ?= joylink_cloud/joylink_softap_V3.0.4
 JOYLINK_PORT ?= port
