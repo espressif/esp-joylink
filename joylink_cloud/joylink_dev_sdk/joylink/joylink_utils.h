@@ -130,5 +130,6 @@ uint8_t joyTLVDataAdd(uint8_t *buf,uint8_t tag, uint8_t lc, uint8_t *value);
 #define JL_UTILS_P_NO_FMT     (0)
 
 #define joylink_util_fmt_p(msg, buff, len) joylink_util_print_buffer(msg, JL_UTILS_P_FMT, 16, buff, len) 
+int joylink_util_randstr_gen(char *dst,char len);
         
 #endif /* utils.h */

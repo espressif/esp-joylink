@@ -73,7 +73,13 @@ extern int joylinkEnc4Crypt(UINT8 *input, UINT32 inputLen, UINT8 *output, UINT32
 extern int device_aes_decrypt(const UINT8 * key, int keyLength, const UINT8 * iv, const UINT8 *pEncIn, int encLength, UINT8 *pPlainOut, int maxOutLen);
 extern int device_aes_encrypt(const UINT8 * key, int keyLength, const UINT8 * iv, const UINT8 *pPlainIn, int plainLength, UINT8 *pEncOut, int maxOutLen);
 
+extern int device_aes_encrypt_entire_iv(const UINT8 * key, int keyLength,
+        const UINT8 * iv, const UINT8 *pPlainIn,
+        int plainLength, UINT8 *pEncOut, int maxOutLen);
 
+extern int device_aes_decrypt_entire_iv(const UINT8 * key, int keyLength, 
+        const UINT8 * iv, const UINT8 *pEncIn, 
+        int encLength, UINT8 *pPlainOut, int maxOutLen);
 #ifdef __cplusplus
 }
 #endif

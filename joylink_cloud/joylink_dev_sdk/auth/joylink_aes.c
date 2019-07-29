@@ -575,7 +575,7 @@ int device_aes_encrypt(const UINT8 * key, int keyLength,
         int plainLength, UINT8 *pEncOut, int maxOutLen)
 {
     char TIV[128] = {0}; 
-    strncpy(TIV, (char*)iv, strlen((char *)iv));
+    memcpy(TIV, (char*)iv, 16);
     
     char *tdata  = (char *)malloc(plainLength + 16);
     int dlen = plainLength;
@@ -605,7 +605,7 @@ int device_aes_decrypt(const UINT8 * key, int keyLength,
         int encLength, UINT8 *pPlainOut, int maxOutLen)
 {
     char TIV[128] = {0}; 
-    strncpy(TIV, (char*)iv, strlen((char*)iv));
+    memcpy(TIV, (char*)iv, 16);
     
     char *tdata  = malloc(encLength + 16);
     int dlen = encLength;
@@ -627,7 +627,65 @@ int device_aes_decrypt(const UINT8 * key, int keyLength,
     }else{
         dlen = 0;
     }
+	return dlen;
+}
+int device_aes_encrypt_entire_iv(const UINT8 * key, int keyLength,
+        const UINT8 * iv, const UINT8 *pPlainIn,
+        int plainLength, UINT8 *pEncOut, int maxOutLen)
+{
+    char TIV[128] = {0}; 
+    memcpy(TIV, (char*)iv, 16);
+    
+    char *tdata  = (char *)malloc(plainLength + 16);
+    int dlen = plainLength;
+    int ret;
 
+    if(NULL != tdata){
+        memcpy(tdata,  pPlainIn, plainLength);
+        ret = joylinkEnc2Crypt((UINT8 *)key, 128, 
+                (UINT8*)TIV, (UINT8*)tdata, (UINT32*)&dlen, plainLength + 16, 1, JOYLINK_ENC2_ENCRYPT);
+        if(ret == 0){
+            if(dlen <= maxOutLen){
+                memcpy(pEncOut, tdata, dlen);
+            }else{
+                dlen = 0;
+            }
+        }
+        free(tdata);
+    }else{
+        dlen = 0;
+    }
+
+	return dlen;
+}
+
+int device_aes_decrypt_entire_iv(const UINT8 * key, int keyLength, 
+        const UINT8 * iv, const UINT8 *pEncIn, 
+        int encLength, UINT8 *pPlainOut, int maxOutLen)
+{
+    char TIV[128] = {0}; 
+    memcpy(TIV, (char*)iv, 16);
+    
+    char *tdata  = malloc(encLength + 16);
+    int dlen = encLength;
+    int ret;
+
+    if(NULL != tdata){
+        memset(tdata, 0, encLength + 16);
+        memcpy(tdata,  pEncIn, dlen);
+        ret = joylinkEnc2Crypt((UINT8 *)key, 128, 
+                (UINT8*)TIV, (UINT8*)tdata, (UINT32*)&dlen, encLength + 16, 1, JOYLINK_ENC2_DECRYPT);
+        if(ret == 0){
+            if(dlen <= maxOutLen){
+                memcpy(pPlainOut, tdata, dlen);
+            }else{
+                dlen = 0;
+            }
+        }
+        free(tdata);
+    }else{
+        dlen = 0;
+    }
 	return dlen;
 }
 #else
