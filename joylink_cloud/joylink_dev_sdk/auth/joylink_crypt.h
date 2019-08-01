@@ -17,40 +17,4 @@ typedef struct{
 
 extern JLEccContex_t __g_ekey;
 
-#if 0
-/**
- * brief: 
- *
- * @Param: key
- * @Param: keyLength
- * @Param: iv
- * @Param: pEncIn
- * @Param: encLength
- * @Param: pPlainOut
- * @Param: maxOutLen
- *
- * @Returns: 
- */
-extern int device_aes_decrypt(const UINT8 * key, int keyLength, 
-        const UINT8 * iv, const UINT8 *pEncIn, 
-        int encLength, UINT8 *pPlainOut, int maxOutLen);
-
-/**
- * brief: 
- *
- * @Param: key
- * @Param: keyLength
- * @Param: iv
- * @Param: pPlainIn
- * @Param: plainLength
- * @Param: pEncOut
- * @Param: maxOutLen
- *
- * @Returns: 
- */
-extern int device_aes_encrypt(const UINT8 * key, int keyLength,
-        const UINT8 * iv, const UINT8 *pPlainIn,
-        int plainLength, UINT8 *pEncOut, int maxOutLen);
-
-#endif
 #endif

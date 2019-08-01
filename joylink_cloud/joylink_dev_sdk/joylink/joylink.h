@@ -9,7 +9,7 @@ extern "C"{
 #include "auth/joylink_auth_uECC.h"
 #include "joylink_ret_code.h"
 
-#define _VERSION_  "2.0.12"
+#define _VERSION_  "2.0.15"
 
 #define JL_MAX_PACKET_LEN	    (1400)
 #define JL_MAX_IP_LEN               (20)
@@ -404,7 +404,13 @@ typedef struct {
 	char ackey[33];
 }JLAddAgentDev_t;
 
+typedef enum{
+	run_status_fail = -1,
+	run_status_ok 	=  0
+}JLRunStatus_t;
+
 void joylink_server_ota_status_upload_req(JLOtaUpload_t *otaUpload);
+int joylink_active_write_key(DevEnable_t *de,char *randstr);
 
 extern JLDevice_t  *_g_pdev;
 

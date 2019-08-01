@@ -99,7 +99,7 @@ joylink_package_scan(const char *retMsg, const int retCode, DevScan_t *scan, JLD
     cJSON_AddStringToObject(root, "devkey", dv->jlp.pubkeyS); 
     cJSON_AddStringToObject(root, "mac", dv->jlp.mac); 
     cJSON_AddStringToObject(root, "productuuid", dv->jlp.uuid); 
-    cJSON_AddStringToObject(root, "feedid", dv->jlp.feedid); 
+    cJSON_AddStringToObject(root, "feedid", dv->jlp.feedid);    
     cJSON_AddNumberToObject(root, "lancon", dv->jlp.lancon); 
     cJSON_AddNumberToObject(root, "trantype", dv->jlp.cmd_tran_type); 
     cJSON_AddNumberToObject(root, "devtype", dv->jlp.devtype); 

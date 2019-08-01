@@ -63,6 +63,20 @@ void joylink_cloud_fd_unlock()
 /**
  * brief: 
  */
+int 
+joylink_server_st_close()
+{
+    _g_pdev->hb_lost_count = 0;
+    _g_pdev->server_st = JL_SERVER_ST_INIT;
+    close(_g_pdev->server_socket);
+    _g_pdev->server_socket = -1;
+
+    return 0;
+}
+
+/**
+ * brief: 
+ */
 static void 
 joylink_server_st_time_out_check()
 {
@@ -70,10 +84,7 @@ joylink_server_st_time_out_check()
     if(_g_pdev->hb_lost_count >= JL_MAX_SERVER_HB_LOST){
         if(_g_pdev->server_st == JL_SERVER_ST_WORK){
             log_info("Server HB Lost, Reconnect!\r\n");
-            _g_pdev->hb_lost_count = 0;
-            _g_pdev->server_st = JL_SERVER_ST_INIT;
-            close(_g_pdev->server_socket);
-            _g_pdev->server_socket = -1;
+            joylink_server_st_close();
         }
     }
 }
@@ -81,49 +92,52 @@ joylink_server_st_time_out_check()
 /**
  * brief: 
  */
+static char joylink_server_ip[32] = {0};
+static char joylink_server_url[128] = {0};
 
-static struct hostent *host_save = NULL;
-static struct hostent *host_temp = NULL;
-
-static char joylink_server_save[128] = {0};
-
-static void 
+static int 
 joylink_server_st_init()
 {
     int ret = -1;
     struct sockaddr_in saServer; 
+
+    struct hostent *host = NULL;
+
     bzero(&saServer, sizeof(saServer)); 
 
     saServer.sin_family = AF_INET;
+
     saServer.sin_port = htons(_g_pdev->jlp.server_port);
 
 #ifdef _GET_HOST_BY_NAME_
-    struct hostent *host = NULL;
-
-    if(strcmp(joylink_server_save, _g_pdev->jlp.joylink_server) != 0){
-	memset(joylink_server_save, 0, 128);
-	memcpy(joylink_server_save, _g_pdev->jlp.joylink_server, strlen(_g_pdev->jlp.joylink_server));
-	host_save = NULL;
+    if(strcmp(joylink_server_url, _g_pdev->jlp.joylink_server) != 0){
+	memset(joylink_server_url, 0, 128);
+	memcpy(joylink_server_url, _g_pdev->jlp.joylink_server, strlen(_g_pdev->jlp.joylink_server));
+	memset(joylink_server_ip, 0, sizeof(joylink_server_ip));
     }
-    if(host_save == NULL){
-	    log_info("gethostbyname start!");
-	    if((host_temp = gethostbyname(_g_pdev->jlp.joylink_server)) == NULL) {
-		log_info("gethostbyname error!");
-		return;
+    if(strlen(joylink_server_ip) == 0){
+	    log_info("gethostbyname: start");
+	    if((host = gethostbyname(joylink_server_url)) == NULL) {
+		log_info("gethostbyname: error");
+		return -1;
 	    }
-	    log_info("gethostbyname ok!");
+	    log_info("gethostbyname: ok!");
+	    
+    	    saServer.sin_addr = *((struct in_addr *)host->h_addr);
+	    log_info("Joylink server: %s, ip: %s\n", joylink_server_url, inet_ntoa(saServer.sin_addr));
+    }else{
+	    saServer.sin_addr.s_addr = inet_addr(joylink_server_ip);
+	    log_info("Joylink server: %s, ip: %s\n", joylink_server_url, joylink_server_ip);
     }
-
-    saServer.sin_addr = *((struct in_addr *)host_temp->h_addr);
 #else
-   saServer.sin_addr.s_addr = inet_addr(_g_pdev->jlp.joylink_server);
+    saServer.sin_addr.s_addr = inet_addr(_g_pdev->jlp.joylink_server);
 #endif
-
     _g_pdev->server_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     if (_g_pdev->server_socket < 0 ){
+        perror("socket error");
         log_error("socket() failed!\n");
-        return;
+        return -1;
     }
 
     ret = connect(_g_pdev->server_socket, 
@@ -139,7 +153,8 @@ joylink_server_st_init()
     }
     _g_pdev->hb_lost_count = 0;
 
-    host_save = host_temp;
+    memset(joylink_server_ip, 0, sizeof(joylink_server_ip)); 
+    strcpy(joylink_server_ip, inet_ntoa(saServer.sin_addr));
 
 #if 1
     int32_t fd  = _g_pdev->server_socket;
@@ -153,6 +168,7 @@ joylink_server_st_init()
     }
 #endif
 
+    return 0;
 }
 
 /**
@@ -204,7 +220,8 @@ joylink_server_st_work()
 int
 joylink_proc_server_st()
 {
-	int interval = 5000;
+    int ret = 0;
+    int interval = 5000;
     if(!strlen(_g_pdev->jlp.feedid)){
         log_debug("feedid is empty");
         return interval;
@@ -212,10 +229,14 @@ joylink_proc_server_st()
 
     joylink_server_st_time_out_check();
 
-	switch (_g_pdev->server_st){
+    switch (_g_pdev->server_st){
         case JL_SERVER_ST_INIT:
-            joylink_server_st_init();
-            interval = 2000;
+            ret = joylink_server_st_init();
+            if(ret < 0){
+            	interval = 2000;
+            }else{
+                interval = 100;
+            }
             break;
         case JL_SERVER_ST_AUTH:
             joylink_server_st_auth();
@@ -395,6 +416,70 @@ joylink_server_subdev_upload_req()
     return ret;
 }
 
+
+/**
+ * brief: 
+ *
+ * @Returns: 
+ */
+static int
+joylink_server_subdev_upload_req_alone(char *feedid)
+{
+	int ret = -1;
+	int time_v;
+	int len;
+	char data[JL_MAX_PACKET_LEN] = {0};
+	int scan_type = 0;
+	char *snap_shot = NULL;
+
+	JLSubDevData_t dev;
+
+	memset(&dev, 0, sizeof(JLSubDevData_t));
+
+	ret = joylink_dev_sub_get_by_feedid(feedid, &dev);
+	if(ret < 0){
+		log_error("Can't find the suddev, ret:%d", ret);
+		return ret;
+	}
+
+	snap_shot = joylink_dev_sub_get_snap_shot(feedid, &ret);
+    
+	if(snap_shot != NULL){
+		ret = joylink_encrypt_sub_dev_data(
+			(uint8_t*)(data + 4 + 32), 
+			sizeof(data) - 4 -32,
+			ET_ACCESSKEYAES, 
+			(uint8_t*)dev.accesskey, 
+			(uint8_t*)snap_shot, 
+			ret);
+
+		free(snap_shot);
+		snap_shot = NULL;
+	}
+
+	if(ret > 0){
+		time_v = time(NULL);
+		memcpy(data, &time_v, 4);
+		memcpy(data+4, feedid, 32);
+
+		len = joylink_encypt_server_rsp(_g_pdev->send_buff, JL_MAX_PACKET_LEN, 
+			PT_SUB_UPLOAD, _g_pdev->jlp.sessionKey, 
+			(uint8_t*)data, ret + 4 + 32) ;
+
+		if(len > 0 && len < JL_MAX_PACKET_LEN){
+			ret = send(_g_pdev->server_socket, _g_pdev->send_buff, len, 0);
+			if(ret < 0){
+				log_error("send error ret:%d", ret);
+			}
+			log_debug("send to server len:%d:ret:%d\n", len, ret);
+		}else{
+			log_error("send data too big or packet error:ret:%d", ret);
+		}
+	}
+	return ret;
+}
+
+
 /**
  * brief: 
  *
@@ -406,6 +491,20 @@ joylink_proc_server_auth(uint8_t* recPainText)
     JLAuthRsp_t* p = (JLAuthRsp_t*)recPainText;
     bzero(_g_pdev->jlp.sessionKey, 33); 
     memcpy(_g_pdev->jlp.sessionKey, p->session_key, 32);
+
+int i = 0;
+int j = 0;
+
+printf("session key: ");
+for(i = 0; i < 32; i++){
+	printf("%02x ", p->session_key[i]);
+	if(p->session_key[i] == 0){
+		j = 1;
+	}
+}
+printf("\n");
+if(j == 1)
+	printf("\n\nsession key error!\n");
 
     log_debug("OK===>Rand=%u,Time:%u!\r\n", 
             p->random_unm, p->timestamp);

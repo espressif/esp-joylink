@@ -116,7 +116,7 @@ joylink_proc_lan_sub_auth(uint8_t *src, struct sockaddr_in *sin_recv, socklen_t 
 				log_info("cloudAuthValue is null");
 				return E_RET_ERROR;
 			}
-			log_info("cloudAuthValue data:%s:len:%d", dev.cloudAuthValue, strlen(dev.cloudAuthValue));
+			log_info("cloudAuthValue data:%s:len:%d", dev.cloudAuthValue, (int)strlen(dev.cloudAuthValue));
 
 			if(strncmp(new_dev.devAuthValue, dev.cloudAuthValue, strlen(dev.devAuthValue))){
 				log_info("cloudAuthValue is error");
@@ -455,7 +455,7 @@ joylink_packet_subdev_script_ctrl_rsp(char *data, int max, JLSubContrl_t *ctrl)
         if(ss != NULL){
             ret = joylink_encrypt_sub_dev_data(
                     (uint8_t*)(data + 44), 
-                    sizeof(data) - 44,
+                    max - 44,
                     ET_ACCESSKEYAES, 
                     (uint8_t*)dev.accesskey, 
                     (uint8_t*)ss, 

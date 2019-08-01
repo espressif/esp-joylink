@@ -337,7 +337,6 @@ int joylink_encypt_server_rsp(
         ap = (JLAuth_t *)payload;
 
         feedid_len = strlen(_g_pdev->jlp.feedid);
-        log_debug("feedid:%s:len:%d", _g_pdev->jlp.feedid, feedid_len);
 
         head.optlen = feedid_len + 4;
         memcpy(pOut, _g_pdev->jlp.feedid, feedid_len);

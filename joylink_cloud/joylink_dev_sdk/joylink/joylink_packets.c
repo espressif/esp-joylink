@@ -113,22 +113,21 @@ joylink_packet_lan_write_key_rsp(int code, char *msg)
 int 
 joylink_packet_server_auth_rsp(void)
 {
-	JLAuth_t auth;
+    JLAuth_t auth;
     bzero(&auth, sizeof(auth));
 
-	auth.random_unm = 1;
+    auth.random_unm = 1;
     auth.timestamp = time(NULL);
-    
-    log_debug("accesskey key:%s",
-            _g_pdev->jlp.accesskey);
 
-	int len = joylink_encypt_server_rsp(
-            _g_pdev->send_buff,
-            JL_MAX_PACKET_LEN, PT_AUTH, 
-            (uint8_t*)_g_pdev->jlp.accesskey, 
-            (uint8_t*)&auth, sizeof(auth));
+    log_debug("accesskey key:%s", _g_pdev->jlp.accesskey);
 
-	return len;
+    int len = joylink_encypt_server_rsp(
+        _g_pdev->send_buff,
+        JL_MAX_PACKET_LEN, PT_AUTH, 
+        (uint8_t*)_g_pdev->jlp.accesskey, 
+        (uint8_t*)&auth, sizeof(auth));
+
+    return len;
 }
 
 /**

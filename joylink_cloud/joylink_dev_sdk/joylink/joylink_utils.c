@@ -330,4 +330,49 @@ uint8_t joyTLVDataAdd(uint8_t *buf,uint8_t tag, uint8_t lc, uint8_t *value)
     lenthtotal = lc + 2;
     return lenthtotal;
 }
+int joylink_util_randstr_gen(char *dst,char len)
+{
+	char tmp[16] = {0},i,j,tmpkey[32] = {0},tmpiv[32],reshex[128] = {0};
+	int a[100],b;
+	uint32_t time_ms;
+	time_t t,z;
+
+	time_ms = joylink_util_getsys_ms();
+
+	printf("joylink_util_getsys_ms->%d",time_ms);
+	
+	srand((unsigned int)time_ms);
+	for(j=0;j<16;j++){
+		for(i = 0; i < 100; i++){
+			a[i] = (rand()%1000) + 1000;
+		}
+		b = (rand()+rand())%100;
+		tmp[j] = a[b];
+	}	
+
+	srand((unsigned int)time(&z));
+	for(j=0;j<32;j++){
+		for(i = 0; i < 100; i++){
+			a[i] = (rand()%1000) + 1000;
+		}
+		b = (rand()+rand())%100;
+		tmpkey[j] = a[b];
+	}	
+
+	srand((unsigned int)(&t));
+	for(j=0;j<32;j++){
+		for(i = 0; i < 100; i++){
+			a[i] = (rand()%1000) + 1000;
+		}
+		b = (rand()+rand())%100;
+		tmpiv[j] = a[b];
+	}
+	
+	device_aes_encrypt_entire_iv(tmpkey,16,tmpiv,tmp,sizeof(tmp),reshex,sizeof(reshex));
+	memset(dst,0,len);
+	
+	joylink_util_byte2hexstr(reshex,16,dst,len);
+	
+	return 0;
+}
 

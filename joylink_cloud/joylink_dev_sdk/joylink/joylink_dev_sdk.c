@@ -28,10 +28,13 @@
 #include "joylink_sub_dev.h"
 #include "joylink_config_handle.h"
 #include "joylink_extern.h"
-
+// #include "joylink_softap_start.h"
+#ifdef _IS_DEV_REQUEST_ACTIVE_SUPPORTED_
+#include "joylink_softap.h"
+#include "joylink_cloud_log.h"
+#include "joylink_dev_active.h"
+#endif
 JLDevice_t  _g_dev = {
-    .jlp.feedid = "12345678901234567890123456789012",
-    .jlp.accesskey = "key45678901234567890123456789012",
     .server_socket = -1,
     .server_st = 0,
     .hb_lost_count = 0,
@@ -112,7 +115,6 @@ joylink_test()
 extern void
 joylink_agent_req_cloud_proc();
 
-char getin_config_flag = 0;
 
 /**
  * brief: 
@@ -120,15 +122,19 @@ char getin_config_flag = 0;
 void 
 joylink_main_loop(void)
 {
-    int ret;
+	int ret;
 	struct sockaddr_in sin;
-    bzero(&sin, sizeof(sin));
+	bzero(&sin, sizeof(sin));
 
 	struct timeval  selectTimeOut;
 	static uint32_t serverTimer;
+	static uint32_t runTimer;
+	
 	static int interval = 0;
+	int active_req_count = 0;
 
 	joylink_util_timer_reset(&serverTimer);
+	joylink_util_timer_reset(&runTimer);
 
 	sin.sin_addr.s_addr = htonl(INADDR_ANY);
 	sin.sin_family = AF_INET;
@@ -146,17 +152,42 @@ joylink_main_loop(void)
                 (uint8_t *)&broadcastEnable, 
                 sizeof(broadcastEnable)) < 0){
 		log_error("SO_BROADCAST ERR");
-    }
+	}
 
 	if(0 > bind(_g_pdev->lan_socket, (SOCKADDR*)&sin, sizeof(SOCKADDR))){
 		perror("Bind lan socket error!");
-    }
+	}
 
 	while (1){
-        /*joylink_test();*/
-
-        joylink_cloud_fd_lock();
-
+        	joylink_cloud_fd_lock();
+#ifdef _IS_DEV_REQUEST_ACTIVE_SUPPORTED_
+		if(!joylink_dev_is_net_ok()){
+			continue;
+		}
+		if(joylink_softap_is_need_active()){
+			joylink_cloud_log_post(TAGID_LOG_AP_CONNECTED, RES_LOG_SUCCES,"2018-12-21 17:20:20","[CloudLog]Connect Ap Success","0",NULL);
+			log_info("dev active begin");
+			ret = joylink_dev_active_req();
+			if(ret >= 0){
+				log_info("dev active success");
+				joylink_softap_active_clear();
+			}else{
+				log_error("dev active failed try again");
+			}
+			active_req_count++;
+			log_info("active_req_count = %d",active_req_count);
+			if(active_req_count > 5){
+				joylink_softap_active_clear();
+				active_req_count = 0;
+				joylink_cloud_log_post(TAGID_LOG_AP_FULL_RES, RES_LOG_FAIL,"2018-12-21 17:20:20","[CloudLog]device active failed,timeout","0",NULL);
+			}
+		}
+#endif
+		if (joylink_util_is_time_out(runTimer, 1000*5)){
+			joylink_util_timer_reset(&runTimer);
+			joylink_dev_run_status(run_status_ok);
+		}
+		
 		if (joylink_util_is_time_out(serverTimer, interval)){
 			joylink_util_timer_reset(&serverTimer);
             if(joylink_dev_is_net_ok()){
@@ -257,9 +288,23 @@ joylink_dev_init()
  * @Returns: 
  */  
 
-int 
-joylink_main_start()
+static int default_random(uint8_t *dest, unsigned size) {
+
+    char *ptr = (char *)dest;
+    size_t left = size;
+    while (left > 0) {
+        *ptr = (uint8_t)joylink_dev_get_random();
+        left--;
+        ptr++;
+    }
+    return 1;
+}
+
+
+
+int joylink_main_start()
 {
+    jl3_uECC_set_rng((uECC_RNG_Function) &default_random);
     joylink_ecc_contex_init();
     joylink_dev_init();
 
@@ -270,3 +315,20 @@ joylink_main_start()
 	joylink_main_loop();
 	return 0;
 }
+
+int joylink_sdk_feedid_get(char *buf,char buflen)
+{
+	if(strlen(_g_pdev->jlp.feedid) == 0){
+		return -1;
+	}
+	if(buflen < (strlen(_g_pdev->jlp.feedid) + 1)){
+		log_error("buflen error");
+		return -1;
+	}
+
+	memset(buf,0,buflen);
+	strcpy(buf,_g_pdev->jlp.feedid);
+	return 0;
+
+}
+

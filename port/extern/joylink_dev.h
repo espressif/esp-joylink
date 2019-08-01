@@ -190,6 +190,12 @@ int joylink_dev_user_data_set(char *cmd, user_dev_status_t *user_data);
 int
 joylink_dev_user_data_get(user_dev_status_t *user_data);
 
+/**
+ * brief: 
+ *
+ * @Returns: 
+ */
+int joylink_dev_run_status(JLRunStatus_t status);
 /*---------------- sub dev api ---------------*/
 
 /**
