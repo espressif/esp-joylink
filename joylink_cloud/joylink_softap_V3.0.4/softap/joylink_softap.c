@@ -8,12 +8,9 @@ Copyright (c) 2015-2050, JD Smart All rights reserved.
 #include "joylink3_auth_uECC.h"
 #include "joylink_softap_util.h"
 #include "joylink_aes.h"
-#include "joylink_softap_start.h"
 #include "joylink_log.h"
 #include "joylink_utils.h"
 #include "joylink_auth_crc.h"
-#include "joylink_dev_active.h"
-#include "joylink_cloud_log.h"
 
 static uint8 joylink_softap_getCrc8(uint8 *ptr, uint8 len);
 static int joylink_softap_byte2hexstr(const uint8 *pbytes, int blen, uint8 *o_phex, int hlen);
@@ -169,6 +166,28 @@ static void joylink_softap_ssid_generate(void)
 	memcpy(softap_ssid, DEV_SOFTAP_SSID, strlen(DEV_SOFTAP_SSID));
 }
 #else
+
+uint8 getCrc(uint8 *ptr, uint8 len)
+{
+	unsigned char crc;
+	unsigned char i;
+	crc = 0;
+	while (len--)
+	{
+		crc ^= *ptr++;
+		for (i = 0; i < 8; i++)
+		{
+			if (crc & 0x01)
+			{
+				crc = (crc >> 1) ^ 0x8C;
+			}
+			else
+				crc >>= 1;
+		}
+	}
+	return crc;
+}
+
 /**
  * @name:joylink_softap_ssid_generate 
  */
@@ -616,7 +635,6 @@ static int joylink_softap_aes_decrypt(uint8 *pEncIn, uint32 encLength,uint8 *key
 	
 	memcpy(iv,key_32bytes,16);
 	memcpy(key,key_32bytes+16, 16);
-	//uint8 Out[128] = { 0 };
 	uint8 Out[128] = { 0 };
 
 	uint32 ret = 128;

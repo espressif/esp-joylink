@@ -63,9 +63,7 @@ JOYLINK_SDK_C_FILES =   agent/joylink_adapter_net.c		\
 
 JOYLINK_SMNT_C_FILES = joylink_smnt.c
 
-JOYLINK_SOFTAP_C_FILES =    softap/joylink_softap.c \
-                            softap/joylink_util.c \
-			    auth/joylink_auth_uECC.c
+JOYLINK_SOFTAP_C_FILES =    softap/joylink_softap.c 
 
 COMPONENT_ADD_INCLUDEDIRS += $(JOYLINK_SOFTAP)/softap $(JOYLINK_SOFTAP)/auth
 COMPONENT_SRCDIRS += $(JOYLINK_SOFTAP)/softap $(JOYLINK_SOFTAP)/auth
@@ -86,7 +84,7 @@ JOYLINK_PORT_C_FILES =	app/joylink_app.c			\
 			extern/joylink_porting_layer.c			\
 			extern/joylink_upgrade.c				\
 			jdinnet/jd_innet.c						\
-			softap/joylink_softap.c
+			softap/joylink_softap_config.c
 
 
 COMPONENT_ADD_INCLUDEDIRS += $(addprefix $(JOYLINK_PORT)/,$(JOYLINK_PORT_INCLUDEDIRS))

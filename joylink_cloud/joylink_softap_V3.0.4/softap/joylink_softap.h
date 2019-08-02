@@ -9,11 +9,11 @@ Copyright (c) 2015-2050, JD Smart All rights reserved.
 #define _JOYLINK_H_
 #include "joylink_softap_util.h"
 
-#define	SOFTAP_UUID	"UJKK5C"	//puid
-#define SOFTAP_BRAND	"38C4"		//brand 
-#define SOFTAP_CID	"09A5"		//cid
+#define	SOFTAP_UUID	    CONFIG_JOYLINK_DEVICE_UUID	        //puid
+#define SOFTAP_BRAND	    CONFIG_JOYLINK_DEVICE_BRAND		//brand 
+#define SOFTAP_CID	    CONFIG_JOYLINK_DEVICE_CID		//cid
 
-#define DEV_SOFTAP_SSID     "JDSaoDiJiQiRen3109"
+// #define DEV_SOFTAP_SSID     "JDDeng9141"
 
 /*
 Description:
