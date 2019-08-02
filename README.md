@@ -6,9 +6,9 @@
 * **4. 相关链接：** 给出与 joylink 相关的链接。包括 Demo 下载，微联文档。
 
 ## 1. 概述
-ESP 平台实现了京东微联 Joylink2.0.8 协议。用户可以参考 Espressif 提供的设备端 Demo 进行二次开发，快速接入京东微联云平台。
+ESP 平台实现了京东微联 Joylink2.0.15 协议。用户可以参考 Espressif 提供的设备端 Demo 进行二次开发，快速接入京东微联云平台。
 
-Demo 参考京东官方 [Joylink2.0.09 SDK](https://smartdev.jd.com/docCenterDownload/list/2)，添加了 WiFi 相关、OTA、Flash 存储、button 等适配层，用户只需要关心少部分 API，如初始化、数据收发、事件回调等，加快了用户的二次开发速度。适配层具有一定的通用性且开源，用户可根据产品需求自行修改。
+Demo 参考京东官方 [Joylink2.0.15 SDK](https://smartdev.jd.com/docCenterDownload/list/2)，添加了 WiFi 相关、OTA、Flash 存储、button 等适配层，用户只需要关心少部分 API，如初始化、数据收发、事件回调等，加快了用户的二次开发速度。适配层具有一定的通用性且开源，用户可根据产品需求自行修改。
 Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发者中心上传空实现的 lua 脚本： `only_trans.lua`。
 
 ## 2. Demo 使用
@@ -34,10 +34,10 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 
 ### 2.2 编译下载
 
-* 工程编译  
-    首先需要在menuconfig里面配置开发版的类型，在 `menuconfig` 选择目标板是 ESP8266 或者是 ESP32。
+* 工程编译
+    首先设置 `IDF_PATH` 的路径，如果是 ESP8266，请使用 ESP8266_RTOS_SDK v3.1, 如果是 ESP32， 则选择 ESP-IDF v3.0
 
-    然后设置 `IDF_PATH` 的路径，如果是 ESP8266， 则选择 ESP8266_RTOS_SDK v3.0 的路径, 如果是 ESP32， 则选择 ESP-IDF v3.1的路径。
+    然后在menuconfig里面配置joylink相关参数 `UUID`, `CID`, `PID`, `PUBLIC_KEY`,`PRIVATE_KEY`,`MAC_ADDRESS`.
 
     最后再输入命令 `make`， 编译工程。
 
