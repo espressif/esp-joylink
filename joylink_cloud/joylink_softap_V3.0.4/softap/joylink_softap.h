@@ -5,35 +5,15 @@ Copyright (c) 2015-2050, JD Smart All rights reserved.
 *************************************/
 
 
-#ifndef _JOYLINK_SOFTAP_H_
-#define _JOYLINK_SOFTAP_H_
-#include "joylink_head.h"
-#define SIZE_SSID		32
-#define SIZE_PASSWORD	64
+#ifndef _JOYLINK_H_
+#define _JOYLINK_H_
+#include "joylink_softap_util.h"
 
-typedef struct _joylinkSoftAP_Result
-{
-	unsigned char type;						//reserved
-	unsigned char ssid[SIZE_SSID+1];
-	unsigned char pass[SIZE_PASSWORD+1];
-	unsigned char bssid[6];					//reserved
-}joylinkSoftAP_Result_t;
+#define	SOFTAP_UUID	    CONFIG_JOYLINK_DEVICE_UUID	        //puid
+#define SOFTAP_BRAND	    CONFIG_JOYLINK_DEVICE_BRAND		//brand 
+#define SOFTAP_CID	    CONFIG_JOYLINK_DEVICE_CID		//cid
 
-typedef struct _joylinkSoftAPRam
-{
-	uint8 is_generate_key;
-	uint8 is_broadcast_pubkey;
-	uint8 ecc_publickey[LEN_PUBLICKEY_ECC];
-	uint8 ecc_privatekey[LEN_PRIVIATEKEY_ECC];
-	uint8 shared_key[LEN_SHAREDKEY_LEN];
-	uint8 ecc_r1[LEN_R1R2_ECC];
-	uint8 ecc_r2[LEN_R1R2_ECC];
-	uint8 ecc_publickey_remote[LEN_PUBLICKEY_ECC];
-	const struct uECC_Curve_t * ecc_curves;
-	uint8 sessionkey[0x20];
-	joylink_softap_status	status;
-	joylinkSoftAP_Result_t 		softap_result;
-}joylinkSoftAPRam;
+// #define DEV_SOFTAP_SSID     "JDDeng9141"
 
 /*
 Description:
@@ -41,7 +21,7 @@ Description:
 Note:
     In softap mode,system is expected to use this as the ssid.And the password is default "12345678"
 */
-extern uint8				softap_ssid[MAX_LEN_OF_SSID+1];
+extern uint8 softap_ssid[MAX_LEN_OF_SSID+1];
 
 /*
 Routine Description:
@@ -65,7 +45,7 @@ Return Value:
 Note:
     Use this function to handle the TCP message.
 */
-int joylink_softap_tcppacket(uint8 *msg, int16 count);	
+int joylink_softap_data_packet_handle(int socket_fd, uint8 *msg, int16 count);	
 
 /*
 Routine Description:
@@ -77,7 +57,7 @@ Return Value:
 Note:
 	Broadcast local public key using UDP.
 */
-int joylink_softap_udpbroad(void);			
+int joylink_softap_udpbroad(int socket_fd);			
 
 /*
 Routine Description:
@@ -93,5 +73,22 @@ Note:
 	If the function return the right result,System shoud enter to STA mode and try to connet to the ssid
 */
 int joylink_softap_result(joylinkSoftAP_Result_t* pRet);
+
+
+#ifdef _IS_DEV_REQUEST_ACTIVE_SUPPORTED_
+/**
+ * @name:joylink_softap_is_need_active 
+ *
+ * @returns:   
+ */
+int joylink_softap_is_need_active(void);
+/**
+ * @name:joylink_softap_active_clear 
+ *
+ * @returns:   
+ */
+int joylink_softap_active_clear(void);
+
+#endif
 
 #endif
