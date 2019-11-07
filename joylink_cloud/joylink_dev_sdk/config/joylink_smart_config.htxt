@@ -1,0 +1,90 @@
+/*************************************
+
+Copyright (c) 2015-2050, JD Smart All rights reserved. 
+
+*************************************/
+#ifndef _JOYLINK_SMART_CONFIG_H_
+#define _JOYLINK_SMART_CONFIG_H_
+
+#include "joylink_smnt_adp.h"
+
+//#define IS_FULL_LOG							//is to open the full log function
+
+/*
+typedef struct _joylinkResult
+{
+	unsigned char type;	                        // 0:NotReady, 1:ControlPacketOK, 2:BroadcastOK, 3:MulticastOK
+	unsigned char ssid[33];
+	unsigned char pass[33];
+	unsigned char bssid[6];
+}joylinkResult_t;
+*/
+typedef enum 
+{
+	TYPE_JOY_OTHER = 0,
+	TYPE_JOY_SMNT  = 1
+}joylink_smnt_type_t;
+
+typedef enum _joylink_smnt_status
+{
+	SMART_CH_INIT 		=		0x1,
+	SMART_CH_LOCKING 	=	0x2,
+	SMART_CH_LOCKED 	=	0x4,
+	SMART_FINISH 		= 0x8
+}joylink_smnt_status_t;
+
+typedef struct _joylink_smnt_info
+{
+	joylink_smnt_type_t			joy_smnt_type;				//smnt type TYPE_JOY_OTHER-other type, TYPE_JOY_SMNT - joylink's smnt
+	joylink_smnt_status_t 		joy_smnt_state;				//smnt state,
+	uint8 						joy_smnt_bssid[6];			//bssid
+	uint8 						joy_smnt_channel_fix;		//the current channel
+}joylink_smnt_info_t;
+
+typedef struct _joylinkResult
+{
+	unsigned char type;	                        // 0:NotReady, 1:ControlPacketOK, 2:BroadcastOK, 3:MulticastOK
+  unsigned char encData[1+32+32+32];            // length + EncodeData
+}joylinkResult_t;
+
+typedef struct _joylinkSmnt
+{
+    joylink_smnt_type_t jd_smnt_type;
+    joylink_smnt_status_t state;
+    uint16 syncFirst;
+    uint8 syncCount;
+    uint8 syncStepPoint;
+    uint8 syncFirst_downlink;
+    uint8 syncCount_downlink;
+    uint8 syncStepPoint_downlink;
+    uint8 directTimerSkip;
+    uint8 broadcastVersion;
+    uint8 muticastVersion;
+    uint8 broadIndex;
+    uint8 broadBuffer[5];
+    uint16 lastLength;
+    uint16 lastUploadSeq;
+    uint16 lastDownSeq;
+    uint8 syncAppMac[6];
+    uint8 syncBssid[6];
+    uint16 syncIsUplink;
+    uint8 chCurrentIndex;
+    uint8 chCurrentProbability;
+    uint8 isProbeReceived;
+    uint8 payload[128];
+    uint8 payload_multicast[128];
+    joylinkResult_t result;
+} joylinkSmnt_t;
+
+extern void joylink_change_hannel(int ch);
+
+
+void joylink_cfg_init(unsigned char* pBuffer);        // 传入一个1024字节的存储空间
+int  joylink_cfg_50msTimer(void);		// 50ms定时器回调,如果返回非零,那么这个值作为下一次调用的时间间隔,可能的取值为(50,100,5000,10000)
+
+int joylink_get_smnt_info(joylink_smnt_info_t *smnt_info);								//查看当前的joylink 一键配置状态
+void joylink_cfg_CtrlAction(PHEADER_802_11 pHeader, int length);                // 局域网收到控制包
+void joylink_cfg_DataAction(PHEADER_802_11 pHeader, int length);                // 局域网收到数据包
+int  joylink_cfg_Result(joylinkResult_t* pRet);					// Get Result
+
+#endif

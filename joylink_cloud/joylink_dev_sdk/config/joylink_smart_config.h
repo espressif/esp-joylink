@@ -78,7 +78,7 @@ typedef void (*joylink_smnt_result_cb)(joylink_smnt_result_t result_info);
 typedef struct{
 	unsigned char secretkey[16+1];
 	//void (*switch_channel_callback)(unsigned char);
-	void (*get_result_callback)(joylink_smnt_result_t);
+	void (*get_result_callback)(joylink_smnt_result_t *);
 } joylink_smnt_param_t;
 
 

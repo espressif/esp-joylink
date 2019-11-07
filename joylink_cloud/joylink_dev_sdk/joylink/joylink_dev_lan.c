@@ -82,22 +82,13 @@ int
 joylink_cloud_timestamp_sync_check_reset_timecache()
 {
     static uint32_t refresh_time = 0;
-#ifdef ESP_PLATFORM
-    if(_g_pdev->cloud_timestamp - refresh_time > 300){
-        if((_g_pdev->cloud_timestamp & 0xFFFFF)  < 300){
-            refresh_time = _g_pdev->cloud_timestamp;
-            memset(_g_UT, 0, sizeof(_g_UT));
-        }
-    }
-    return 0;
-#else
+
     if(_g_pdev->cloud_timestamp - refresh_time > 300){
         if(_g_pdev->cloud_timestamp & 0xFFFFF  < 300){
             refresh_time = _g_pdev->cloud_timestamp;
             memset(_g_UT, 0, sizeof(_g_UT));
         }
     }
-#endif
 }
 
 /**
@@ -159,6 +150,9 @@ joylink_is_usr_timestamp_ok(char *usr, uint32_t org_timestamp)
             }
         }
     }
+	if(i == USR_TIMESTAMP_MAX){
+		return 0;
+	}
     log_error("JSon Control timstamp error: no space->%s\n", usr);
     log_error("usr timestamp:%u, cache timestamp:%u\n", timestamp, _g_UT[i].timestamp);
     /*no space to add*/
@@ -240,7 +234,7 @@ static void
 joylink_proc_lan_scan(uint8_t *src, struct sockaddr_in *sin_recv, socklen_t addrlen)
 {
     int ret = -1;
-    int len;
+    int len = -1;
     DevScan_t scan;
     int ret_sign = 0;
 
@@ -771,3 +765,4 @@ RET:
 */
     return;
 }
+

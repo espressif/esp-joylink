@@ -9,7 +9,8 @@ extern "C"{
 #include "auth/joylink_auth_uECC.h"
 #include "joylink_ret_code.h"
 
-#define _VERSION_  "2.0.15"
+#define _VERSION_  "2.0.19"
+#define _RELEASE_TIME_  "2019_10_12"
 
 #define JL_MAX_PACKET_LEN	    (1400)
 #define JL_MAX_IP_LEN               (20)
@@ -172,7 +173,7 @@ typedef enum _lan_snap_short{
 }E_JLLanSnapShort_t;
 
 typedef struct {
-	int	isUsed;
+	int isUsed;
 	short version;
 	char ip[JL_MAX_IP_LEN];
 	int port;		
@@ -181,8 +182,8 @@ typedef struct {
 	char uuid[JL_MAX_UUID_LEN];
 	int lancon;			            // 1 suport Lan 
 	int cmd_tran_type;			    // 0:bin, 1:Lua, 2:Js
-    int devtype;
-    int protocol;                   // 0:WIFI 1:zigbee 2:bluetooth 3:433
+	int devtype;
+	int protocol;                   // 0:WIFI 1:zigbee 2:bluetooth 3:433
 
 	char feedid[JL_MAX_FEEDID_LEN];
 	char accesskey[33];
@@ -202,26 +203,26 @@ typedef struct {
 	uint8_t sharedkey[uECC_BYTES];
 	uint8_t sessionKey[33];
 
-    char joylink_server[JL_MAX_SERVER_NAME_LEN];
-    int server_port;
+	char joylink_server[JL_MAX_SERVER_NAME_LEN];
+	int server_port;
 
-    char javs_server[64];
-    char opengw_server[64];
-    char router_server[64];
+	char javs_server[64];
+	char opengw_server[64];
+	char router_server[64];
 
-    char CID[10];
-    char firmwareVersion[10];
-    char modelCode[66];
-    char is_actived;
+	char CID[10];
+	char firmwareVersion[10];
+	char modelCode[66];
+	char is_actived;
 
-    int batchBind;
+	int batchBind;
 
-    char devSn[65];
+	char devSn[65];
 
-    char ps_th_d2c[1024];
-    char ps_th_c2d[1024];
+	char ps_th_d2c[1024];
+	char ps_th_c2d[1024];
 
-    unsigned int crc32;
+	unsigned int crc32;
 }JLPInfo_t;
 
 #define IDT_D_PK_LEN            (34)
@@ -262,6 +263,8 @@ typedef struct {
     char *send_p;
     int payload_total;
     jl2_d_idt_t idt;
+
+    int cloud_serial;
     int cloud_timestamp;
 
     int model_code_flag;

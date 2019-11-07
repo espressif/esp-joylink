@@ -16,6 +16,7 @@ static int joySlaveDevSigGen(char *sig_buf,tc_vl_t *cloud_random);
 static int joyCloudSigVerify(tc_vl_t *sig);
 static int joyThunderProbeReqSend(uint8_t *cmddata,uint8_t len,void *prob_req);
 static int joyDevRandomReSend(void);
+static int joy80211PacketResend(void);
 
 
 
@@ -493,7 +494,7 @@ static int joyLockChlCommH(uint8_t *tlvsdata,uint8_t lc,tc_packet_type_t ttype,v
 	}
 
 	joySlaveStateSet(sDevInfoUp);
-	joySlaveTxbufSetClaType(tthunder_ctl->vendor_tx,joy_cla_resendpacket);
+	//joySlaveTxbufSetClaType(tthunder_ctl->vendor_tx,joy_cla_resendpacket);
 
 	//set mac address
 	memcpy(tthunder_ctl->mac_master,header_802->sa,JOY_MAC_ADDRESS_LEN);
@@ -504,6 +505,20 @@ RET:
 	
 	return ret;
 }
+
+static int joy80211PacketResend(void)
+{
+	int ret = E_RET_OK;
+	uint8_t txlens;
+	tc_slave_ctl_t *tthunder_ctl = &tc_slave_ctl;
+	ret = joyThunderProbeReqSend(tthunder_ctl->vendor_tx,tthunder_ctl->vendor_tx_len,NULL);
+	if(ret != E_RET_OK){
+		log_error("pobe request send error");
+	}
+
+	return ret;
+}
+
 
 static int joyAuthAllowCommH(uint8_t *tlvsdata,uint8_t lc,tc_packet_type_t ttype,void *probe_req)
 {
@@ -572,7 +587,7 @@ static int joyAuthAllowCommH(uint8_t *tlvsdata,uint8_t lc,tc_packet_type_t ttype
 	}
 
 	joySlaveStateSet(sDevChallengeUp);
-	joySlaveTxbufSetClaType(tthunder_ctl->vendor_tx,joy_cla_resendpacket);
+	//joySlaveTxbufSetClaType(tthunder_ctl->vendor_tx,joy_cla_resendpacket);
 	log_info("joyAuthAllowCommH Finish");
 RET:
 	return ret;
@@ -603,7 +618,7 @@ static int joyDevRandomReSend(void)
 	}
 
 	joySlaveStateSet(sDevChallengeUp);
-	joySlaveTxbufSetClaType(tthunder_ctl->vendor_tx,joy_cla_resendpacket);
+	//joySlaveTxbufSetClaType(tthunder_ctl->vendor_tx,joy_cla_resendpacket);
 	log_info("joyAuthAllowCommH Finish");
 RET:
 	return ret;
@@ -717,7 +732,7 @@ static int joyCloudChanngeCommH(uint8_t *tlvsdata,uint8_t lc,tc_packet_type_t tt
 
 	joySlaveStateSet(sDevSigUp);
 	tthunder_ctl->randSendTimes = 0;
-	joySlaveTxbufSetClaType(tthunder_ctl->vendor_tx,joy_cla_resendpacket);
+	//joySlaveTxbufSetClaType(tthunder_ctl->vendor_tx,joy_cla_resendpacket);
 	log_info("joyAuthAllowCommH Finish");
 RET:
 	if(cloud_sig.value != NULL){
@@ -873,7 +888,7 @@ static int joyCloudAuthInfoCommH(uint8_t *tlvsdata,uint8_t lc,tc_packet_type_t t
 	}
 
 	joySlaveStateSet(sFinish);
-	joySlaveTxbufSetClaType(tthunder_ctl->vendor_tx,joy_cla_resendpacket);
+	//joySlaveTxbufSetClaType(tthunder_ctl->vendor_tx,joy_cla_resendpacket);
 	log_info("joyCloudAuthInfoCommH Finish");
 RET:
 
@@ -898,6 +913,7 @@ static int joySlaveCommHandle(uint8_t *venderspecific,uint8_t len,void *probe_re
 	
 	if(memcmp(tcmmand->magic,JOY_MEGIC_HEADER,strlen(JOY_MEGIC_HEADER)) != 0){
 		ret = E_RET_ERROR;
+		log_error("magic error");
 		goto RET;
 	}
 	
@@ -933,6 +949,11 @@ tcmmand->cla &= 0xDF;//clear resend tag
 			goto RET;
 		}
 		memcpy(&(tcmmand->lc) + 1,dec_buf,dec_len);
+
+		log_info("dec buffer->,len=%d",dec_len);
+		joylink_util_fmt_p("dec buffer->",&(tcmmand->lc) + 1,dec_len);
+
+		
 		tcmmand->lc = dec_len;
 	}
 
@@ -1075,8 +1096,10 @@ static int joySlaveAESDecrypt(uint8_t *pEncIn, int encLength, uint8_t *pPlainOut
 	uint8_t sharekey[32],iv[16];
 	
 	tc_slave_ctl_t *tthunder_ctl = &tc_slave_ctl;
-
-	if(0 == jl3_uECC_shared_secret(tthunder_ctl->pubkey_c,tthunder_ctl->prikey_d,sharekey,uECC_secp256r1())){
+	uint8_t dc_pubkey[64] = {0};
+	jl3_uECC_decompress(tthunder_ctl->pubkey_c, dc_pubkey, uECC_secp256r1());
+		
+	if(0 == jl3_uECC_shared_secret(dc_pubkey,tthunder_ctl->prikey_d,sharekey,uECC_secp256r1())){
 		log_error("gen share key error");
 		return 0;
 	}
@@ -1103,10 +1126,15 @@ static int joySlaveAESEncrypt(uint8_t *pPlanin,int plainlength,uint8_t *pencout,
 		
 	tc_slave_ctl_t *tthunder_ctl = &tc_slave_ctl;
 	
-	if(0 == jl3_uECC_shared_secret(tthunder_ctl->pubkey_c,tthunder_ctl->prikey_d,sharekey,uECC_secp256r1())){
+    uint8_t dc_pubkey[64] = {0};
+    jl3_uECC_decompress(tthunder_ctl->pubkey_c, dc_pubkey, uECC_secp256r1());
+	
+	if(0 == jl3_uECC_shared_secret(jl3_uECC_decompress,tthunder_ctl->prikey_d,sharekey,uECC_secp256r1())){
 		log_error("gen share key error");
 		return 0;
 	}
+
+	joylink_util_fmt_p("sharekey->",sharekey,sizeof(sharekey));
 	
 	return device_aes_decrypt(sharekey,16,iv,pPlanin,plainlength,pencout,maxoutlen);
 	//return JLdevice_aes_encrypt(sharekey,16,iv,pPlanin,plainlength,pencout,maxoutlen);
@@ -1441,6 +1469,7 @@ void joyThunderSlaveProbeH(void *probe_req, int req_len)
 	/* elems.vendor_custom is alibaba vendor now */
 	memset(content, 0, MAX_CUSTOM_VENDOR_LEN);
 	if(seq == mgmt->seq_ctrl){
+		log_error("seq number same");
 		return ;
 	}
 
@@ -1450,6 +1479,11 @@ void joyThunderSlaveProbeH(void *probe_req, int req_len)
 	{
 		memcpy(content, elems.vendor_custom + 3, elems.vendor_custom_len - 3);
 		joySlaveCommHandle(content,elems.vendor_custom_len - 3,probe_req);
+	}else{
+		if(elems.vendor_custom == NULL){
+			log_error("vendor_custom NULL");
+		}
+		log_error("vendor_custom_len=%d",elems.vendor_custom_len);
 	}
 }
 
@@ -1493,6 +1527,10 @@ void joyThunderSlave50mCycle(void)
 			break;
 		case sDevInfoUp: 			//devinfo transfer		//user confirm
 			tthunder_ctl->tcount++;
+			if(((tthunder_ctl->tcount) % 4) == 0){
+				joy80211PacketResend();
+			}
+			
 			if(tthunder_ctl->tcount > JOY_DEVINFO_UP_TIMEOUT){
 				joyThunderSlaveFinish(MSG_ERROR_TIMEOUT);
 			}

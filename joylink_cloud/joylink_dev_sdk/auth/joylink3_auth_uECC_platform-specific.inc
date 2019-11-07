@@ -62,26 +62,6 @@ static int default_RNG(uint8_t *dest, unsigned size) {
 }
 #define default_RNG_defined 1
 
-#elif defined(ESP_PLATFORM)
-
-static int default_RNG(uint8_t *dest, unsigned size) {
-    if ((!dest) ||( size == 0)) {
-        return 0;
-    }
-    
-    char *ptr = (char *)dest;
-    unsigned left = size;
-    while (left > 0) {
-        *ptr = (joylink_dev_get_random() % 0xff);
-        left --;
-        ptr ++;
-    }
-    
-    return 1;
-}
-
-#define default_RNG_defined 1
-
 #endif /* platform */
 
 #endif /* _UECC_PLATFORM_SPECIFIC_H_ */

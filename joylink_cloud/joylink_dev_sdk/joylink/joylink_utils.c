@@ -22,6 +22,7 @@
 
 #include "joylink_utils.h"
 #include "joylink.h"
+#include "joylink_aes.h"
 
 /**
  * brief: 
@@ -290,7 +291,7 @@ void *joylink_util_malloc(size_t size)
  */
 void joylink_util_free(void *p)
 {
-    if(p){
+    if(p != NULL){
         free(p);
         p = NULL;
     }
@@ -330,6 +331,7 @@ uint8_t joyTLVDataAdd(uint8_t *buf,uint8_t tag, uint8_t lc, uint8_t *value)
     lenthtotal = lc + 2;
     return lenthtotal;
 }
+
 int joylink_util_randstr_gen(char *dst,char len)
 {
 	char tmp[16] = {0},i,j,tmpkey[32] = {0},tmpiv[32],reshex[128] = {0};

@@ -1,11 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#if defined(__MTK_7687__)
-#include <stdint.h>
-#include "lwip/sockets.h"
-#include "lwip/netdb.h"
-#else
+
 #include <stdarg.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -17,7 +13,6 @@
 #include <errno.h>
 #include <ifaddrs.h>
 #include <netdb.h>
-#endif
 
 #include "joylink.h"
 #include "joylink_utils.h"
@@ -28,7 +23,7 @@
 #include "joylink_sub_dev.h"
 #include "joylink_config_handle.h"
 #include "joylink_extern.h"
-// #include "joylink_softap_start.h"
+#include "joylink_softap_start.h"
 #ifdef _IS_DEV_REQUEST_ACTIVE_SUPPORTED_
 #include "joylink_softap.h"
 #include "joylink_cloud_log.h"
@@ -65,6 +60,21 @@ joylink_cloud_fd_unlock();
 extern void
 joylink_agent_gw_thread_start();
 
+extern int 
+joylink_softap_is_need_active(void);
+
+extern int 
+joylink_softap_active_clear(void);
+
+extern void 
+jl3_uECC_set_rng(uECC_RNG_Function rng_function);
+
+extern int
+joylink_is_usr_timestamp_ok(char *usr, int timestamp);
+
+extern void
+joylink_agent_req_cloud_proc();
+
 /**
  * brief: 
  *
@@ -87,34 +97,6 @@ joylink_dev_get_ver()
 {
     return _g_pdev->jlp.version;
 }
-
-extern int
-joylink_is_usr_timestamp_ok(char *usr, int timestamp);
-
-void 
-joylink_test()
-{
-    /*int t = time(NULL);*/
-    /*int t = 10;*/
-    int ttret;
-    static int index = 0; 
-    char buff[64] = {0};
-    
-    sprintf(buff, "192.168.8.%d", index);
-    ttret = joylink_is_usr_timestamp_ok(buff, index);
-    index++;
-    printf("----- user:%s\n", buff); 
-
-    if(ttret == 0){
-        printf("----- timestamp is invalid\n"); 
-    }else{
-        printf("----- timestamp is valid\n"); 
-    }
-}
-
-extern void
-joylink_agent_req_cloud_proc();
-
 
 /**
  * brief: 
@@ -190,52 +172,50 @@ joylink_main_loop(void)
 		
 		if (joylink_util_is_time_out(serverTimer, interval)){
 			joylink_util_timer_reset(&serverTimer);
-            if(joylink_dev_is_net_ok()){
-                interval = joylink_proc_server_st();
-            }else{
-                interval = 1000 * 10;
-            }
+			if(joylink_dev_is_net_ok()){
+				interval = joylink_proc_server_st();
+			}else{
+				interval = 1000 * 10;
+			}
 		}
 
 		fd_set  readfds;
 		FD_ZERO(&readfds);
 		FD_SET(_g_pdev->lan_socket, &readfds);
         
-        if (_g_pdev->server_socket != -1 
+		if (_g_pdev->server_socket != -1 
                && _g_pdev->server_st > 0){
-            FD_SET(_g_pdev->server_socket, &readfds);
-        }
+			FD_SET(_g_pdev->server_socket, &readfds);
+		}
 
-        int maxFd = (int)_g_pdev->server_socket > 
-            (int)_g_pdev->lan_socket ? 
-            _g_pdev->server_socket : _g_pdev->lan_socket;
+		int maxFd = (int)_g_pdev->server_socket > 
+			(int)_g_pdev->lan_socket ? 
+			_g_pdev->server_socket : _g_pdev->lan_socket;
 
-        selectTimeOut.tv_usec = 0L;
-        selectTimeOut.tv_sec = (long)1;
+		selectTimeOut.tv_usec = 0L;
+		selectTimeOut.tv_sec = (long)1;
 
 		ret = select(maxFd + 1, &readfds, NULL, NULL, &selectTimeOut);
 		if (ret < 0){
 			printf("Select ERR: %s!\r\n", strerror(errno));
-            goto UNLOOK_FD;
+			goto UNLOOK_FD;
 		}else if (ret == 0){
-            goto UNLOOK_FD;
+			goto UNLOOK_FD;
 		}else{
-
-            if (FD_ISSET(_g_pdev->lan_socket, &readfds)){
-                joylink_proc_lan();
-            }else if((_g_pdev->server_socket != -1) && 
-                (FD_ISSET(_g_pdev->server_socket, &readfds))){
-                joylink_proc_server();
-            }
-        }
-
-        UNLOOK_FD:
-        joylink_cloud_fd_unlock();
+			if (FD_ISSET(_g_pdev->lan_socket, &readfds)){
+				joylink_proc_lan();
+			}else if((_g_pdev->server_socket != -1) && 
+				(FD_ISSET(_g_pdev->server_socket, &readfds))){
+				joylink_proc_server();
+			}
+		}
+UNLOOK_FD:
+		joylink_cloud_fd_unlock();
 #ifdef _AGENT_GW_
-        if(E_RET_TRUE == is_joylink_server_st_work()){
-            /*log_debug("proc agent_req_cloud proc");*/
-            joylink_agent_req_cloud_proc();
-        }
+		if(E_RET_TRUE == is_joylink_server_st_work()){
+			/*log_debug("proc agent_req_cloud proc");*/
+			joylink_agent_req_cloud_proc();
+		}
 #endif
 	}
 }
@@ -247,19 +227,35 @@ joylink_main_loop(void)
 int
 joylink_check_cpu_mode(void)  
 {  
-    union
-    {  
-        int data_int;  
-        char data_char;  
-    } temp;
+	union
+	{  
+		int data_int;  
+		char data_char;  
+	} temp;
 
-    temp.data_int = 1;  
+	temp.data_int = 1;  
 
-    if(temp.data_char != 1){
-	return -1;
-    }else{
-	return 0;
-    }
+	if(temp.data_char != 1){
+		return -1;
+	}else{
+		return 0;
+	}
+}
+
+int
+joylink_check_mac_capital(char *mac)
+{
+	int i = 0;
+
+	if(mac == NULL || strlen(mac) > 32){
+		return -1;
+	}
+	for(i = 0; i < strlen(mac); i++){
+		if(mac[i] >= 'a' && mac[i] <= 'f'){
+			mac[i] = mac[i] - 'a' + 'A';
+		}
+	}
+	//printf("Mac must are written in capitals!\n");
 }
 
 /**
@@ -268,11 +264,52 @@ joylink_check_cpu_mode(void)
 static void 
 joylink_dev_init()
 {
-    /**
-     *NOTE: If your model_code_flag is configed in cloud, 
-     *Please set _g_pdev->model_code_flag = 1. 
-     */
-    /*_g_pdev->model_code_flag = 1;*/
+/**
+*NOTE: If your model_code_flag is configed in cloud, 
+*Please set _g_pdev->model_code_flag = 1. 
+*/
+	char mac[16] = {0};
+	char key[68] = {0};
+
+	/*_g_pdev->model_code_flag = 1;*/
+
+	printf("\n/**************info********************/\n\n");
+	printf("sdk version: %s\n\n", _VERSION_);
+	printf("dev version: %d\n",JLP_VERSION);
+
+	printf("dev type: %d\n", JLP_DEV_TYPE);
+	printf("dev lan strl: %d\n", JLP_LAN_CTRL);
+	printf("dev cmd type: %d\n\n", JLP_CMD_TYPE);
+
+	if(strlen(JLP_UUID) == 0){
+		printf("dev uuid: error!\n");
+	}else{
+		printf("dev uuid: %s\n", JLP_UUID);
+	}
+
+	if(strlen(IDT_CLOUD_PUB_KEY) == 0){
+		printf("dev public key: error!\n\n");
+	}else{
+		printf("dev public key: %s\n\n", IDT_CLOUD_PUB_KEY);
+	}
+
+	if(joylink_dev_get_user_mac(mac) < 0){
+    		printf("dev mac: error!\n");
+	}else{
+		joylink_check_mac_capital(mac);
+		printf("dev mac: %s\n", mac);
+	}
+	if(joylink_dev_get_private_key(key) < 0){
+    		printf("dev private key: error!\n\n");
+	}else{
+		printf("dev private key: %s\n\n", key);
+	}
+	if(joylink_check_cpu_mode() == 0){
+    		printf("plt mode: --ok! little-endian--\n\n");
+	}else{
+		printf("plt mode: --error! big-endian--\n\n");
+	}
+	printf("/*************************************/\n\n");
 
 	joylink_dev_get_jlp_info(&_g_pdev->jlp);
 	joylink_dev_get_idt(&_g_pdev->idt);
@@ -290,27 +327,28 @@ joylink_dev_init()
 
 static int default_random(uint8_t *dest, unsigned size) {
 
-    char *ptr = (char *)dest;
-    size_t left = size;
-    while (left > 0) {
-        *ptr = (uint8_t)joylink_dev_get_random();
-        left--;
-        ptr++;
-    }
-    return 1;
+	char *ptr = (char *)dest;
+	size_t left = size;
+
+	while (left > 0) {
+		*ptr = (uint8_t)joylink_dev_get_random();
+		left--;
+		ptr++;
+	}
+	return 1;
 }
 
 
 
 int joylink_main_start()
 {
-    jl3_uECC_set_rng((uECC_RNG_Function) &default_random);
-    joylink_ecc_contex_init();
-    joylink_dev_init();
+	jl3_uECC_set_rng((uECC_RNG_Function) &default_random);
+	joylink_ecc_contex_init();
+	joylink_dev_init();
 
 #ifdef _AGENT_GW_
-    joylink_agent_devs_load();
-    joylink_agent_gw_thread_start();
+	joylink_agent_devs_load();
+	joylink_agent_gw_thread_start();
 #endif
 	joylink_main_loop();
 	return 0;

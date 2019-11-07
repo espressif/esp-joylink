@@ -556,7 +556,7 @@ joylink_dencypt_lan_req(JLPacketParam_t *pParam, const uint8_t *pIn,
         if(!joylink_is_cmd_enctype_match(pPack->type, pPack->enctype)){
 
             log_error("pack->type enctype not match:%d:%d", 
-                    pPack->type, pPack->enctype);
+                    (int)pPack->type, (int)pPack->enctype);
             return 0;
         }
 

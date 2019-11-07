@@ -3,8 +3,6 @@
 
 #include <stdio.h>
 
-#if defined(__MTK_7687__)
-#else
 #include <errno.h>
 #include <pthread.h>
 #include <stdarg.h>
@@ -16,7 +14,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <dirent.h>
-#endif
 
 #ifdef __cplusplus
 extern "C"

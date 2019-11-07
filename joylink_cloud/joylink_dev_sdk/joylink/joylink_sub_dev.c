@@ -188,7 +188,7 @@ joylink_proc_lan_sub_script_ctrl(uint8_t *src, int src_len,
 {
     int ret = -1;
     int len = 0;
-    int en_len;
+    int en_len = -1;
     int offset = 0;
     int snapshot_len = 0;
     char *ss = NULL;
@@ -374,7 +374,7 @@ joylink_subdev_script_ctrl(uint8_t* recPainText, JLSubContrl_t *ctr, unsigned sh
     memcpy(ctr, recPainText, 44);
     offset += 44;
     log_info("bcode:%d:serial:%d:feeid:%s", 
-            ctr->biz_code, ctr->serial, ctr->feedid);
+            (int)ctr->biz_code, (int)ctr->serial, ctr->feedid);
 
     switch(ctr->biz_code){
         case JL_BZCODE_GET_SNAPSHOT:
@@ -496,8 +496,8 @@ joylink_subdev_unbind(uint8_t* recPainText, JLSubUnbind_t* unbind)
     memcpy(unbind, recPainText, 14);
     offset += 14;
     log_info("timestamp:%dbcode:%d:serial:%d:num:%d:", 
-        unbind->timestamp, unbind->biz_code, 
-        unbind->serial, unbind->num);
+        (int)unbind->timestamp, (int)unbind->biz_code, 
+        (int)unbind->serial, (int)unbind->num);
 
     if(unbind->biz_code == JL_BZCODE_UNBIND){
         unbind->info = (JLSubDevInfo_t*)malloc(sizeof(JLSubDevInfo_t) * (unbind->num));
@@ -511,8 +511,8 @@ joylink_subdev_unbind(uint8_t* recPainText, JLSubUnbind_t* unbind)
             memcpy(&unbind->info[i].state, (recPainText + offset), 1);
             offset += 1;
             log_info("the %d subdev:version:%d:rssi:%d:feedid:%s:state:%d\n", 
-                i, unbind->info[i].version, unbind->info[i].rssi,
-                unbind->info[i].feedid, unbind->info[i].state);
+                i, (int)unbind->info[i].version, (int)unbind->info[i].rssi,
+                unbind->info[i].feedid, (int)unbind->info[i].state);
 
             joylink_dev_sub_unbind((const char*)unbind->info[i].feedid);
         }

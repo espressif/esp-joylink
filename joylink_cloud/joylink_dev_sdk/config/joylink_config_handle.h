@@ -15,7 +15,7 @@ int joylink_thunder_slave_init(void);
 int joylink_thunder_slave_finish(tc_slave_result_t *result);
 
 int joylink_smart_config_init(void);
-void *joylinke_smart_config_finish(joylink_smnt_result_t* presult);
+void joylinke_smart_config_finish(joylink_smnt_result_t* presult);
 
 int joylink_config_start(uint32_t time_out);
 int joylink_config_stop(void);

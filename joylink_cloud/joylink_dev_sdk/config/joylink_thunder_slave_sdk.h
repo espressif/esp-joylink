@@ -3,13 +3,13 @@
 //#include "joylink_syshdr.h"
 #include "joylink_thunder.h"
 
-#define JOY_REQCHANNEL_STAY_COUNT		5
-#define JOY_DEVINFO_UP_TIMEOUT			(2*20)		//2s
-//#define JOY_THUNDER_TIMEOUT_COUNT		(20*10)		//5s
-#define JOY_DEVSIG_UP_TIMEOUT			(2*20)		//2s
-#define JOY_DEVRAND_UP_TIMEOUT			JOY_DEVSIG_UP_TIMEOUT
-#define JOY_THUNDER_TIMEOUT_FINISH		10*10
-#define JOY_THUNDER_TIMEOUT_REJECT		10*10
+#define JOY_REQCHANNEL_STAY_COUNT       5
+#define JOY_DEVINFO_UP_TIMEOUT          (20*20)      //2s
+#define JOY_DEVSIG_UP_TIMEOUT           (2*20)      //2s
+#define JOY_DEVRAND_UP_TIMEOUT          JOY_DEVSIG_UP_TIMEOUT
+#define JOY_THUNDER_TIMEOUT_FINISH      10*10
+#define JOY_THUNDER_TIMEOUT_REJECT      10*10
+
 
 #define JOY_UUID_LEN					6
 #define JOY_RANDOM_LEN					0x20

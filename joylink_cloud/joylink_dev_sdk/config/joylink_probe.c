@@ -204,12 +204,18 @@ int ieee802_11_parse_elems(const uint8_t *start, size_t len,
 		id = *pos++;
 		elen = *pos++;
 		left -= 2;
-
-		if (elen > left) {
-			log_error("IEEE 802.11 element parse failed (id=%d elen=%d "
-				"left=%lu)", id, elen, (unsigned long) left);
-			return -1;
+/*
+		if(elen == 0 || elen > left)
+		{
+		    return 0;
 		}
+		else if (elen > left) {
+			joylink_log_error("IEEE 802.11 element parse failed (id=%d elen=%d "
+				"left=%lu)", id, elen, (unsigned long) left);
+			return -1 ;
+		}
+*/
+		//printf("id: %02x\n", id);
 
 		switch (id) {
 		case WLAN_EID_SSID:
@@ -242,9 +248,10 @@ int ieee802_11_parse_elems(const uint8_t *start, size_t len,
 		case WLAN_EID_VENDOR_SPECIFIC:
 			elems->vendor_custom = pos;
 			elems->vendor_custom_len = elen;
+		    return 0;
 			//if (ieee802_11_parse_vendor_specific(pos, elen, elems))
 			//	unknown++;
-			break;
+			//break;
 		default:
 			unknown++;
 			break;

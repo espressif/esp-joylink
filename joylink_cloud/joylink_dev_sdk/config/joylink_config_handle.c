@@ -71,7 +71,7 @@ int joylink_delete_mark(uint8_t *str)
 			for_n++;
 		}
 	}
-	memset(str, 0, sizeof(str));
+	memset(str, 0, 64);
 	memcpy(str, temp, strlen(temp));
 
 	return 0;
@@ -140,7 +140,7 @@ joylink_thunder_slave_finish(tc_slave_result_t *result)
 
 	memset(&md5buf, 0, sizeof(MD5_CTX));
 	JDMD5Init(&md5buf);
-	JDMD5Update(&md5buf, result->cloud_ackey.value, result->cloud_ackey.length);
+	JDMD5Update(&md5buf, result->cloud_ackey.value, strlen(result->cloud_ackey.value));
 	JDMD5Final(&md5buf, temp);
 	joylink_util_byte2hexstr(temp, 16, localkey, 32);
 	
@@ -183,14 +183,15 @@ joylink_smart_config_init(void)
 {
 	memset(&smart_conf_param, 0, sizeof(joylink_smnt_param_t));
 
-    	memcpy(smart_conf_param.secretkey, SMARTCONFIG_KEY, strlen(SMARTCONFIG_KEY));
-	smart_conf_param.get_result_callback = joylinke_smart_config_finish;
+    memcpy(smart_conf_param.secretkey, SMARTCONFIG_KEY, strlen(SMARTCONFIG_KEY));
+
+	smart_conf_param.get_result_callback = &joylinke_smart_config_finish;
 
 	log_info("init smart config!\r\n");
 	joylink_smnt_init(smart_conf_param);
 }
 
-void *
+void
 joylinke_smart_config_finish(joylink_smnt_result_t* presult)
 {
 	int len = 0;
@@ -210,7 +211,7 @@ joylinke_smart_config_finish(joylink_smnt_result_t* presult)
 
 	log_info("ssid:%s, passwd:%s\n", config_result.ssid, config_result.pass);
 	joylink_config_stop();
-	return 0;
+	return;
 }
 
 /**
