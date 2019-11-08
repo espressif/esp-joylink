@@ -67,14 +67,9 @@ joylink_dev_parse_ctrl(const char *pMsg, user_dev_status_t *userDev)
 			}
 
 			if(!strcmp(USER_DATA_POWER, pSId->valuestring)){
-			    if(pV->type == cJSON_String){
-			        memset(tmp_str, 0, sizeof(tmp_str));
+			    memset(tmp_str, 0, sizeof(tmp_str));
 				strcpy(tmp_str, pV->valuestring);
 				userDev->Power = atoi(tmp_str);
-			    }
-			    else if(pV->type == cJSON_Number){
-			        userDev->Power = pV->valueint;
-			    }
 			    joylink_dev_user_data_set( USER_DATA_POWER,userDev);
 			}
 

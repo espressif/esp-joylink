@@ -13,7 +13,7 @@ Copyright (c) 2015-2050, JD Smart All rights reserved.
 #define SOFTAP_BRAND	    CONFIG_JOYLINK_DEVICE_BRAND		//brand 
 #define SOFTAP_CID	    CONFIG_JOYLINK_DEVICE_CID		//cid
 
-// #define DEV_SOFTAP_SSID     "JDDeng9141"
+#define DEV_SOFTAP_SSID     "JDDeng9141"
 
 /*
 Description:

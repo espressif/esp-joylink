@@ -141,9 +141,11 @@ joylink_main_loop(void)
 	}
 
 	while (1){
-        	joylink_cloud_fd_lock();
+        vTaskDelay(5);
+		joylink_cloud_fd_lock();
 #ifdef _IS_DEV_REQUEST_ACTIVE_SUPPORTED_
 		if(!joylink_dev_is_net_ok()){
+			joylink_cloud_fd_unlock();
 			continue;
 		}
 		if(joylink_softap_is_need_active()){
@@ -204,8 +206,9 @@ joylink_main_loop(void)
 		}else{
 			if (FD_ISSET(_g_pdev->lan_socket, &readfds)){
 				joylink_proc_lan();
-			}else if((_g_pdev->server_socket != -1) && 
-				(FD_ISSET(_g_pdev->server_socket, &readfds))){
+			}
+			
+			if((_g_pdev->server_socket != -1) && (FD_ISSET(_g_pdev->server_socket, &readfds))){
 				joylink_proc_server();
 			}
 		}

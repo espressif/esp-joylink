@@ -108,7 +108,7 @@ static void joylink_task(void *pvParameters)
            joylink_gatts_adv_data_enable();
 #endif
         } else {
-           joylink_entry_net_config();
+           esp_joylink_softap_innet();
         }
     }
 
@@ -218,7 +218,9 @@ void joylink_entry_net_config(void)
 
 void esp_joylink_app_start(void)
 {
-    xTaskCreate(joylink_main_task, "joylink_main_task", 1024*10, NULL, 2, NULL);
+    xTaskCreate(joylink_main_task, "joylink_main_task", 1024*14, NULL, 2, NULL);
+#ifndef CONFIG_IDF_TARGET_ESP8266
     joylink_ble_init();
+#endif
     xTaskCreate(joylink_task, "jl_task", 2048, NULL, 1, NULL);
 }

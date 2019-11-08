@@ -27,8 +27,13 @@ static char gLogTokenStr[16+1] = {0};
 extern int 
 joylink_sdk_feedid_get(char *buf,char buflen);
 
+#ifdef ESP_PLATFORM
+extern int 
+joylink_dev_https_post( char* host, char* query ,char *revbuf,int buflen, char * body);
+#else
 extern int 
 joylink_dev_https_post( char* host, char* query ,char *revbuf,int buflen);
+#endif
 
 static char *joylink_cloud_log_post_json_gen(char *tagId, char *result,char *time,char *payload,char *duration,char *feedid)
 {
@@ -305,8 +310,11 @@ int joylink_cloud_log_post(char *tagId, char *result,char *time,char *payload,ch
 
 	log_info("http txbuf = \r\n%s",txbuf);
 	
-
+#ifdef ESP_PLATFORM
+	ret = joylink_dev_https_post(url,txbuf,countbuf,sizeof(countbuf),postbody);
+#else
 	ret = joylink_dev_https_post(url,txbuf,countbuf,sizeof(countbuf));
+#endif
 	if(ret < 0){
 		log_error("https error");
 		ret = -1;

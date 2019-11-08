@@ -45,6 +45,8 @@ JOYLINK_SDK_C_FILES =  auth/joylink3_auth_uECC.c		\
 			joylink/joylink_security.c		\
 			joylink/joylink_sub_dev.c		\
 			joylink/joylink_utils.c			\
+			joylink/joylink_cloud_log.c     \
+			joylink/joylink_dev_active.c    \
 								\
 								\
 			json/joylink_json.c			\
