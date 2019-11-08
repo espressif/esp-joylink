@@ -70,6 +70,9 @@ joylink_server_st_close()
     _g_pdev->server_st = JL_SERVER_ST_INIT;
     close(_g_pdev->server_socket);
     _g_pdev->server_socket = -1;
+#ifdef ESP_PLATFORM
+    return 0;
+#endif
 }
 
 /**
@@ -834,7 +837,11 @@ joylink_proc_server_ota_upload(uint8_t* json)
  * @Returns: 
  */
 int
+#ifdef ESP_PLATFORM
+joylink_server_recv(int fd, char *rec_buff, int max)
+#else
 joylink_server_recv(char fd, char *rec_buff, int max)
+#endif
 {
     JLPacketHead_t head;
     bzero(&head, sizeof(head));

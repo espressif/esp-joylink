@@ -5,12 +5,12 @@
 
 JOYLINK_SDK ?= joylink_cloud/joylink_dev_sdk
 JOYLINK_SMNT ?= joylink_cloud/joylink_smnt_v3.0.11
-JOYLINK_SOFTAP ?= joylink_cloud/joylink_softap_V3.0.4
+JOYLINK_SOFTAP ?= joylink_cloud/joylink_softap
 JOYLINK_PORT ?= port
 
 COMPONENT_ADD_INCLUDEDIRS := 
-JOYLINK_SDK_INCLUDEDIRS = agent auth joylink json list
-JOYLINK_SDK_SRCDIRS = agent auth joylink json list
+JOYLINK_SDK_INCLUDEDIRS = auth joylink json list
+JOYLINK_SDK_SRCDIRS = auth joylink json list
 COMPONENT_ADD_INCLUDEDIRS += $(addprefix $(JOYLINK_SDK)/,$(JOYLINK_SDK_INCLUDEDIRS)) \
 				$(JOYLINK_SDK)
 COMPONENT_SRCDIRS += $(addprefix $(JOYLINK_SDK)/,$(JOYLINK_SDK_SRCDIRS))
@@ -18,7 +18,7 @@ COMPONENT_SRCDIRS += $(addprefix $(JOYLINK_SDK)/,$(JOYLINK_SDK_SRCDIRS))
 COMPONENT_ADD_INCLUDEDIRS += $(JOYLINK_SMNT)
 COMPONENT_SRCDIRS += $(JOYLINK_SMNT)
 
-ifndef CONFIG_TARGET_PLATFORM_ESP8266
+ifndef CONFIG_IDF_TARGET_ESP8266
 
 LIBS += joylink_ble
 
@@ -28,14 +28,7 @@ endif
 
 COMPONENT_ADD_INCLUDEDIRS += joylink_cloud/joylink_ble/include
 
-JOYLINK_SDK_C_FILES =   agent/joylink_adapter_net.c		\
-			agent/joylink_agent.c			\
-			agent/joylink_agent_devs.c		\
-			agent/joylink_agent_gw_2_cloud.c	\
-			agent/joylink_agent_json.c		\
-								\
-								\
-			auth/joylink3_auth_uECC.c		\
+JOYLINK_SDK_C_FILES =  auth/joylink3_auth_uECC.c		\
 			auth/joylink_aes.c			\
 			auth/joylink_auth_crc.c			\
 			auth/joylink_auth_md5.c			\
@@ -63,10 +56,10 @@ JOYLINK_SDK_C_FILES =   agent/joylink_adapter_net.c		\
 
 JOYLINK_SMNT_C_FILES = joylink_smnt.c
 
-JOYLINK_SOFTAP_C_FILES =    softap/joylink_softap.c 
+JOYLINK_SOFTAP_C_FILES = joylink_softap.c 
 
-COMPONENT_ADD_INCLUDEDIRS += $(JOYLINK_SOFTAP)/softap $(JOYLINK_SOFTAP)/auth
-COMPONENT_SRCDIRS += $(JOYLINK_SOFTAP)/softap $(JOYLINK_SOFTAP)/auth
+COMPONENT_ADD_INCLUDEDIRS += $(JOYLINK_SOFTAP)
+COMPONENT_SRCDIRS += $(JOYLINK_SOFTAP)
 
 COMPONENT_OBJS += $(addprefix $(JOYLINK_SDK)/,$(JOYLINK_SDK_C_FILES:%.c=%.o))
 COMPONENT_OBJS += $(addprefix $(JOYLINK_SMNT)/,$(JOYLINK_SMNT_C_FILES:%.c=%.o))

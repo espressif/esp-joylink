@@ -82,13 +82,22 @@ int
 joylink_cloud_timestamp_sync_check_reset_timecache()
 {
     static uint32_t refresh_time = 0;
-
+#ifdef ESP_PLATFORM
+    if(_g_pdev->cloud_timestamp - refresh_time > 300){
+        if((_g_pdev->cloud_timestamp & 0xFFFFF)  < 300){
+            refresh_time = _g_pdev->cloud_timestamp;
+            memset(_g_UT, 0, sizeof(_g_UT));
+        }
+    }
+    return 0;
+#else
     if(_g_pdev->cloud_timestamp - refresh_time > 300){
         if(_g_pdev->cloud_timestamp & 0xFFFFF  < 300){
             refresh_time = _g_pdev->cloud_timestamp;
             memset(_g_UT, 0, sizeof(_g_UT));
         }
     }
+#endif
 }
 
 /**

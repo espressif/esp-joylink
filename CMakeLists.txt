@@ -7,8 +7,7 @@ set(COMPONENT_ADD_INCLUDEDIRS
     joylink_cloud/joylink_dev_sdk
     joylink_cloud/joylink_smnt_v3.0.11
     joylink_cloud/joylink_ble/include
-    joylink_cloud/joylink_softap_V3.0.4/softap
-    joylink_cloud/joylink_softap_V3.0.4/auth
+    joylink_cloud/joylink_softap
     port/include
     port/jdinnet
     port/extern)
@@ -42,9 +41,8 @@ set(COMPONENT_SRCS
     joylink_cloud/joylink_dev_sdk/json/joylink_json_sub_dev.c
     joylink_cloud/joylink_dev_sdk/list/joylink_list.c
     joylink_cloud/joylink_smnt_v3.0.11/joylink_smnt.c
-    joylink_cloud/joylink_softap_V3.0.4/softap/joylink_softap.c
-    joylink_cloud/joylink_softap_V3.0.4/softap/joylink_util.c
-    joylink_cloud/joylink_softap_V3.0.4/auth/joylink_auth_uECC.c
+    joylink_cloud/joylink_softap/joylink_softap.c
+    joylink_cloud/joylink_softap/joylink_util.c
     port/app/joylink_app.c
     port/ble/joylink_ble.c
     port/extern/joylink_extern_json.c

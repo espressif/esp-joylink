@@ -143,7 +143,7 @@ static void  joylink_smnt_finish(void)
 			goto RET;
 		}
 
-#ifdef CONFIG_TARGET_PLATFORM_ESP8266
+#ifdef CONFIG_IDF_TARGET_ESP8266
 		esp_wifi_set_promiscuous(0);
 #endif
 		

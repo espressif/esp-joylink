@@ -55,7 +55,7 @@ static void jd_innet_pack_callback(void *buf, wifi_promiscuous_pkt_type_t type)
     if (type != WIFI_PKT_MISC) {
         pack_all = (wifi_promiscuous_pkt_t *)buf;
         frame = (PHEADER_802_11)pack_all->payload;        
-#ifdef CONFIG_TARGET_PLATFORM_ESP8266
+#ifdef CONFIG_IDF_TARGET_ESP8266
     len = pack_all->rx_ctrl.sig_mode ? pack_all->rx_ctrl.HT_length : pack_all->rx_ctrl.legacy_length;
 #else
     len = pack_all->rx_ctrl.sig_len;
@@ -87,7 +87,7 @@ void esp_get_result_callback(joylink_smnt_result_t result)
 	wifi_config_t config;
 	if (result.smnt_result_status == smnt_result_ok) {
         memset(&config,0x0,sizeof(config));
-#ifdef CONFIG_TARGET_PLATFORM_ESP8266
+#ifdef CONFIG_IDF_TARGET_ESP8266
         esp_wifi_set_promiscuous(0);
         esp_wifi_set_promiscuous_rx_cb(NULL);
         memcpy(config.sta.ssid,result.jd_ssid,result.jd_ssid_len);
@@ -167,7 +167,7 @@ static void jd_innet_start (void *pvParameters)
 	param.get_result_callback = esp_get_result_callback;
     joylink_smnt_init(param);
 
-#ifdef CONFIG_TARGET_PLATFORM_ESP8266
+#ifdef CONFIG_IDF_TARGET_ESP8266
     esp_wifi_set_promiscuous_data_len(32);
 #endif
     if (ESP_OK != esp_wifi_set_promiscuous_rx_cb(jd_innet_pack_callback)){
