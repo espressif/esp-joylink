@@ -31,7 +31,7 @@ uint8 softap_ssid[MAX_LEN_OF_SSID+1]  = {0};			//beacon ssid
  *
  * @returns:   
  */
-int get_random(void)
+static int get_random(void)
 {
     static unsigned long int next = 1;
     next = next *1103515245 + 12345;

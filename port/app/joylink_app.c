@@ -53,7 +53,7 @@ extern void joylink_ble_init(void);
 extern void joylink_gatts_adv_data_enable(void);
 #endif
 
-void joylink_entry_net_config(void);
+void joylink_entry_thunder_config(void);
 
 static void joylink_main_task(void *pvParameters)
 {
@@ -74,7 +74,7 @@ static void joylink_task(void *pvParameters)
         esp_joylink_set_config_network(ESP_JOYLINK_CONFIG_NETWORK_NONE);
         
         if ((config_mode == ESP_JOYLINK_CONFIG_NETWORK_SMNT_BLE) || (config_mode == ESP_JOYLINK_CONFIG_NETWORK_SMNT)) {
-            joylink_entry_net_config();
+            joylink_entry_thunder_config();
         } else if (config_mode == ESP_JOYLINK_CONFIG_NETWORK_SOFTAP) {
             esp_joylink_softap_innet();
         }
@@ -108,7 +108,7 @@ static void joylink_task(void *pvParameters)
            joylink_gatts_adv_data_enable();
 #endif
         } else {
-           esp_joylink_softap_innet();
+            esp_joylink_softap_innet();
         }
     }
 
@@ -204,7 +204,7 @@ void joylink_delay_10_min_timer_for_10_min_stop(void)
     }
 }
 
-void joylink_entry_net_config(void)
+void joylink_entry_thunder_config(void)
 {
     printf("--joylink net config\r\n");
     joylink_net_configuaring = true;

@@ -17,13 +17,11 @@ extern "C"{
 
 #define USER_DATA_POWER   "Power"
 
-typedef struct __light_ctrl{
-    char cmd;
-    int para_power;
-    int para_state;
-    int para_look;
-    int para_move;
-}LightCtrl_t;
+typedef struct _joylink_info_{
+	int conn_st;	
+    JLPInfo_t jlp;
+    jl2_d_idt_t idt;
+}Joylink_info_t;
 
 typedef struct _user_dev_status_t {
     int Power;

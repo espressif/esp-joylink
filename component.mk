@@ -4,7 +4,7 @@
 # (Uses default behaviour of compiling all source files in directory, adding 'include' to include path.)
 
 JOYLINK_SDK ?= joylink_cloud/joylink_dev_sdk
-JOYLINK_SMNT ?= joylink_cloud/joylink_smnt_v3.0.11
+JOYLINK_THUNDER ?= joylink_cloud/joylink_thunder
 JOYLINK_SOFTAP ?= joylink_cloud/joylink_softap
 JOYLINK_PORT ?= port
 
@@ -15,8 +15,8 @@ COMPONENT_ADD_INCLUDEDIRS += $(addprefix $(JOYLINK_SDK)/,$(JOYLINK_SDK_INCLUDEDI
 				$(JOYLINK_SDK)
 COMPONENT_SRCDIRS += $(addprefix $(JOYLINK_SDK)/,$(JOYLINK_SDK_SRCDIRS))
 
-COMPONENT_ADD_INCLUDEDIRS += $(JOYLINK_SMNT)
-COMPONENT_SRCDIRS += $(JOYLINK_SMNT)
+COMPONENT_ADD_INCLUDEDIRS += $(JOYLINK_THUNDER)
+COMPONENT_SRCDIRS += $(JOYLINK_THUNDER)
 
 ifndef CONFIG_IDF_TARGET_ESP8266
 
@@ -56,7 +56,9 @@ JOYLINK_SDK_C_FILES =  auth/joylink3_auth_uECC.c		\
 			list/joylink_list.c
 
 
-JOYLINK_SMNT_C_FILES = joylink_smnt.c
+JOYLINK_THUNDER_C_FILES = joylink_smnt.c \
+						  joylink_thunder_slave_sdk.c  \
+						  joylink_probe.c
 
 JOYLINK_SOFTAP_C_FILES = joylink_softap.c 
 
@@ -64,7 +66,7 @@ COMPONENT_ADD_INCLUDEDIRS += $(JOYLINK_SOFTAP)
 COMPONENT_SRCDIRS += $(JOYLINK_SOFTAP)
 
 COMPONENT_OBJS += $(addprefix $(JOYLINK_SDK)/,$(JOYLINK_SDK_C_FILES:%.c=%.o))
-COMPONENT_OBJS += $(addprefix $(JOYLINK_SMNT)/,$(JOYLINK_SMNT_C_FILES:%.c=%.o))
+COMPONENT_OBJS += $(addprefix $(JOYLINK_THUNDER)/,$(JOYLINK_THUNDER_C_FILES:%.c=%.o))
 COMPONENT_OBJS += $(addprefix $(JOYLINK_SOFTAP)/,$(JOYLINK_SOFTAP_C_FILES:%.c=%.o))
 
 
