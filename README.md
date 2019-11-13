@@ -6,10 +6,12 @@
 * **4. 相关链接：** 给出与 joylink 相关的链接。包括 Demo 下载，微联文档。
 
 ## 1. 概述
-ESP 平台实现了京东微联 Joylink2.0.15 协议。用户可以参考 Espressif 提供的设备端 Demo 进行二次开发，快速接入京东微联云平台。
+ESP 平台实现了京东微联 Joylink2.0.19 协议。用户可以参考 Espressif 提供的设备端 Demo 进行二次开发，快速接入京东微联云平台。
 
-Demo 参考京东官方 [Joylink2.0.15 SDK](https://smartdev.jd.com/docCenterDownload/list/2)，添加了 WiFi 相关、OTA、Flash 存储、button 等适配层，用户只需要关心少部分 API，如初始化、数据收发、事件回调等，加快了用户的二次开发速度。适配层具有一定的通用性且开源，用户可根据产品需求自行修改。
+Demo 参考京东官方 [Joylink2.0.19 SDK](https://smartdev.jd.com/docCenterDownload/list/2)，添加了 WiFi 相关、OTA、Flash 存储、button 等适配层，用户只需要关心少部分 API，如初始化、数据收发、事件回调等，加快了用户的二次开发速度。适配层具有一定的通用性且开源，用户可根据产品需求自行修改。
 Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发者中心上传空实现的 lua 脚本： `only_trans.lua`。
+
+目前京东微联已经停止支持 SmartConfig 的配网方式，所以 Demo 中删除 SmartConfig 配网，目前支持 SoftAp 和 Thunder 配网，芯片上电默认进入 SoftAP 配网，如果用户需要使用 Thunder 配网，需要购买京东的音箱，音箱需要进入沙箱模式，与音箱相关的设置，用户可以咨询京东。
 
 ## 2. Demo 使用
 用户拿到乐鑫提供 Joylink Demo 后，编译下载固件到乐鑫 ESP8266 或者 ESP32 开发板。使用京东微联 APP 扫描测试设备的二维码进行配置。配置激活成功后便可进行设备控制。此 Demo 对应的测试设备类型为“智能家居 / 生活电器 / 灯具”。
@@ -35,7 +37,7 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 ### 2.2 编译下载
 
 * 工程编译
-    首先设置 `IDF_PATH` 的路径，如果是 ESP8266，请使用 ESP8266_RTOS_SDK v3.1, 如果是 ESP32， 则选择 ESP-IDF v3.0
+    首先设置 `IDF_PATH` 的路径，如果是 ESP8266，请使用 ESP8266_RTOS_SDK v3.2, 如果是 ESP32， 则选择 ESP-IDF v3.3
 
     然后在menuconfig里面配置joylink相关参数 `UUID`, `CID`, `PID`, `PUBLIC_KEY`,`PRIVATE_KEY`,`MAC_ADDRESS`.
 
@@ -85,7 +87,7 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
     │    ├── docs
     │    ├── joylink_ble
     │    ├── joylink_dev_sdk
-    │    ├── joylink_smnt_v3.0.11
+    │    ├── joylink_thunder
     │    └── joylink_softap
     ├── port                                    // joylink SDK adaptation
     │    ├── app
@@ -105,7 +107,7 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
     因为这些参数需要在服务器后台产品基本信息里获取，或者向京东有关部门咨询。
 
 ### 3.3 配网
-京东一键配置方式包括：BLE 配网，京豆标准一键配置，京豆标准一键配置+SoftAp。Demo 中使用的配网方式为京东标准一键配置，后台填写的联网方式代码为 ```KMYXDI63HNBFF9CG``` ， 如需其他配网方式代码请咨询京东。
+京东配网方式目前主推 SoftAP(自主激活), Demo 中同时支持 SoftAP(自主激活+代理激活)、Thunder 配网, 默认设置是进入 SoftAP 自主激活, 如果需要代理激活，可以在 Makefile 中将自主激活的宏关闭。
 
 <img src="docs/_picture/配网方式后台配置界面.jpg" width = "500" alt="i2c hardware" align=center />
 
