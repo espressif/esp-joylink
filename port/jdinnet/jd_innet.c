@@ -69,7 +69,11 @@ static void jd_innet_pack_callback(void *buf, wifi_promiscuous_pkt_type_t type)
     if (type != WIFI_PKT_MISC) {
         pack_all = (wifi_promiscuous_pkt_t *)buf;
         frame = (PHEADER_802_11)pack_all->payload;        
-        len = pack_all->rx_ctrl.sig_mode ? pack_all->rx_ctrl.HT_length : pack_all->rx_ctrl.legacy_length;
+#ifdef CONFIG_IDF_TARGET_ESP8266
+    len = pack_all->rx_ctrl.sig_mode ? pack_all->rx_ctrl.HT_length : pack_all->rx_ctrl.legacy_length;
+#else
+    len = pack_all->rx_ctrl.sig_len;
+#endif
         joylink_80211_recv(frame, len);
     }
 }
@@ -363,6 +367,8 @@ static void jd_innet_start (void *pvParameters)
     config_stop_flag = 0;
     joylink_thunder_slave_init();
 
+
+#ifdef CONFIG_IDF_TARGET_ESP8266
 #define WIFI_PROMIS_FILTER_MASK_PROREQ  (1<<7)
 #define WIFI_PROMIS_FILTER_MASK_PRORSP  (1<<8)
     const wifi_promiscuous_filter_t filter = {
@@ -371,6 +377,7 @@ static void jd_innet_start (void *pvParameters)
 	esp_wifi_set_promiscuous_len_filter(200);
 	esp_wifi_set_promiscuous_data_len(200);
     esp_wifi_set_promiscuous_filter(&filter);
+#endif
 
     if (ESP_OK != esp_wifi_set_promiscuous_rx_cb(jd_innet_pack_callback)){
         log_debug ("[%s] set_promiscuous fail\n\r",__func__);

@@ -24,9 +24,8 @@
 
 #if defined(__MTK_7687__)
 #else
-#include <features.h>
-#include <bits/wchar.h>
-#include <bits/wordsize.h>
+#include <sys/features.h>
+#include <wchar.h>
 #endif
 
 /* Exact integral types.  */

@@ -12,7 +12,9 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/ioctl.h>
+#ifndef ESP_PLATFORM
 #include <net/if.h>
+#endif
 #include <netinet/in.h>
 #include <netdb.h>
 #include <sys/socket.h>

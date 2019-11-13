@@ -737,7 +737,7 @@ int joylink_dev_run_status(JLRunStatus_t status)
 int joylink_dev_https_post( char* host, char* query ,char *revbuf,int buflen, char * body)
 {   
     esp_tls_cfg_t config = {
-        .skip_common_name = true,
+        // .skip_common_name = true,
     };
     esp_tls_t *tls = NULL;
     uint32_t len = 0;

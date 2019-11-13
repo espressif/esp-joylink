@@ -227,7 +227,7 @@ static void esp_joylink_softap_task(void* pvParameters)
     }
 
     strncpy((char*)config.ap.ssid, (char*)softap_ssid, config.ap.ssid_len);
-    config.ap.max_connection = 1;
+    config.ap.max_connection = 3;
     config.ap.channel = 9;
     esp_wifi_set_config(WIFI_IF_AP, &config);
 

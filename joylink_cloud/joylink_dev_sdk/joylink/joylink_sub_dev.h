@@ -16,6 +16,10 @@
 #include <dirent.h>
 #endif
 
+#ifdef ESP_PLATFORM
+#include "address.h"
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
