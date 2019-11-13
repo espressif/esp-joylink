@@ -11,7 +11,9 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#ifndef ESP_PLATFORM
 #include <net/if.h>
+#endif
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <errno.h>
@@ -159,6 +161,9 @@ joylink_is_usr_timestamp_ok(char *usr, uint32_t org_timestamp)
             }
         }
     }
+	if(i == USR_TIMESTAMP_MAX){
+		return 0;
+	}
     log_error("JSon Control timstamp error: no space->%s\n", usr);
     log_error("usr timestamp:%u, cache timestamp:%u\n", timestamp, _g_UT[i].timestamp);
     /*no space to add*/
@@ -240,7 +245,7 @@ static void
 joylink_proc_lan_scan(uint8_t *src, struct sockaddr_in *sin_recv, socklen_t addrlen)
 {
     int ret = -1;
-    int len;
+    int len = -1;
     DevScan_t scan;
     int ret_sign = 0;
 
@@ -771,3 +776,4 @@ RET:
 */
     return;
 }
+

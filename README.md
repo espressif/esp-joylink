@@ -86,7 +86,7 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
     │    ├── joylink_ble
     │    ├── joylink_dev_sdk
     │    ├── joylink_smnt_v3.0.11
-    │    └── joylink_softap_V3.0.4
+    │    └── joylink_softap
     ├── port                                    // joylink SDK adaptation
     │    ├── app
     │    ├── ble

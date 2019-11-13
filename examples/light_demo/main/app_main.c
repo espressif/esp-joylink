@@ -33,7 +33,7 @@
 #include "esp_wifi.h"
 #include "esp_event_loop.h"
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
 #include "esp_bt.h"
 #include "esp_bt_device.h"
 #include "esp_gap_ble_api.h"
@@ -56,7 +56,7 @@
 #define PROFILE_NUM 1
 #define PROFILE_JD_APP_ID 0
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
 struct gatts_profile_inst {
     esp_gatts_cb_t gatts_cb;
     uint16_t gatts_if;
@@ -209,7 +209,7 @@ void app_main(void)
     initialize_sntp();
     initialise_key();
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
     initialise_ble();
 #endif
 

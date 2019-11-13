@@ -52,10 +52,17 @@ static int client_fd = -1;
 static int joylink_udp_init(int port)
 {
     int socket_fd = 0;
-    int broadcastEnable = 1;
+    
     struct sockaddr_in sin;
+    struct sockaddr_in sin_recv;
+
+    socklen_t sin_len = sizeof(sin_recv);
 
     memset(&sin, 0, sizeof(sin));
+
+    struct timeval  selectTimeOut;
+	static uint32_t serverTimer;
+	static int interval = 0;
 
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -63,6 +70,7 @@ static int joylink_udp_init(int port)
 
     socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
+    int broadcastEnable = 1;
     if (setsockopt(socket_fd, SOL_SOCKET, SO_BROADCAST, (uint8_t*)&broadcastEnable, sizeof(broadcastEnable)) < 0) {
         log_error("error: udp set broadcast error!\n");
         close(socket_fd);
@@ -89,7 +97,7 @@ static int joylink_udp_init(int port)
  */
 static int joylink_tcp_init(int port)
 {
-    int socket_fd;
+    int socket_fd,new_fd;
 
     struct sockaddr_in sin;
 
@@ -146,13 +154,13 @@ struct sockaddr_in jd_udp_recv;
 socklen_t udp_size = sizeof(jd_udp_recv);
 
 /**
- * @name:joylink_softap_socket_send
+ * @name:joylink_softap_socket_send 
  *
  * @param: socket_fd
  * @param: buf
  * @param: len
  *
- * @returns:
+ * @returns:   
  */
 int joylink_softap_socket_send(int socket_fd, char* buf, int len)
 {
@@ -199,12 +207,15 @@ static void esp_joylink_softap_task(void* pvParameters)
     joylinkSoftAP_Result_t softap_res;
     memset(&softap_res, 0, sizeof(joylinkSoftAP_Result_t));
 
+    printf("--------> %s, %d, free_heap_size = %d\n", __func__, __LINE__, esp_get_free_heap_size());
+
     udp_fd = joylink_udp_init(JOYLINK_LOCAL_UDP_PORT);
     tcp_fd = joylink_tcp_init(JOYLINK_TCP_PORT);
 
     extern uint8 softap_ssid[MAX_LEN_OF_SSID + 1];
 
     joylink_softap_init();
+
     memset(&config, 0x0, sizeof(config));
     esp_wifi_set_mode(WIFI_MODE_APSTA);
     printf("ssid:%s\r\n", softap_ssid);
@@ -216,11 +227,12 @@ static void esp_joylink_softap_task(void* pvParameters)
     }
 
     strncpy((char*)config.ap.ssid, (char*)softap_ssid, config.ap.ssid_len);
-    config.ap.max_connection = 4;
-    config.ap.channel = 12;
+    config.ap.max_connection = 3;
+    config.ap.channel = 9;
     esp_wifi_set_config(WIFI_IF_AP, &config);
 
     while (1) {
+        printf("--------> %s, %d, free_heap_size = %d\n", __func__, __LINE__, esp_get_free_heap_size());
         max_fd = -1;
         FD_ZERO(&readfds);
 
@@ -355,5 +367,5 @@ void esp_joylink_softap_innet(void)
     ESP_LOGI(TAG, "*********************************");
     ESP_LOGI(TAG, "*    ENTER SOFTAP CONFIG MODE   *");
     ESP_LOGI(TAG, "*********************************");
-    xTaskCreate(esp_joylink_softap_task, "softap_task", 1024 * 5, NULL, 1, NULL);
+    xTaskCreate(esp_joylink_softap_task, "softap_task", 1024 * 6, NULL, 1, NULL);
 }

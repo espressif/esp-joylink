@@ -1,8 +1,6 @@
 #ifndef _JOYLINK_SOFTAP_UTIL_H_
 #define _JOYLINK_SOFTAP_UTIL_H_
 /* Boolean Type */
-typedef unsigned char        				bool;
-
 typedef char                       	int8,   *pint8,  *pchar;
 typedef short                      	int16, *pint16;
 typedef int                       	int32;

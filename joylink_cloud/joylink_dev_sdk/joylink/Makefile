@@ -2,7 +2,12 @@ include ../Makefile.rule
 
 HEADERS = $(wildcard *.h)
 ORG_SOURCES = $(wildcard *.c)
+
+ifeq (${DEV_REQ_ACTIVE_EN}, yes)
 OUT_SRC =  test.c
+else
+OUT_SRC = test.c joylink_dev_active.c joylink_cloud_log.c
+endif
 
 SOURCES=$(filter-out ${OUT_SRC}, ${ORG_SOURCES})
 OBJS = $(patsubst %.c, %.o, $(SOURCES))
@@ -14,6 +19,7 @@ INCLUDES += -I${PROJECT_ROOT_PATH}/joylink
 INCLUDES += -I${PROJECT_ROOT_PATH}/example
 INCLUDES += -I${PROJECT_ROOT_PATH}/auth
 INCLUDES += -I${PROJECT_ROOT_PATH}/list
+INCLUDES += -I${PROJECT_ROOT_PATH}/softap
 
 ifeq ($(TARGET_SRC), extern)
 STATIC_LIBS += ${TARGET_LIB}/libextern.a

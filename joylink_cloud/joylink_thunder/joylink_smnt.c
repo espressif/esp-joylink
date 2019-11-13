@@ -6,7 +6,6 @@ Copyright (c) 2015-2050, JD Smart All rights reserved.
 #include <stdio.h>
 #include <string.h>
 #include "joylink_smnt.h"
-#include "joylink_auth_aes.h"
 
 #define STEP_MULTICAST_HOLD_CHANNEL				5
 #define STEP_BROADCAST_HOLD_CHANNEL				4
@@ -14,6 +13,7 @@ Copyright (c) 2015-2050, JD Smart All rights reserved.
 #define PAYLOAD_MIN								(3)
 #define PAYLOAD_MAX								(48+1)				
 
+// #define printf(...)
 
 typedef struct{
 	unsigned char type;	                        // 0:NotReady, 1:ControlPacketOK, 2:BroadcastOK, 3:MulticastOK
@@ -142,11 +142,8 @@ static void  joylink_smnt_finish(void)
 			printf("ERROR:joylink_smnt_finish->get_result_callback NULL\n");
 			goto RET;
 		}
-
-#ifdef CONFIG_TARGET_PLATFORM_ESP8266
-		esp_wifi_set_promiscuous(0);
-#endif
 		
+		esp_wifi_set_promiscuous(0);
 		joylink_smnt_gobal.get_result_callback(smnt_result);
 	}
 RET:

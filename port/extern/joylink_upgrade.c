@@ -400,6 +400,7 @@ static void esp_ota_task(void* para)
 {
     esp_ota_upgrade_process((const char*)para);
     free(para);
+    esp_restart();
     vTaskDelete(NULL);
 }
 void esp_ota_task_start(char* url)

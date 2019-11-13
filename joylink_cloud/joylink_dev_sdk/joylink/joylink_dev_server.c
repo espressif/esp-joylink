@@ -12,7 +12,9 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#ifndef ESP_PLATFORM
 #include <net/if.h>
+#endif
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <errno.h>
@@ -70,8 +72,9 @@ joylink_server_st_close()
     _g_pdev->server_st = JL_SERVER_ST_INIT;
     close(_g_pdev->server_socket);
     _g_pdev->server_socket = -1;
-
+#ifdef ESP_PLATFORM
     return 0;
+#endif
 }
 
 /**
@@ -195,10 +198,12 @@ joylink_server_st_work()
 {
     int ret;
     int len = 0; 
+	int i = 0;
+
     if(E_JLDEV_TYPE_GW != _g_pdev->jlp.devtype){
         len = joylink_packet_server_hb_req();
     }else{
-        len = joylink_packet_server_sub_hb_req();
+	len = joylink_packet_server_sub_hb_req();
 	if(len <= 0){
 		len = joylink_packet_server_hb_req();
 	}
@@ -208,6 +213,7 @@ joylink_server_st_work()
     if(ret < 0){
         log_error("send error ret:%d", ret);
     }
+
     log_debug("HB----->");
     _g_pdev->hb_lost_count ++;
 }
@@ -492,22 +498,11 @@ joylink_proc_server_auth(uint8_t* recPainText)
     bzero(_g_pdev->jlp.sessionKey, 33); 
     memcpy(_g_pdev->jlp.sessionKey, p->session_key, 32);
 
-int i = 0;
-int j = 0;
-
-printf("session key: ");
-for(i = 0; i < 32; i++){
-	printf("%02x ", p->session_key[i]);
-	if(p->session_key[i] == 0){
-		j = 1;
-	}
-}
-printf("\n");
-if(j == 1)
-	printf("\n\nsession key error!\n");
-
     log_debug("OK===>Rand=%u,Time:%u!\r\n", 
             p->random_unm, p->timestamp);
+
+    _g_pdev->cloud_timestamp = p->timestamp;
+    _g_pdev->cloud_serial = 0;
 
     log_info("AUTH OK\n");
 
@@ -602,7 +597,7 @@ static void
 joylink_proc_server_upload(uint8_t* recPainText)
 {
     JLDataUploadRsp_t* p = (JLDataUploadRsp_t *)recPainText;
-    log_info("UPLOAD OK timestamp %d code %d\r\n", p->timestamp, p->code);
+    log_info("UPLOAD OK timestamp %d code %d\r\n", (int)p->timestamp, (int)p->code);
 }
 
 /**
@@ -614,7 +609,7 @@ static void
 joylink_proc_server_sub_hb(uint8_t* recPainText)
 {
     JLDataSubHbRsp_t* p = (JLDataSubHbRsp_t *)recPainText;
-    log_info("SUB_HB OK -->timestamp %d code %d\r\n", p->timestamp, p->code);
+    log_info("SUB_HB OK -->timestamp %d code %d\r\n", (int)p->timestamp, (int)p->code);
 
     _g_pdev->server_st = JL_SERVER_ST_WORK;
     _g_pdev->hb_lost_count = 0;
@@ -636,7 +631,7 @@ joylink_proc_server_sub_upload(uint8_t* recPainText)
 {
     JLDataSubUploadRsp_t* p = (JLDataSubUploadRsp_t *)recPainText;
     log_info("SUB DEV UPLOAD OK timestamp %d feedid %s code %d\r\n", 
-        p->timestamp, p->feedid, p->code);
+        (int)p->timestamp, p->feedid, (int)p->code);
 }
 
 /**
@@ -662,7 +657,7 @@ joylink_proc_server_sub_ctrl(uint8_t* recPainText, unsigned short payloadlen)
 
     int *org_s = (int*)(recPainText + 8);
     int *p_ser = (int*)(data + 8);
-    log_debug("---org serial:%d:packet serial:%d, %d", *org_s, *p_ser,  ctr.serial);
+    log_debug("---org serial:%d:packet serial:%d, %d", *org_s, *p_ser,  (int)ctr.serial);
 
     log_debug("rsp data:%s:len:%d",
             (char *)(data + 12), 
@@ -898,6 +893,48 @@ joylink_server_recv(char fd, char *rec_buff, int max)
 /**
  * brief: 
  */
+int 
+joylink_is_server_timestamp_ok(uint8_t *data)
+{
+	int timestamp_now = 0;
+	int serial_now = 0;
+
+	memcpy((char *)&timestamp_now, data, 4);
+	memcpy((char *)&serial_now, data+8, 4);
+
+	printf("time now: %d, time old: %d\n", timestamp_now, _g_pdev->cloud_timestamp);
+	printf("serial now: %d, serial old: %d\n", serial_now, _g_pdev->cloud_serial);
+	
+	if(timestamp_now >= _g_pdev->cloud_timestamp && serial_now > _g_pdev->cloud_serial){
+		_g_pdev->cloud_timestamp = timestamp_now;
+		_g_pdev->cloud_serial = serial_now;
+		return 0;
+	}
+	return -1;
+}
+
+/**
+ * brief: 
+ */
+int 
+joylink_is_ota_timestamp_ok(uint8_t *data)
+{
+	int timestamp_now = 0;
+
+	memcpy((char *)&timestamp_now, data, 4);
+
+	printf("time now: %d, time old: %d\n", timestamp_now, _g_pdev->cloud_timestamp);
+
+	if(timestamp_now > _g_pdev->cloud_timestamp){
+		_g_pdev->cloud_timestamp = timestamp_now;
+		return 0;
+	}
+	return -1;
+}
+
+/**
+ * brief: 
+ */
 void
 joylink_proc_server()
 {
@@ -935,6 +972,9 @@ joylink_proc_server()
             _g_pdev->model_code_flag = 0;
             break;
         case PT_SERVERCONTROL:
+	    if(joylink_is_server_timestamp_ok(recPainText) != 0){
+		return;
+	    }
             joylink_proc_server_ctrl(recPainText, ret);
             break;
         case PT_UPLOAD:
@@ -947,12 +987,21 @@ joylink_proc_server()
             joylink_proc_server_sub_upload(recPainText);
             break;
         case PT_SUB_CLOUD_CTRL:
+	    if(joylink_is_server_timestamp_ok(recPainText) != 0){
+		return;
+	    }
             joylink_proc_server_sub_ctrl(recPainText, ret);
             break;
         case PT_SUB_UNBIND:
+	    if(joylink_is_server_timestamp_ok(recPainText) != 0){
+		return;
+	    }
             joylink_proc_server_sub_unbind(recPainText, ret);
             break;
         case PT_OTA_ORDER:
+	    if(joylink_is_ota_timestamp_ok(recPainText) != 0){
+		return;
+	    }
             joylink_proc_server_ota_order(recPainText, ret);
             break;
         case PT_OTA_UPLOAD:

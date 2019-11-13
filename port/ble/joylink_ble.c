@@ -25,7 +25,7 @@
 #include "esp_system.h"
 #include "esp_log.h"
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
 #include "esp_bt.h"
 #include "esp_bt_device.h"
 #include "esp_gap_ble_api.h"
@@ -44,7 +44,7 @@
 extern bool jd_innet_timer_task_flag;
 extern xTaskHandle jd_innet_timer_task_handle;
 ///Declare the static function 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
 static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
 #endif
 
@@ -139,7 +139,7 @@ uint8_t joy_sdk_pwd_rev[SIZE_PWD+1]  = {0};
 
 uint8_t seq_num = 0;
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
 extern uint8_t compressed_dev_pub_key[21]; 
 extern uint8_t compressed_app_pub_key[21];
 #else
@@ -178,7 +178,7 @@ static uint8_t raw_scan_rsp_data[] = {
         //0x02,0x0A,0xEB                                //tx power
 };
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
 static esp_ble_adv_params_t test_adv_params = {
         .adv_int_min        = 0x20,
         .adv_int_max        = 0x40,
@@ -218,7 +218,7 @@ struct gatts_ctl_status{
     bool test_mode;
 };
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
 struct gatts_profile_inst {
     esp_gatts_cb_t gatts_cb;
     uint16_t gatts_if;
@@ -275,7 +275,7 @@ static xTimerHandle joylink_delay_timer = NULL;
 void joylink_delay_3_min_timer_for_adv_cb( TimerHandle_t xTimer )
 {
     joy_set_ble_broadcast_flag(broadcast_disable);
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
     printf("/*----------------BLE-ADV-STOP(3min)----------------*/\n");
     esp_ble_gap_stop_advertising();
 #endif
@@ -307,7 +307,7 @@ static void gatts_adv_data(void)
     memcpy(raw_adv_data+OFFSET_RAW_ADV_MENUFAC+2,joy_adv_manufacture,JOY_ADV_MENUFAC_LEN);
     memcpy(raw_scan_rsp_data+OFFSET_RAW_ADV_MENUFAC+2,joy_adv_manufacture,JOY_ADV_MENUFAC_LEN);
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
     esp_ble_gap_config_adv_data_raw(raw_adv_data, sizeof(raw_adv_data));
     esp_ble_gap_start_advertising(&test_adv_params);
 #endif
@@ -347,7 +347,7 @@ static void joy_change_adv_wifistatus(type_wifi_status st)
     *(joy_adv_manufacture+13) = tt;
 }
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
 static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param) {
     switch (event) {
     case ESP_GATTS_REG_EVT:
@@ -639,7 +639,7 @@ static int joy_operate_read_handler(uint8_t *cmd)
             break;
         }
     }
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
     printf("jl_rcv_reset 3\r\n");
     jl_rcv_reset();
 #endif
@@ -655,7 +655,7 @@ static int joy_operate_read_handler(uint8_t *cmd)
             memcpy(joy_sdk_buff,joy_sdk_sendbuf,buflen);*/
             ESP_LOGI(GATTS_TAG, "%s [INFO]send buf len = %d, joy_adv_manufacture[12]&0x0f = 0x%02x\r\n", __func__,buflen, joy_adv_manufacture[12]&0x0f);
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
             switch(joy_adv_manufacture[12]&0x0f)
             {
             case 0:
@@ -835,7 +835,7 @@ static int joylink_operate_write_handler(uint8_t *cmd)
             if(tag_lc == 21)
             {
                 memcpy(compressed_app_pub_key,cmd+offset,tag_lc);
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
                 jl_secure_prepare();
 #endif
                 value_response = JOY_RESPONSE_OK;
@@ -869,7 +869,7 @@ static int joylink_operate_write_handler(uint8_t *cmd)
             break;
         }
     }
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
     printf("jl_rcv_reset 1\r\n");
     jl_rcv_reset();
 #endif
@@ -884,7 +884,7 @@ static int joylink_operate_write_handler(uint8_t *cmd)
 
         buflen = length_sendconetent + 4 + 2;
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
         if(buflen < JOY_SDK_BUFF_LEN){
             ESP_LOGI(GATTS_TAG, "%s [INFO]send buf len = %x data,%d:\n", __func__,buflen,joy_gatts_ctl_status.is_indicatedata_now);
             int ret = -1;
@@ -968,7 +968,7 @@ static int joylink_operate_response_handler(uint8_t *cmd)
             break;
         }
     }
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
     printf("jl_rcv_reset 10\r\n");
     jl_rcv_reset();
 #endif
@@ -1006,7 +1006,7 @@ static int joy_notify_wifi_status(type_wifi_status sta)
     if(buflen < JOY_SDK_BUFF_LEN){
         ESP_LOGI(GATTS_TAG, "%s [INFO]send buf len = %x data:\n", __func__,buflen);
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
         switch(joy_adv_manufacture[12]&0x0f)
         {
         case 0:
@@ -1074,7 +1074,7 @@ void joy_handler_task(void* arg)
                 case JOY_OPERATE_ID_DTP_WITHNORES:
                 case JOY_OPERATE_ID_DTP_WITHRES:
                 default:
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
                     printf("jl_rcv_reset 2\r\n");
                     jl_rcv_reset();
 #endif
@@ -1149,7 +1149,7 @@ esp_err_t esp_joylink_wifi_event_handler(void *ctx, system_event_t *event)
         break;
     case SYSTEM_EVENT_STA_GOT_IP:
         ESP_LOGI(GATTS_TAG, "%s ++++++++++++++wifi connected+++++++++++++\n", __func__);
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
         esp_wifi_set_promiscuous(0);
 #endif
         joy_set_wifi_status(wifi_connected);
@@ -1221,7 +1221,7 @@ static void joy_gatts_ctl_init(void)
 void joylink_ble_init(void)
 {
     joy_set_wifi_status(wifi_disconnect);
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
     jl_init(joy_sdk_buff,JOY_SDK_BUFF_LEN, joy_sdk_recv_buff, JOY_SDK_RECV_BUFF_LEN);
 #endif
     joy_init_adv_menufac();
@@ -1247,7 +1247,7 @@ int jh_send(uint8_t* frame)
 {
     if(joy_get_ble_connect_status() == ble_connect){
         joy_gatts_ctl_status.is_indicatedata_now = 1;
-#ifdef CONFIG_TARGET_PLATFORM_ESP8266
+#ifdef CONFIG_IDF_TARGET_ESP8266
         return 0;
 #else
         ESP_LOGI(GATTS_TAG, "%s gatts_if=%2x,conn_id = %2x,attr_handle=%2x\n", __func__,
@@ -1272,7 +1272,7 @@ int jh_load_mac(uint8_t * zone)
 {
     if(zone != NULL){
         uint8_t loop = 0;
-#ifdef CONFIG_TARGET_PLATFORM_ESP8266
+#ifdef CONFIG_IDF_TARGET_ESP8266
         for (loop = 0;loop < 6;loop++) {
             zone[loop] = 0x1;
         }

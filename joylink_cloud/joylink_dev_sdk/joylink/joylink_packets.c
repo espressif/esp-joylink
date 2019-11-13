@@ -139,7 +139,7 @@ int
 joylink_packet_server_hb_req(void)
 {
 	JLHearBeat_t heartbeat;
-    bzero(&heartbeat, sizeof(heartbeat));
+	bzero(&heartbeat, sizeof(heartbeat));
 
 	heartbeat.rssi = 1;
 	heartbeat.verion = _g_pdev->jlp.version;
@@ -151,6 +151,8 @@ joylink_packet_server_hb_req(void)
             _g_pdev->jlp.sessionKey, 
             (uint8_t*)&heartbeat, 
             sizeof(JLHearBeat_t));
+
+	//printf("--------------gw hb------------\nsen: %d\n", len);
 
 	return len;
 }

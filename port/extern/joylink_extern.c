@@ -28,35 +28,17 @@
 #include "joylink_extern_json.h"
 
 #include "esp_joylink.h"
+#include "joylink_extern.h"
+#include "esp_http_client.h"
+#include "esp_attr.h"
+#include "esp_tls.h"
 
 #define JOYLINK_NVS_NAMESPACE       "joylink"
 #define JOYLINK_NVS_CONFIG_NETWORK  "config_network"
 
 #define JLP_MAC "12:34:56:78:68:88"
 
-#define JLP_DEV_TYPE	  E_JLDEV_TYPE_NORMAL
-#define JLP_LAN_CTRL	  E_LAN_CTRL_ENABLE
-// #define JLP_LAN_CTRL      E_LAN_CTRL_DISABLE
-#define JLP_CMD_TYPE	  E_CMD_TYPE_LUA_SCRIPT
-#define JLP_SNAPSHOT      E_SNAPSHOT_NO
-
-#define JLP_UUID          CONFIG_JOYLINK_DEVICE_UUID
-#define JLP_CLOUD_PUB_KEY CONFIG_JOYLINK_PUBLIC_KEY
-#define JLP_PRIVATE_KEY   CONFIG_JOYLINK_PRIVATE_KEY
-
-typedef struct _light_manage_{
-	int conn_st;	
-    JLPInfo_t jlp;
-    jl2_d_idt_t idt;
-	LightCtrl_t lightCtrl;
-}LightManage_t;
-
-/*E_JLDEV_TYPE_GW*/
-#ifdef _SAVE_FILE_
-char  *file = "joylink_info.txt";
-#endif
-
-LightManage_t _g_lightMgr = {
+Joylink_info_t joylink_info = {
 	.conn_st = -1,	
 
     .jlp.version = 1,
@@ -66,6 +48,8 @@ LightManage_t _g_lightMgr = {
     .jlp.lancon = JLP_LAN_CTRL,
     .jlp.cmd_tran_type = JLP_CMD_TYPE,
     .jlp.noSnapshot = JLP_SNAPSHOT,
+    .jlp.mac = JLP_DEV_MAC,
+    .jlp.prikey = JLP_PRIVATE_KEY,
     	
 
     .idt.type = 0,
@@ -76,7 +60,7 @@ LightManage_t _g_lightMgr = {
     .idt.f_pub_key = "01234567890123456789012345678901",
 };
 
-LightManage_t *_g_pLightMgr = &_g_lightMgr;
+Joylink_info_t *joylink_info_p = &joylink_info;
 
 user_dev_status_t user_dev;
 
@@ -163,7 +147,7 @@ joylink_dev_set_connect_st(int st)
 	log_info("--set_connect_st:%s\n", buff);
 	
 	// Save the state.
-	_g_pLightMgr->conn_st = st;
+	joylink_info_p->conn_st = st;
 	
     return ret;
 }
@@ -248,11 +232,11 @@ joylink_dev_get_idt(jl2_d_idt_t *pidt)
         return E_RET_ERROR; 
     }
 
-    strcpy(pidt->pub_key, _g_pLightMgr->idt.pub_key);
-    strcpy(pidt->sig, _g_pLightMgr->idt.sig);
-    strcpy(pidt->f_sig, _g_pLightMgr->idt.f_sig);
-    strcpy(pidt->f_pub_key, _g_pLightMgr->idt.f_pub_key);
-    strcpy(pidt->cloud_pub_key, _g_pLightMgr->idt.cloud_pub_key);
+    strcpy(pidt->pub_key, joylink_info_p->idt.pub_key);
+    strcpy(pidt->sig, joylink_info_p->idt.sig);
+    strcpy(pidt->f_sig, joylink_info_p->idt.f_sig);
+    strcpy(pidt->f_pub_key, joylink_info_p->idt.f_pub_key);
+    strcpy(pidt->cloud_pub_key, joylink_info_p->idt.cloud_pub_key);
 
     return E_RET_OK;
 }
@@ -281,36 +265,36 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
     log_debug("--joylink_dev_get_jlp_info");
 
 	if (nvs_open(JOYLINK_NVS_NAMESPACE, NVS_READONLY, &out_handle) == ESP_OK) {        
-		size = sizeof(_g_pLightMgr->jlp.feedid);
-	    if (nvs_get_str(out_handle,"feedid",_g_pLightMgr->jlp.feedid,&size) != ESP_OK) {
+		size = sizeof(joylink_info_p->jlp.feedid);
+	    if (nvs_get_str(out_handle,"feedid",joylink_info_p->jlp.feedid,&size) != ESP_OK) {
 		    log_debug("--get feedid fail");
 		}
         log_debug("--get feedid: %s", jlp->feedid);
 
-		size = sizeof(_g_pLightMgr->jlp.accesskey);
-	    if (nvs_get_str(out_handle,"accesskey",_g_pLightMgr->jlp.accesskey,&size) != ESP_OK) {
+		size = sizeof(joylink_info_p->jlp.accesskey);
+	    if (nvs_get_str(out_handle,"accesskey",joylink_info_p->jlp.accesskey,&size) != ESP_OK) {
 		    log_debug("--get accesskey fail");
 	    }
         log_debug("--get accesskey: %s", jlp->accesskey);
 
-		size = sizeof(_g_pLightMgr->jlp.localkey);
-	    if (nvs_get_str(out_handle,"localkey",_g_pLightMgr->jlp.localkey,&size) != ESP_OK) {
+		size = sizeof(joylink_info_p->jlp.localkey);
+	    if (nvs_get_str(out_handle,"localkey",joylink_info_p->jlp.localkey,&size) != ESP_OK) {
 		    log_debug("--get localkey fail");
 	    }
         log_debug("--set localkey: %s", jlp->localkey);
 
-		size = sizeof(_g_pLightMgr->jlp.joylink_server);
-	    if (nvs_get_str(out_handle,"joylink_server",_g_pLightMgr->jlp.joylink_server,&size) != ESP_OK) {
+		size = sizeof(joylink_info_p->jlp.joylink_server);
+	    if (nvs_get_str(out_handle,"joylink_server",joylink_info_p->jlp.joylink_server,&size) != ESP_OK) {
 		    log_debug("--get joylink_server fail");
 	    }
         log_debug("--set joylink_server: %s", jlp->joylink_server);
 
-		if (nvs_get_u16(out_handle,"server_port",&_g_pLightMgr->jlp.server_port) != ESP_OK) {
+		if (nvs_get_u16(out_handle,"server_port",&joylink_info_p->jlp.server_port) != ESP_OK) {
 		    log_debug("--get server_port fail");
 	    }
         log_debug("--set server_port: %d", jlp->server_port);
 
-        _g_pLightMgr->jlp.is_actived = 1;
+        joylink_info_p->jlp.is_actived = 1;
 		
 		nvs_close(out_handle);
 	}
@@ -323,18 +307,18 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
 		log_info("can't get private_key!\n");
 	}
     
-    strcpy(jlp->feedid, _g_pLightMgr->jlp.feedid);
-    strcpy(jlp->accesskey, _g_pLightMgr->jlp.accesskey);
-    strcpy(jlp->localkey, _g_pLightMgr->jlp.localkey);
-    strcpy(jlp->joylink_server, _g_pLightMgr->jlp.joylink_server);
-    jlp->server_port =  _g_pLightMgr->jlp.server_port;
-	jlp->devtype = _g_pLightMgr->jlp.devtype;
-    jlp->lancon = _g_pLightMgr->jlp.lancon;
-    jlp->cmd_tran_type = _g_pLightMgr->jlp.cmd_tran_type;
-    jlp->version = _g_pLightMgr->jlp.version;
-    jlp->is_actived = _g_pLightMgr->jlp.is_actived;
-    strcpy(jlp->mac, _g_pLightMgr->jlp.mac);
-    strcpy(jlp->uuid, _g_pLightMgr->jlp.uuid);
+    strcpy(jlp->feedid, joylink_info_p->jlp.feedid);
+    strcpy(jlp->accesskey, joylink_info_p->jlp.accesskey);
+    strcpy(jlp->localkey, joylink_info_p->jlp.localkey);
+    strcpy(jlp->joylink_server, joylink_info_p->jlp.joylink_server);
+    jlp->server_port =  joylink_info_p->jlp.server_port;
+	jlp->devtype = joylink_info_p->jlp.devtype;
+    jlp->lancon = joylink_info_p->jlp.lancon;
+    jlp->cmd_tran_type = joylink_info_p->jlp.cmd_tran_type;
+    jlp->version = joylink_info_p->jlp.version;
+    jlp->is_actived = joylink_info_p->jlp.is_actived;
+    strcpy(jlp->mac, joylink_info_p->jlp.mac);
+    strcpy(jlp->uuid, joylink_info_p->jlp.uuid);
 
     return ret;
 }
@@ -484,6 +468,18 @@ joylink_dev_lan_json_ctrl(const char *json_cmd)
     return E_RET_OK;
 }
 
+
+void esp_joylink_ctrl_light(bool ctrl)
+{
+    if (ctrl) {
+        log_debug("--turn on");
+        gpio_set_level(15, 1);
+    } else {
+        log_debug("--turn off");
+        gpio_set_level(15, 0);
+    }
+}
+
 /**
  * brief: 
  *
@@ -520,6 +516,12 @@ joylink_dev_script_ctrl(const char *src, int src_len, JLContrl_t *ctr, int from_
 #ifdef __MTK_7687__
 		gpio_ligt_ctrl(user_dev.power);
 #endif
+        if (user_dev.Power == LIGHT_CTRL_ON) {
+            esp_joylink_ctrl_light(true);
+        } else {
+            esp_joylink_ctrl_light(false);
+        }
+
         ret = 0;
     }else{
         log_error("unKown biz_code:%d", ctr->biz_code);
@@ -676,10 +678,10 @@ joylink_dev_get_user_mac(char *out)
     buffer[17] = 0x0;
 
     for(int i = 0; i < 17; i++){
-        _g_pLightMgr->jlp.mac[i] = buffer[i];
+        joylink_info_p->jlp.mac[i] = buffer[i];
     }
 
-    memcpy(out, _g_pLightMgr->jlp.mac, strlen(JLP_MAC));
+    memcpy(out, tesp_buffer, 12);
     return 0;
 }
 
@@ -712,14 +714,56 @@ joylink_dev_user_data_set(char *cmd, user_dev_status_t *user_data)
 	*/
     log_debug("--cmd:%s, ", cmd);
 
+    user_dev.Power = user_data->Power;
+
+    if (user_dev.Power == 1) {
+        esp_joylink_ctrl_light(true);
+    } else {
+        esp_joylink_ctrl_light(false);
+    }
 	return 0;
 }
 
+/**
+ * brief: 
+ *
+ * @Returns: 
+ */
 int joylink_dev_run_status(JLRunStatus_t status)
 {
-	int ret = -1;
-	/**
-		 *FIXME:must to do
-	*/
-	return ret;
+    return 0;
+}
+
+int joylink_dev_https_post( char* host, char* query ,char *revbuf,int buflen, char * body)
+{   
+    esp_tls_cfg_t config = {
+        // .skip_common_name = true,
+    };
+    esp_tls_t *tls = NULL;
+    uint32_t len = 0;
+
+    memset(revbuf, 0x0, buflen);
+    tls = esp_tls_conn_new(host, strlen(host), 443, &config);
+    esp_tls_conn_write(tls, query, strlen(query));
+
+    uint32_t temp_size = 1024*4;
+    uint8_t* temp_buf = malloc(1024*4); 
+    
+    len = esp_tls_conn_read(tls, temp_buf, temp_size);
+    esp_tls_conn_delete(tls);
+
+    if (len >= temp_size) {
+        len = temp_size - 1;
+    }
+    temp_buf[len] = 0;
+    char* p = strstr(temp_buf, "\r\n\r\n");
+
+    if (p) {
+        strcpy(revbuf, p + strlen("\r\n\r\n"));
+    } else {
+        revbuf[0] = '\0';
+    }
+    free(temp_buf);
+    printf("revbuf:%d, %s\r\n",len,revbuf);
+    return 0;
 }

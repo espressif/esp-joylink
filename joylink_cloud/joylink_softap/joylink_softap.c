@@ -8,9 +8,12 @@ Copyright (c) 2015-2050, JD Smart All rights reserved.
 #include "joylink3_auth_uECC.h"
 #include "joylink_softap_util.h"
 #include "joylink_aes.h"
+// #include "joylink_softap_start.h"
 #include "joylink_log.h"
 #include "joylink_utils.h"
 #include "joylink_auth_crc.h"
+#include "joylink_dev_active.h"
+#include "joylink_cloud_log.h"
 
 static uint8 joylink_softap_getCrc8(uint8 *ptr, uint8 len);
 static int joylink_softap_byte2hexstr(const uint8 *pbytes, int blen, uint8 *o_phex, int hlen);
@@ -28,7 +31,7 @@ uint8 softap_ssid[MAX_LEN_OF_SSID+1]  = {0};			//beacon ssid
  *
  * @returns:   
  */
-int get_random(void)
+static int get_random(void)
 {
     static unsigned long int next = 1;
     next = next *1103515245 + 12345;
@@ -82,6 +85,9 @@ int joylink_softap_is_need_active(void)
 int joylink_softap_active_clear(void)
 {
 	joy_softap_ram.is_need_active = 0;
+#ifdef ESP_PLATFORM
+	return 0;
+#endif
 }
 
 #endif

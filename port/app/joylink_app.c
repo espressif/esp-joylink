@@ -25,7 +25,7 @@
 #include "esp_wifi.h"
 #include "esp_event_loop.h"
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
 #include "esp_gap_ble_api.h"
 #endif
 
@@ -48,12 +48,12 @@ void joylink_delay_10_min_timer_for_10_min_start(void);
 
 extern int joylink_main_start();
 
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
 extern void joylink_ble_init(void);
 extern void joylink_gatts_adv_data_enable(void);
 #endif
 
-void joylink_entry_net_config(void);
+void joylink_entry_thunder_config(void);
 
 static void joylink_main_task(void *pvParameters)
 {
@@ -74,7 +74,7 @@ static void joylink_task(void *pvParameters)
         esp_joylink_set_config_network(ESP_JOYLINK_CONFIG_NETWORK_NONE);
         
         if ((config_mode == ESP_JOYLINK_CONFIG_NETWORK_SMNT_BLE) || (config_mode == ESP_JOYLINK_CONFIG_NETWORK_SMNT)) {
-            joylink_entry_net_config();
+            joylink_entry_thunder_config();
         } else if (config_mode == ESP_JOYLINK_CONFIG_NETWORK_SOFTAP) {
             esp_joylink_softap_innet();
         }
@@ -104,11 +104,11 @@ static void joylink_task(void *pvParameters)
 
            joylink_net_configuaring = true;
            joylink_delay_10_min_timer_for_10_min_start();
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
            joylink_gatts_adv_data_enable();
 #endif
         } else {
-           joylink_entry_net_config();
+            esp_joylink_softap_innet();
         }
     }
 
@@ -152,7 +152,7 @@ void joylink_check_timer_for_10_min( TimerHandle_t xTimer )
     wifi_config_t config;
     size_t size;
     joylink_net_configuaring = false;
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
     printf("/*----------------BLE-ADV-STOP(10min)----------------*/\n");
     esp_ble_gap_stop_advertising();
 #endif
@@ -204,11 +204,11 @@ void joylink_delay_10_min_timer_for_10_min_stop(void)
     }
 }
 
-void joylink_entry_net_config(void)
+void joylink_entry_thunder_config(void)
 {
     printf("--joylink net config\r\n");
     joylink_net_configuaring = true;
-#ifndef CONFIG_TARGET_PLATFORM_ESP8266
+#ifndef CONFIG_IDF_TARGET_ESP8266
     joylink_delay_10_min_timer_for_10_min_start();
     joylink_gatts_adv_data_enable();
     printf("/*----------------CFG-ADV-DATA(NET-CFG)----------------*/\n");
@@ -218,7 +218,9 @@ void joylink_entry_net_config(void)
 
 void esp_joylink_app_start(void)
 {
-    xTaskCreate(joylink_main_task, "joylink_main_task", 1024*10, NULL, 2, NULL);
+    xTaskCreate(joylink_main_task, "joylink_main_task", 1024*14, NULL, 2, NULL);
+#ifndef CONFIG_IDF_TARGET_ESP8266
     joylink_ble_init();
+#endif
     xTaskCreate(joylink_task, "jl_task", 2048, NULL, 1, NULL);
 }
