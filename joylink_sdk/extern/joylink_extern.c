@@ -120,7 +120,9 @@ joylink_dev_set_connect_st(int st)
 E_JLRetCode_t joylink_dev_active_message(char *message)
 {
 	log_info("message = %s", message);
-
+#ifdef __ESP_PAL__
+	return E_RET_OK;
+#endif
 }
 
 /**
