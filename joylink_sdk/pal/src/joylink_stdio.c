@@ -6,6 +6,12 @@
 
 #include <fcntl.h>
 
+#ifdef __ESP_PAL__
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
+#include "freertos/semphr.h"
+#endif
+
 // joylink platform layer header files
 #include "joylink_stdio.h"
 
@@ -28,16 +34,56 @@ int32_t   jl_platform_printf(const char *fmt, ...)
     va_start(args, fmt);
     ret = vprintf(fmt, args);
     va_end(args);
+#else
+#ifdef __ESP_PAL__
+    va_list args;
+    va_start(args, fmt);
+    ret = vprintf(fmt, args);
+    va_end(args);
+#endif
 #endif
     return ret;
 }
 
+#ifdef __ESP_PAL__
+static SemaphoreHandle_t   joylink_mutex = NULL;
+#define JOYLINK_LOCK()     xSemaphoreTake(joylink_mutex,portMAX_DELAY)
+#define JOYLINK_UNLOCK()   xSemaphoreGive(joylink_mutex)
+
+void esp_joylink_mutex_init(void)
+{
+    if (joylink_mutex == NULL) {
+        joylink_mutex = xSemaphoreCreateMutex();
+        if (joylink_mutex == NULL) {
+            return;
+        }
+
+    } else {
+        return;
+    }
+}
+#endif
+
 void jl_platform_printf_lock(void)
 {
+#ifdef __ESP_PAL__
+    if (joylink_mutex == NULL) {
+        esp_joylink_mutex_init();
+    }
+
+    JOYLINK_LOCK();
+#endif
 }
 
 void jl_platform_printf_unlock(void)
 {
+#ifdef __ESP_PAL__
+    if (joylink_mutex == NULL) {
+        esp_joylink_mutex_init();
+    }
+    
+    JOYLINK_UNLOCK();
+#endif
 }
 /**
  * @brief 将数据安格式化写入到字符串
@@ -58,6 +104,13 @@ int32_t jl_platform_sprintf(char *str, const char *fmt, ...)
     va_start(args, fmt);
     ret = vsprintf(str, fmt, args);
     va_end(args);
+#else
+#ifdef __ESP_PAL__
+    va_list args;
+    va_start(args, fmt);
+    ret = vsprintf(str, fmt, args);
+    va_end(args);
+#endif
 #endif
     return ret;
 }
@@ -82,6 +135,13 @@ int32_t jl_platform_snprintf(char *str, const int32_t len, const char *fmt, ...)
     va_start(args, fmt);
     ret = vsnprintf(str, len, fmt, args);
     va_end(args);
+#else
+#ifdef __ESP_PAL__
+    va_list args;
+    va_start(args, fmt);
+    ret = vsnprintf(str, len, fmt, args);
+    va_end(args);
+#endif
 #endif
     return ret;
 }
@@ -107,7 +167,9 @@ void *jl_platform_fopen(const char *path, const char *mode)
 #ifdef __LINUX_PAL__
     return fopen(path, mode);
 #else
-    return NULL;
+#ifdef __ESP_PAL__
+    return fopen(path, mode);
+#endif
 #endif
 }
 
@@ -128,7 +190,9 @@ uint32_t jl_platform_fread(void *buff, uint32_t size, uint32_t count, void *stre
 #ifdef __LINUX_PAL__
     return fread(buff, size, count, stream);
 #else
-    return 0;
+#ifdef __ESP_PAL__
+    return fread(buff, size, count, stream);
+#endif
 #endif
 }
 
@@ -149,7 +213,9 @@ uint32_t jl_platform_fwrite(const void *ptr, uint32_t size, uint32_t count, void
 #ifdef __LINUX_PAL__
     return fwrite(ptr, size, count, stream);
 #else
-    return 0;
+#ifdef __ESP_PAL__
+    return fwrite(ptr, size, count, stream);
+#endif
 #endif
 }
 
@@ -169,7 +235,9 @@ int32_t jl_platform_fseek(void *stream, long offset, int32_t origin)
 #ifdef __LINUX_PAL__
     return fseek(stream, offset, origin);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    return fseek(stream, offset, origin);
+#endif
 #endif
 }
 
@@ -187,7 +255,9 @@ int32_t jl_platform_fclose(void *stream)
 #ifdef __LINUX_PAL__
     return fclose(stream);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    return fclose(stream);
+#endif
 #endif
 }
 
@@ -205,7 +275,9 @@ int32_t jl_platform_fflush(void *stream)
 #ifdef __LINUX_PAL__
     fflush((FILE*)stream);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    return fflush((FILE*)stream);
+#endif
 #endif
 }
 
@@ -248,6 +320,8 @@ int32_t jl_get_random(void)
 #ifdef __LINUX_PAL__
     return rand();
 #else
-	return 0;
+#ifdef __ESP_PAL__
+    return rand();
+#endif
 #endif
 }

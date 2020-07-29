@@ -2,6 +2,11 @@
 #include "joylink_memory.h"
 #include "joylink_softap.h"
 
+#ifdef __ESP_PAL__
+#include "esp_wifi.h"
+#include "joylink_log.h"
+#endif
+
 /**
  * @brief:set wifi mode to AP mode.
  *
@@ -10,6 +15,10 @@
 int32_t jl_softap_enter_ap_mode(void)
 {
     // open wifi whit AP mode
+#ifdef __ESP_PAL__
+    log_debug("--  set wifi AP mode");
+    esp_wifi_set_mode(WIFI_MODE_AP);
+#endif
     return 0;
 }
 
@@ -54,6 +63,19 @@ int32_t jl_softap_connect_wifi_router(char *ssid, char *passwd)
     // step 1 close AP mode
 
     // step 2 connect to the router
+#ifdef __ESP_PAL__
+    wifi_config_t config;
 
+    log_debug("--  ready to connect to AP");
+    esp_wifi_set_mode(WIFI_MODE_STA);
+
+    memset(&config, 0x0, sizeof(config));
+    esp_wifi_get_config(ESP_IF_WIFI_STA, &config);
+    memcpy(config.sta.ssid, ssid, strlen(ssid));
+    memcpy(config.sta.password, passwd, strlen(passwd));
+
+    esp_wifi_set_config(ESP_IF_WIFI_STA, &config);
+    esp_wifi_connect();
+#endif
     return 0;
 }

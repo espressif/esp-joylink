@@ -24,7 +24,9 @@ void *jl_platform_malloc(uint32_t size)
 #ifdef __LINUX_PAL__
     return malloc(size);
 #else
-    return NULL;
+#ifdef __ESP_PAL__
+    return malloc(size);
+#endif
 #endif
 }
 
@@ -69,6 +71,9 @@ void  jl_platform_free(void *ptr)
 #ifdef __LINUX_PAL__
     free(ptr);
 #else
+#ifdef __ESP_PAL__
+    free(ptr);
+#endif
 #endif
 }
 
@@ -88,7 +93,9 @@ void *jl_platform_memset(void* ptr, int32_t value, uint32_t num)
 #ifdef __LINUX_PAL__
     return memset(ptr, value, num);
 #else
-    return NULL;
+#ifdef __ESP_PAL__
+    return memset(ptr, value, num);
+#endif
 #endif
 }
 
@@ -108,7 +115,9 @@ void *jl_platform_memcpy(void* dst, const void* src, uint32_t num)
 #ifdef __LINUX_PAL__
     return memcpy(dst, src, num);
 #else
-    return NULL;
+#ifdef __ESP_PAL__
+    return memcpy(dst, src, num);
+#endif
 #endif
 }
 
@@ -130,7 +139,9 @@ int32_t   jl_platform_memcmp(const void* ptr1, const void* ptr2, uint32_t num)
 #ifdef __LINUX_PAL__
     return memcmp(ptr1, ptr2, num);
 #else
-    return 0;
+#ifdef __ESP_PAL__
+    return memcmp(ptr1, ptr2, num);
+#endif
 #endif
 }
 

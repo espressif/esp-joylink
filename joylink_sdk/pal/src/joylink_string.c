@@ -26,7 +26,9 @@ char *jl_platform_strcpy(char *dest, const char*src)
 #ifdef __LINUX_PAL__
     return strcpy(dest, src);
 #else
-    return NULL;
+#ifdef __ESP_PAL__
+    return strcpy(dest, src);
+#endif
 #endif
 }
 
@@ -47,7 +49,9 @@ char *jl_platform_strncpy(char *dest, const char*src, int n)
 #ifdef __LINUX_PAL__
     return strncpy(dest, src, n);
 #else
-    return NULL;
+#ifdef __ESP_PAL__
+    return strncpy(dest, src, n);
+#endif
 #endif
 }
 
@@ -66,7 +70,9 @@ char *jl_platform_strchr(const char *s, int32_t c)
 #ifdef __LINUX_PAL__
     return strchr(s, c);
 #else
-    return NULL;
+#ifdef __ESP_PAL__
+    return strchr(s, c);
+#endif
 #endif
 }
 
@@ -85,7 +91,9 @@ char *jl_platform_strstr(const char *haystack, const char* needle)
 #ifdef __LINUX_PAL__
     return strstr(haystack, needle);
 #else
-    return NULL;
+#ifdef __ESP_PAL__
+    return strstr(haystack, needle);
+#endif
 #endif
 }
 
@@ -106,7 +114,9 @@ int32_t   jl_platform_strcmp(const char *s1, const char *s2)
 #ifdef __LINUX_PAL__
     return strcmp(s1, s2);
 #else
-    return 0;
+#ifdef __ESP_PAL__
+    return strcmp(s1, s2);
+#endif
 #endif
 }
 
@@ -128,7 +138,9 @@ int32_t   jl_platform_strncmp(const char *s1, const char *s2, uint32_t n)
 #ifdef __LINUX_PAL__
     return strncmp(s1, s2, n);
 #else
-    return 0;
+#ifdef __ESP_PAL__
+    return strncmp(s1, s2, n);
+#endif
 #endif
 }
 
@@ -146,7 +158,9 @@ int32_t   jl_platform_atoi(const char* nptr)
 #ifdef __LINUX_PAL__
     return atoi(nptr);
 #else
-    return 0;
+#ifdef __ESP_PAL__
+    return atoi(nptr);
+#endif
 #endif
 }
 
@@ -164,7 +178,9 @@ uint32_t jl_platform_strlen(const char *s)
 #ifdef __LINUX_PAL__
     return strlen(s);
 #else
-    return 0;
+#ifdef __ESP_PAL__
+    return strlen(s);
+#endif
 #endif
 }
 

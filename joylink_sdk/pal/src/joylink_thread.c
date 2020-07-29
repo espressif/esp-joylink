@@ -9,6 +9,15 @@
 #include <sched.h>
 #endif
 
+#ifdef __ESP_PAL__
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
+#include "freertos/semphr.h"
+#include "pthread.h"
+#include <sched.h>
+#include "esp_timer.h"
+#endif
+
 // joylink platform layer header files
 #include "joylink_stdio.h"
 #include "joylink_string.h"
@@ -71,7 +80,44 @@ ERROR:
         jl_platform_free(handle);
     return NULL;
 #else
+#ifdef __ESP_PAL__
+    pthread_mutexattr_t attr;
+    pthread_mutex_t *handle = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
+
+    if(handle == NULL)
+    {
+        printf("malloc failed\n");
+        goto ERROR;
+    }
+
+    if (0 != pthread_mutexattr_init(&attr))
+    {
+        printf("pthread_mutexattr_init failed\n");
+        goto ERROR;
+    }
+
+    // 设置递归锁
+    if (JL_MUTEX_TYPE_RECURSIVE == type)
+    {
+        if (0 != pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE))
+        {
+            printf("pthread_mutexattr_settype (PTHREAD_MUTEX_RECURSIVE) failed\n");
+            goto ERROR;
+        }
+    }
+
+    pthread_mutex_init(handle, &attr);
+
+    if (0 != pthread_mutexattr_destroy(&attr))
+    {
+        printf("pthread_mutexattr_destroy failed\n");
+    }
+    return (jl_mutex_t)handle;
+ERROR:
+    if(handle)
+        free(handle);
     return NULL;
+#endif
 #endif
 }
 
@@ -110,7 +156,31 @@ int32_t jl_platform_mutex_lock(jl_mutex_t handle)
     }
     return ret;
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    int32_t ret;
+
+    if(handle == NULL)
+    {
+        printf("handle is NULL\n");
+        return -1;
+    }
+    ret = pthread_mutex_lock((pthread_mutex_t *)handle);
+    if (ret != 0)
+    {
+        switch (ret) {
+        case EDEADLK:
+            printf("the mutex is already locked by the calling thread\n");
+            break;
+        case EINVAL:
+            printf("the mutex has not been properly initialized.\n");
+            break;
+        default:
+            printf("pthread_mutex_trylock error:%s.\n", strerror(ret));
+            break;
+        }
+    }
+    return ret;
+#endif
 #endif
 }
 
@@ -151,7 +221,33 @@ int32_t jl_platform_mutex_unlock(jl_mutex_t handle)
     }
     return ret;
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    int32_t ret;
+
+    if(handle == NULL)
+    {
+        printf("handle is NULL\n");
+        return -1;
+    }
+ 
+    ret = pthread_mutex_unlock((pthread_mutex_t *)handle);
+    if (ret != 0)
+    {
+        switch (ret)
+        {
+        case EPERM:
+            printf("the calling thread does not own the mutex.\n");
+            break;
+        case EINVAL:
+            printf("the mutex has not been properly initialized.\n");
+            break;
+        default:
+            printf("pthread_mutex_trylock error:%s.\n", strerror(ret));
+            break;
+        }
+    }
+    return ret;
+#endif
 #endif
 }
 
@@ -174,6 +270,17 @@ void jl_platform_mutex_delete(jl_mutex_t handle)
 
     pthread_mutex_destroy((pthread_mutex_t *)handle);
     jl_platform_free((void *)handle);
+#else
+#ifdef __ESP_PAL__
+    if(handle == NULL)
+    {
+        printf("handle is NULL\n");
+        return;
+    }
+
+    pthread_mutex_destroy((pthread_mutex_t *)handle);
+    free((void *)handle);
+#endif
 #endif
 }
 
@@ -190,7 +297,10 @@ jl_semaphore_t jl_platform_semaphore_create(void)
     jl_semaphore_t semaphore_t = NULL;
     return semaphore_t; 
 #else
-    return NULL;
+#ifdef __ESP_PAL__
+    jl_semaphore_t semaphore_t = xSemaphoreCreateCounting(255, 0);
+    return semaphore_t; 
+#endif
 #endif
 }
 
@@ -204,7 +314,11 @@ jl_semaphore_t jl_platform_semaphore_create(void)
  */
 void jl_platform_semaphore_destroy(jl_semaphore_t handle)
 {
-
+#ifdef __ESP_PAL__
+    if (handle != NULL) {
+        vSemaphoreDelete(handle);
+    }
+#endif
 }
 
 /**
@@ -223,6 +337,11 @@ void jl_platform_semaphore_destroy(jl_semaphore_t handle)
  */
 void jl_platform_semaphore_wait(jl_semaphore_t handle, uint32_t timeout_ms)
 {
+#ifdef __ESP_PAL__
+    if (handle != NULL) {
+        xSemaphoreTake(handle, (timeout_ms/portTICK_PERIOD_MS));
+    }
+#endif
 }
 
 /**
@@ -235,6 +354,11 @@ void jl_platform_semaphore_wait(jl_semaphore_t handle, uint32_t timeout_ms)
  */
 void jl_platform_semaphore_post(jl_semaphore_t handle)
 {
+#ifdef __ESP_PAL__
+    if (handle != NULL) {
+        xSemaphoreGive(handle);
+    }
+#endif
 }
 
 /**
@@ -276,6 +400,10 @@ void jl_platform_thread_start(jl_thread_t* thread_handle)
     {
         jl_platform_printf("pthread_create failed(%d): %s\n", errno, strerror(errno));
     }
+#else
+#ifdef __ESP_PAL__
+    printf("%s, TODO:\r\n", __func__);
+#endif
 #endif
 }
 
@@ -289,6 +417,9 @@ void jl_platform_thread_start(jl_thread_t* thread_handle)
  */
 void jl_platform_thread_detach(jl_thread_t* thread_handle)
 {
+#ifdef __ESP_PAL__
+    printf("%s, TODO:\r\n", __func__);
+#endif
 }
 
 /**
@@ -301,6 +432,9 @@ void jl_platform_thread_detach(jl_thread_t* thread_handle)
  */
 void jl_platform_thread_exit(jl_thread_t* thread_handle)
 {
+#ifdef __ESP_PAL__
+    printf("%s, TODO:\r\n", __func__);
+#endif
 }
 
 /**
@@ -313,6 +447,9 @@ void jl_platform_thread_exit(jl_thread_t* thread_handle)
  */
 void jl_platform_thread_delete(jl_thread_t* thread_handle)
 {
+#ifdef __ESP_PAL__
+    printf("%s, TODO:\r\n", __func__);
+#endif
 }
 
 /**
@@ -327,7 +464,10 @@ void jl_platform_thread_delete(jl_thread_t* thread_handle)
  */
 int32_t jl_platform_thread_isrunning(jl_thread_t* thread_handle)
 {
-    return 0;
+#ifdef __ESP_PAL__
+    printf("%s, TODO:\r\n", __func__);
+    return thread_handle->isRunning;
+#endif
 }
 
 /**
@@ -342,6 +482,10 @@ void  jl_platform_msleep(uint32_t ms)
 {
 #ifdef __LINUX_PAL__
     usleep(ms*1000);
+#else
+#ifdef __ESP_PAL__
+    vTaskDelay(ms/portTICK_PERIOD_MS);
+#endif
 #endif
 }
 

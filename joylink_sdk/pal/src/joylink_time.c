@@ -38,6 +38,20 @@ int32_t jl_time_get_time(jl_time_t *jl_time)
     jl_time->hour      = p->tm_hour;
     jl_time->minute    = p->tm_min;
     jl_time->second    = p->tm_sec;
+#else
+#ifdef __ESP_PAL__
+    time_t timep;
+    struct tm *p;
+    jl_time->timestamp = (uint32_t) time(&timep);
+    p = gmtime(&timep);
+    jl_time->year      = p->tm_year;
+    jl_time->month     = p->tm_mon;
+    jl_time->week      = p->tm_wday;
+    jl_time->day       = p->tm_mday;
+    jl_time->hour      = p->tm_hour;
+    jl_time->minute    = p->tm_min;
+    jl_time->second    = p->tm_sec;
+#endif
 #endif
     return 0;
 }
@@ -59,7 +73,16 @@ uint32_t jl_time_get_timestamp_ms(jl_time_stamp_t *time_stamp)
     }
     return (uint32_t)(now.tv_sec*1000 + now.tv_usec/1000);
 #else
-    return 0;
+#ifdef __ESP_PAL__
+    struct timeval now;
+    gettimeofday(&now,NULL);
+    if(time_stamp)
+    {
+        time_stamp->second = (uint32_t) now.tv_sec;
+        time_stamp->ms = (uint32_t) (now.tv_usec/1000);
+    }
+    return (uint32_t)(now.tv_sec*1000 + now.tv_usec/1000);
+#endif
 #endif
 }
 
@@ -74,7 +97,9 @@ uint32_t jl_time_get_timestamp(jl_time_t *jl_time)
 #ifdef __LINUX_PAL__
     return (uint32_t)time(NULL);
 #else
-    return 0;
+#ifdef __ESP_PAL__
+    return (uint32_t)time(NULL);
+#endif
 #endif
 }
 
@@ -102,7 +127,9 @@ uint32_t jl_get_os_time(void)
         return (uint32_t) jl_time_get_timestamp_ms(NULL); // FIXME do not recommand this method
         // return clock();
 #else
-        return 0;
+#ifdef __ESP_PAL__
+    return (uint32_t) jl_time_get_timestamp_ms(NULL);
+#endif
 #endif
 }
 

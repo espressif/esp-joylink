@@ -15,6 +15,17 @@
 #include <fcntl.h>
 #endif
 
+#ifdef __ESP_PAL__
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <arpa/inet.h>
+#include <ifaddrs.h>
+#include <netdb.h>
+#include <fcntl.h>
+#endif
+
 // joylink platform layer header files
 #include "joylink_stdio.h"
 #include "joylink_string.h"
@@ -60,7 +71,30 @@ int32_t jl_platform_gethostbyname(char *hostname, char *ip_buff, uint32_t buff_l
             return -1;
         }
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    struct hostent *pGethost = NULL;
+	char **pptr = NULL;
+	struct in_addr addrConv, inaddr;
+	memset(&addrConv, 0, sizeof(struct in_addr));
+	pGethost = gethostbyname(hostname);
+	if(pGethost != NULL)
+	{
+		pptr = pGethost->h_addr_list;
+		for(; *pptr != NULL; pptr++){
+			addrConv.s_addr = *(uint32_t *)(*pptr);
+			printf("[%s] ip address:[%s] [%u]\r\n", hostname, inet_ntoa(addrConv), addrConv.s_addr);
+			memcpy(&inaddr, &addrConv, sizeof(struct in_addr));
+		}
+
+       memset(ip_buff,  0, buff_len);
+        strncpy(ip_buff, inet_ntoa(inaddr), buff_len);
+        printf("[%s] ip address\r\n", ip_buff);
+        return 0;
+                
+        }else{
+            return -1;
+        }
+#endif
 #endif
 
 }
@@ -86,7 +120,16 @@ int32_t jl_platform_get_socket_proto_domain(JL_SOCK_PROTO_DOMAIN_T domain)
     } else {};
     return ret_domain;
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    int32_t ret_domain = -1;
+    if (domain == JL_SOCK_PROTO_DOMAIN_AF_INET) {
+        ret_domain = AF_INET;
+    }
+    else if (domain == JL_SOCK_PROTO_DOMAIN_AF_INET6) {
+        ret_domain = AF_INET6;
+    } else {};
+    return ret_domain;
+#endif
 #endif
 }
 
@@ -135,7 +178,43 @@ int32_t jl_platform_socket(JL_SOCK_PROTO_DOMAIN_T domain, JL_SOCK_PROTO_TYPE_T t
 
     return socket(in_domain, in_type, in_protocol);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    int32_t in_domain = 2, in_type, in_protocol = 0;
+    if (domain == JL_SOCK_PROTO_DOMAIN_AF_INET) {
+        in_domain = AF_INET;
+    }
+    else if (domain == JL_SOCK_PROTO_DOMAIN_AF_INET6) {
+        in_domain = AF_INET6;
+    } else {
+        return -1;
+    };
+    
+    if (type == JL_SOCK_PROTO_TYPE_SOCK_STREAM) {
+        in_type = SOCK_STREAM;
+    }
+    else if (type == JL_SOCK_PROTO_TYPE_SOCK_DGRAM) {
+        in_type = SOCK_DGRAM;
+    }
+    else if (type == JL_SOCK_PROTO_TYPE_SOCK_RAW) {
+        in_type = SOCK_RAW;
+    } else {
+        return -1;
+    };
+    
+    if (protocol == JL_SOCK_PROTO_PROTO_IPPROTO_IP) {
+        protocol = IPPROTO_IP;
+    }
+    else if (protocol == JL_SOCK_PROTO_PROTO_IPPROTO_TCP) {
+        protocol = IPPROTO_TCP;
+    }
+    else if (protocol == JL_SOCK_PROTO_PROTO_IPPROTO_UDP) {
+        protocol = IPPROTO_UDP;
+    } else {
+        return -1;
+    };
+
+    return socket(in_domain, in_type, in_protocol);
+#endif
 #endif
 }
 
@@ -158,7 +237,12 @@ int32_t jl_platform_connect(int32_t s, const jl_sockaddr *name, uint32_t namelen
     jl_platform_memcpy(addr.sa_data, name->sa_data, sizeof(addr.sa_data));
     return connect(s, &addr, namelen);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    struct sockaddr addr;
+    addr.sa_family = name->sa_family;
+    jl_platform_memcpy(addr.sa_data, name->sa_data, sizeof(addr.sa_data));
+    return connect(s, &addr, namelen);
+#endif
 #endif
 }
 
@@ -192,6 +276,24 @@ int32_t jl_platform_fcntl(int32_t s, JL_FCNTL_CMD_T cmd)
     {
         ret = -1;
     }
+#else
+#ifdef __ESP_PAL__
+    int32_t flags;
+    if (cmd == JL_FCNTL_CMD_SETFL_O_NONBLOCK) {
+        if ((flags = fcntl(s, F_GETFL)) == -1) {
+            ret = -1;
+        } else {
+            if (fcntl(s, F_SETFL, flags | O_NONBLOCK) == -1) {
+                ret = -1;
+            } else {
+                ret = 1;
+            }
+        }
+    } else
+    {
+        ret = -1;
+    }
+#endif
 #endif
     return ret;
 }
@@ -215,7 +317,9 @@ int32_t jl_platform_send( int32_t fd, const void *buf, int32_t len, int32_t flag
 #ifdef __LINUX_PAL__
     return send(fd, buf, len, flags);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    return send(fd, buf, len, timeout_ms);
+#endif
 #endif
 }
 
@@ -239,7 +343,9 @@ int32_t jl_platform_recv( int32_t fd, void *buf, int32_t len, int32_t flags, uin
 #ifdef __LINUX_PAL__
     return recv(fd, buf, len, flags);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    return recv(fd, buf, len, flags);
+#endif
 #endif
 }
 
@@ -266,7 +372,12 @@ int32_t jl_platform_select(int32_t maxfdp1, jl_fd_set *readset, jl_fd_set *write
     tmp_timeval.tv_sec = timeout->tv_sec;
     return select(maxfdp1, (fd_set *)readset, (fd_set *)writeset, (fd_set *)exceptset, &tmp_timeval);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    struct timeval tmp_timeval;
+    tmp_timeval.tv_usec = timeout->tv_usec;
+    tmp_timeval.tv_sec = timeout->tv_sec;
+    return select(maxfdp1, (fd_set *)readset, (fd_set *)writeset, (fd_set *)exceptset, &tmp_timeval);
+#endif
 #endif
 }
 
@@ -283,7 +394,9 @@ int32_t jl_platform_close(int32_t s)
 #ifdef __LINUX_PAL__
     return close(s);
 #else
-    return 0;
+#ifdef __ESP_PAL__
+    return close(s);
+#endif
 #endif
 }
 
@@ -310,7 +423,12 @@ int32_t jl_platform_sendto( int32_t fd, const void *buf, int32_t len, int32_t fl
     jl_platform_memcpy(addr.sa_data, to->sa_data, sizeof(addr.sa_data));
     return sendto(fd, buf, len, flags, &addr, tolen);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    struct sockaddr addr;
+    addr.sa_family = to->sa_family;
+    jl_platform_memcpy(addr.sa_data, to->sa_data, sizeof(addr.sa_data));
+    return sendto(fd, buf, len, flags, &addr, tolen);
+#endif
 #endif
 }
 
@@ -339,7 +457,14 @@ int32_t jl_platform_recvfrom( int32_t fd, void *buf, int32_t len, int32_t flags,
     jl_platform_memcpy(from->sa_data, addr.sa_data, sizeof(addr.sa_data));
     return ret;
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    int32_t ret;
+    struct sockaddr addr;
+    ret = recvfrom(fd, buf, len, flags, &addr, (socklen_t *)from_len);
+    from->sa_family = addr.sa_family;
+    jl_platform_memcpy(from->sa_data, addr.sa_data, sizeof(addr.sa_data));
+    return ret;
+#endif
 #endif
 }
 
@@ -365,7 +490,12 @@ int32_t jl_platform_bind(int32_t s, const jl_sockaddr *my_addr, uint32_t addrlen
     jl_platform_memcpy(addr.sa_data, my_addr->sa_data, sizeof(addr.sa_data));
     return bind(s, &addr, addrlen);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    struct sockaddr addr;
+    addr.sa_family = my_addr->sa_family;
+    jl_platform_memcpy(addr.sa_data, my_addr->sa_data, sizeof(addr.sa_data));
+    return bind(s, &addr, addrlen);
+#endif
 #endif
 }
 
@@ -387,7 +517,9 @@ int32_t jl_platform_listen(int32_t s, int32_t backlog)
 #ifdef __LINUX_PAL__
     return listen(s, backlog);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    return listen(s, backlog);
+#endif
 #endif
 }
 
@@ -415,7 +547,14 @@ int32_t jl_platform_accept(int32_t s, jl_sockaddr *my_addr, uint32_t *addrlen)
     jl_platform_memcpy(my_addr->sa_data, addr.sa_data, sizeof(addr.sa_data));
     return ret;
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    int32_t ret;
+    struct sockaddr addr;
+    ret = accept(s, &addr, (socklen_t *)addrlen);
+    my_addr->sa_family = addr.sa_family;
+    jl_platform_memcpy(my_addr->sa_data, addr.sa_data, sizeof(addr.sa_data));
+    return ret;
+#endif
 #endif
 }
 
@@ -453,7 +592,22 @@ int32_t jl_platform_setsockopt(int32_t socket, JL_SOCK_OPT_LEVEL_T level, JL_SOC
     }
     return setsockopt(socket, in_level, in_option_name, option_value, option_len);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    int in_level = 1, in_option_name;
+    if (level == JL_SOCK_OPT_LEVEL_SOL_SOCKET) {
+        in_level = SOL_SOCKET;
+    }
+    if (option_name == JL_SOCK_OPT_NAME_SO_BROADCAST) {
+        in_option_name = SO_BROADCAST;
+    }
+    if (option_name == JL_SOCK_OPT_NAME_SO_REUSEADDR) {
+        in_option_name = SO_REUSEADDR;
+    }
+    if (option_name == JL_SOCK_OPT_NAME_SO_RCVTIMEO) {
+        in_option_name = SO_RCVTIMEO;
+    }
+    return setsockopt(socket, in_level, in_option_name, option_value, option_len);
+#endif
 #endif
 }
 
@@ -471,7 +625,9 @@ uint32_t jl_platform_htonl(uint32_t hostlong)
 #ifdef __LINUX_PAL__
     return htonl(hostlong);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    return htonl(hostlong);
+#endif
 #endif
 }
 
@@ -486,7 +642,9 @@ uint32_t jl_platform_htonl(uint32_t hostlong)
  */
 uint32_t jl_platform_ntohl(uint32_t netlong)
 {
-    return 0;
+#ifdef __ESP_PAL__
+    return ntohl(netlong);
+#endif
 }
 
 /**
@@ -503,7 +661,9 @@ uint16_t jl_platform_htons(uint16_t hostshort)
 #ifdef __LINUX_PAL__
     return htons(hostshort);
 #else
-    return -1;
+#ifdef __ESP_PAL__
+    return htons(hostshort);
+#endif
 #endif
 }
 
@@ -518,7 +678,9 @@ uint16_t jl_platform_htons(uint16_t hostshort)
  */
 uint16_t jl_platform_ntohs(uint16_t netshort)
 {
-    return 0;
+#ifdef __ESP_PAL__
+    return ntohs(netshort);
+#endif
 }
 
 /**
@@ -532,16 +694,23 @@ uint16_t jl_platform_ntohs(uint16_t netshort)
  */
 int32_t jl_platform_inet_aton( const char *strptr, jl_in_addr *addr )
 {
-    #ifdef __LINUX_PAL__
+#ifdef __LINUX_PAL__
     int32_t ret;
     struct in_addr inaddr;
     // inaddr.s_addr = addr->s_addr;
     ret = inet_aton(strptr, &inaddr);
     addr->s_addr = inaddr.s_addr;
     return ret;
-    #else
-     return -1;
-    #endif
+#else
+#ifdef __ESP_PAL__
+    int32_t ret;
+    struct in_addr inaddr;
+    // inaddr.s_addr = addr->s_addr;
+    ret = inet_aton(strptr, &inaddr);
+    addr->s_addr = inaddr.s_addr;
+    return ret;
+#endif
+#endif
 }
 
 /**
@@ -560,7 +729,11 @@ char* jl_platform_inet_ntoa(jl_in_addr addr)
     tmp_addr.s_addr = addr.s_addr;
     return inet_ntoa(tmp_addr);
 #else
-    return NULL;
+#ifdef __ESP_PAL__
+    struct in_addr tmp_addr;
+    tmp_addr.s_addr = addr.s_addr;
+    return inet_ntoa(tmp_addr);
+#endif
 #endif
 }
 
@@ -578,8 +751,9 @@ jl_in_addr_t jl_platform_inet_addr(const char *strptr)
 #ifdef __LINUX_PAL__
     return inet_addr(strptr);
 #else
-    jl_in_addr_t jl_addr = 0;
-    return jl_addr;
+#ifdef __ESP_PAL__
+    return inet_addr(strptr);
+#endif
 #endif
 }
 
@@ -588,7 +762,9 @@ jl_fd_set jl_platform_fd_set_allocate(void)
 #if defined (__LINUX_PAL__)
     return (jl_fd_set)jl_platform_malloc( sizeof(fd_set) );
 #else
-    return NULL;
+#ifdef __ESP_PAL__
+    return (jl_fd_set)jl_platform_malloc( sizeof(fd_set) );
+#endif
 #endif
 }
 
@@ -597,6 +773,12 @@ void jl_platform_fd_set_free(jl_fd_set fds)
 #if defined (__LINUX_PAL__)
     if(fds)
         jl_platform_free(fds);
+#else
+#ifdef __ESP_PAL__
+    if(fds){
+        jl_platform_free(fds);
+    }
+#endif
 #endif
 }
 
@@ -604,6 +786,10 @@ void JL_FD_CLR(int32_t fd, jl_fd_set set)
 {
 #if defined (__LINUX_PAL__)
     FD_CLR(fd, (fd_set *)set);
+#else
+#ifdef __ESP_PAL__
+    FD_CLR(fd, (fd_set *)set);
+#endif
 #endif
 }
 
@@ -612,7 +798,9 @@ int32_t JL_FD_ISSET(int32_t fd, jl_fd_set set)
 #if defined (__LINUX_PAL__)
     return FD_ISSET(fd, (fd_set *)set);
 #else
-    return 0;
+#ifdef __ESP_PAL__
+    return FD_ISSET(fd, (fd_set *)set);
+#endif
 #endif
 }
 
@@ -620,6 +808,10 @@ void JL_FD_SET(int32_t fd, jl_fd_set set)
 {
 #if defined (__LINUX_PAL__)
     FD_SET(fd, (fd_set *)set);
+#else
+#ifdef __ESP_PAL__
+    FD_SET(fd, (fd_set *)set);
+#endif
 #endif
 }
 
@@ -627,6 +819,10 @@ void JL_FD_ZERO(jl_fd_set set)
 {
 #if defined (__LINUX_PAL__)
     FD_ZERO((fd_set *)set);
+#else
+#ifdef __ESP_PAL__
+    FD_ZERO((fd_set *)set);
+#endif
 #endif
 }
 
