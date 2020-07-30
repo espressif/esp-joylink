@@ -13,7 +13,39 @@
 // limitations under the License.
 
 #include <stdio.h>
+
 #include "esp_system.h"
+#include "esp_system.h"
+#include "esp_wifi.h"
+#include "esp_event_loop.h"
+#include "nvs_flash.h"
+
+#include "apps/sntp/sntp.h"
+#include "esp_joylink_app.h"
+
+esp_err_t event_handler(void *ctx, system_event_t *event)
+{
+    return ESP_OK;
+}
+
+static void initialise_wifi(void)
+{
+    tcpip_adapter_init();
+    ESP_ERROR_CHECK( esp_event_loop_init(event_handler, NULL) );
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
+    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
+    ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_AP) );
+    ESP_ERROR_CHECK( esp_wifi_start() );
+}
+
+static void initialize_sntp(void)
+{
+    /* Start SNTP service */
+    sntp_setoperatingmode(SNTP_OPMODE_POLL);
+    sntp_setservername(0, "pool.ntp.org");
+    sntp_init();
+}
 
 void app_main(void)
 {
@@ -22,4 +54,10 @@ void app_main(void)
     printf("    JOYLINK COMMIT: %s\n",ESP_JOYLINK_COMMIT_ID);
     printf("    Compile time: %s %s\n",__DATE__,__TIME__);
     printf("================================================\n");
+
+    nvs_flash_init();
+    initialise_wifi();
+    initialize_sntp();
+
+    esp_joylink_app_start();
 }

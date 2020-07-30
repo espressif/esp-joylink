@@ -24,14 +24,31 @@
 #include "joylink_stdint.h"
 #include "joylink_log.h"
 #include "joylink_time.h"
-#include "joylink_thread.h"
-#include "joylink_extern_ota.h"
+#include "joylink_dev.h"
 
+#include "esp_tls.h"
+#include "tcpip_adapter.h"
+#include "nvs.h"
+#include "nvs_flash.h"
+#include "esp_spi_flash.h"
+
+#define JOYLINK_NVS_NAMESPACE       "joylink"
+
+JLPInfo_t user_jlp = 
+{
+	.version = JLP_VERSION,
+	.uuid = JLP_UUID,
+	.devtype = JLP_DEV_TYPE,
+	.lancon = JLP_LAN_CTRL,
+	.cmd_tran_type = JLP_CMD_TYPE,
+
+	.noSnapshot = JLP_SNAPSHOT,
+};
 
 jl2_d_idt_t user_idt = 
 {
 	.type = 0,
-	.cloud_pub_key = IDT_CLOUD_PUB_KEY,
+	.cloud_pub_key = JLP_CLOUD_PUB_KEY,
 
 	.sig = "01234567890123456789012345678901",
 	.pub_key = "01234567890123456789012345678901",
@@ -40,22 +57,43 @@ jl2_d_idt_t user_idt =
 	.f_pub_key = "01234567890123456789012345678901",
 };
 
-#ifdef JOYLINK_SDK_EXAMPLE_TEST
-user_dev_status_t user_dev = 
-{
-    .Power = 1,
-    .Mode = 0,
-    .State = 0,
-};
-#else
 user_dev_status_t user_dev;
-#endif
 
-/*E_JLDEV_TYPE_GW*/
-#ifdef _SAVE_FILE_
-char  *file = "joylink_info.txt";
-#endif
+LightManage_t _g_lightMgr = {
+	.conn_st = -1,	
 
+    .jlp.version = 1,
+    .jlp.uuid = JLP_UUID,
+    .jlp.devtype = JLP_DEV_TYPE,
+    .jlp.lancon = JLP_LAN_CTRL,
+    .jlp.cmd_tran_type = JLP_CMD_TYPE,
+    .jlp.noSnapshot = JLP_SNAPSHOT,
+
+    .idt.type = 0,
+    .idt.cloud_pub_key = JLP_CLOUD_PUB_KEY,
+    .idt.pub_key = "01234567890123456789012345678901",
+    .idt.sig = "01234567890123456789012345678901",
+    .idt.f_sig = "01234567890123456789012345678901",
+    .idt.f_pub_key = "01234567890123456789012345678901",
+};
+
+LightManage_t *_g_pLightMgr = &_g_lightMgr;
+
+/**
+ * @brief: 设置设备RTC时间
+ *
+ * @returns: 
+ * 
+ * @note: This function has deprecated. Instead of using it you must implement the function jl_set_UTCtime which defined in pal/src/joylink_time.c
+ */
+E_JLBOOL_t joylink_dev_sync_clound_timestamp(long long timestamp)
+{
+    /**
+     *FIXME:set device RTC time (type: UTC time, unit:second)
+     */
+    log_info("sync timestamp:%lld", timestamp);
+    return E_JL_TRUE;
+}
 
 /**
  * @brief: 用以返回一个整型随机数
@@ -67,25 +105,39 @@ char  *file = "joylink_info.txt";
 int
 joylink_dev_get_random()
 {
-    /**
+	/**
      *FIXME:must to do
      */
-    static unsigned long int next = 1;
-    next = next *1103515245 + 12345;
-    return (int)(next/65536) % (1134);
+    int i;
+    srand(time(NULL));
+    i = rand();
+    return i;
 }
 
 /**
  * @brief: 返回是否可以访问互联网
  *
- * @returns: E_JL_TRUE 可以访问, E_JL_FALSE 不可访问
+ * @returns: E_RET_TRUE 可以访问, E_RET_FALSE 不可访问
  */
 E_JLBOOL_t joylink_dev_is_net_ok()
 {
     /**
      *FIXME:must to do
      */
-    return E_JL_TRUE;
+    int ret = E_JL_TRUE;
+	tcpip_adapter_ip_info_t ip_config;
+
+	if (tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA,&ip_config) != ESP_OK) {
+        return E_JL_FALSE;
+    }
+	
+	if(ip_config.ip.addr == 0){
+		ret = E_JL_FALSE;
+	} else {
+		ret = E_JL_TRUE;
+	}
+	
+    return ret;
 }
 
 /**
@@ -101,28 +153,15 @@ joylink_dev_set_connect_st(int st)
 	/**
 	*FIXME:must to do
 	*/
-	char buff[64] = {0};
-	int ret = 0;
-
-	jl_platform_sprintf(buff, "{\"conn_status\":\"%d\"}", st);
+    char buff[64] = {0};
+    int ret = 0;
+    sprintf(buff, "{\"conn_status\":\"%d\"}", st);
 	log_info("--set_connect_st:%s\n", buff);
-
-	return ret;
-}
-
-/**
- * @brief: 传出激活信息
- *
- * @param[in] message: 激活信息
- * 
- * @returns: 0:设置成功
- */
-E_JLRetCode_t joylink_dev_active_message(char *message)
-{
-	log_info("message = %s", message);
-#ifdef __ESP_PAL__
-	return E_RET_OK;
-#endif
+	
+	// Save the state.
+	_g_pLightMgr->conn_st = st;
+	
+    return ret;
 }
 
 /**
@@ -135,25 +174,57 @@ E_JLRetCode_t joylink_dev_active_message(char *message)
 E_JLRetCode_t
 joylink_dev_set_attr_jlp(JLPInfo_t *jlp)
 {
-	if(NULL == jlp){
-		return E_RET_ERROR;
-	}
-	/**
-	*FIXME:must to do
-	*Must save jlp info to flash or files
-	*/
-	int ret = E_RET_ERROR;
+    nvs_handle out_handle;
+    if(NULL == jlp){
+        return E_RET_ERROR;
+    }
+    /**
+     *FIXME:must to do
+     */
+    log_debug("--joylink_dev_set_attr_jlp");
+    if (nvs_open(JOYLINK_NVS_NAMESPACE, NVS_READWRITE, &out_handle) != ESP_OK) {
+        return E_RET_ERROR;
+    }
+    if(strlen(jlp->feedid)){
+        log_debug("--set feedid: %s", jlp->feedid);
+        if (nvs_set_str(out_handle,"feedid",jlp->feedid) != ESP_OK) {
+            log_debug("--set feedid fail");
+            return E_RET_ERROR;
+        }
+    }
 
-#ifdef _SAVE_FILE_
-    //Sample code for saving JLP info in a file.
-	FILE *outfile;
-	outfile = jl_platform_fopen(file, "wb+" );
-	jl_platform_fwrite(jlp, sizeof(JLPInfo_t), 1, outfile );
-	jl_platform_fclose(outfile);
-#endif
-	ret = E_RET_OK;
+    if(strlen(jlp->accesskey)){
+        log_debug("--set accesskey: %s", jlp->accesskey);
+        if (nvs_set_str(out_handle,"accesskey",jlp->accesskey) != ESP_OK) {
+            log_debug("--set accesskey fail");
+            return E_RET_ERROR;
+        }
+    }
 
-	return ret;
+    if(strlen(jlp->localkey)){
+        log_debug("--set localkey: %s", jlp->localkey);
+        if (nvs_set_str(out_handle,"localkey",jlp->localkey) != ESP_OK) {
+            log_debug("--set localkey fail");
+            return E_RET_ERROR;
+        }
+    }
+
+    if(strlen(jlp->joylink_server)){
+        log_debug("--set joylink_server: %s", jlp->joylink_server);
+        if (nvs_set_str(out_handle,"joylink_server",jlp->joylink_server) != ESP_OK) {
+            log_debug("--set joylink_server fail");
+            return E_RET_ERROR;
+        }
+
+        log_debug("--set server_port: %d", jlp->server_port);
+        if (nvs_set_u16(out_handle,"server_port",jlp->server_port) != ESP_OK) {
+            log_debug("--set server_port fail");
+            return E_RET_ERROR;
+        }
+    }
+
+    nvs_close(out_handle);
+    return E_RET_OK;
 }
 
 /**
@@ -166,21 +237,18 @@ joylink_dev_set_attr_jlp(JLPInfo_t *jlp)
 E_JLRetCode_t
 joylink_dev_get_idt(jl2_d_idt_t *pidt)
 {
-	if(NULL == pidt){
-		return E_RET_ERROR; 
-	}
-	pidt->type = 0;
-	/**
-	*FIXME:must to do
-	*/
-	jl_platform_strcpy(pidt->sig, user_idt.sig);
-	jl_platform_strcpy(pidt->pub_key, user_idt.pub_key);
-	//jl_platform_strcpy(pidt->rand, user_idt.rand);
-	jl_platform_strcpy(pidt->f_sig, user_idt.f_sig);
-	jl_platform_strcpy(pidt->f_pub_key, user_idt.f_pub_key);
-	jl_platform_strcpy(pidt->cloud_pub_key, user_idt.cloud_pub_key);
+    if(NULL == pidt){
+        return E_RET_ERROR; 
+    }
 
-	return E_RET_OK;
+	pidt->type = 0;
+    jl_platform_strcpy(pidt->pub_key, _g_pLightMgr->idt.pub_key);
+    jl_platform_strcpy(pidt->sig, _g_pLightMgr->idt.sig);
+    jl_platform_strcpy(pidt->f_sig, _g_pLightMgr->idt.f_sig);
+    jl_platform_strcpy(pidt->f_pub_key, _g_pLightMgr->idt.f_pub_key);
+    jl_platform_strcpy(pidt->cloud_pub_key, _g_pLightMgr->idt.cloud_pub_key);
+
+    return E_RET_OK;
 }
 
 /**
@@ -196,12 +264,11 @@ joylink_dev_get_user_mac(char *out)
 	/**
 	*FIXME:must to do
 	*/
-#ifdef JOYLINK_SDK_EXAMPLE_TEST
-	jl_platform_strcpy(out, "AABBCCDDEE01");
-	return E_RET_OK;
-#else
-	return -1;
-#endif
+
+	memcpy(_g_pLightMgr->jlp.mac, CONFIG_JOYLINK_DEVICE_MAC, 12);
+    memcpy(out, CONFIG_JOYLINK_DEVICE_MAC, 12);
+
+	return 0;
 }
 
 /**
@@ -217,12 +284,9 @@ joylink_dev_get_private_key(char *out)
 	/**
 	*FIXME:must to do
 	*/
-#ifdef JOYLINK_SDK_EXAMPLE_TEST
-	jl_platform_strcpy(out, "B12C1BC0212DA6BB74CBD5212B3CDE1B9FB1E45AD75279814CE8299957B75176");
-	return E_RET_OK;
-#else
-	return E_RET_ERROR;
-#endif
+	memcpy(out, CONFIG_JOYLINK_PRIVATE_KEY, 64);
+
+	return 0;
 }
 
 /**
@@ -235,53 +299,73 @@ joylink_dev_get_private_key(char *out)
 E_JLRetCode_t
 joylink_dev_get_jlp_info(JLPInfo_t *jlp)
 {
-	if(NULL == jlp){
-		return E_RET_ERROR;
+    nvs_handle out_handle;
+    size_t size = 0;
+	static bool init_flag = false;
+    log_debug("--joylink_dev_get_jlp_info");
+
+    if(NULL == jlp){
+        return E_RET_ERROR;
+    }
+
+	if (nvs_open(JOYLINK_NVS_NAMESPACE, NVS_READONLY, &out_handle) == ESP_OK) {        
+		size = sizeof(_g_pLightMgr->jlp.feedid);
+	    if (nvs_get_str(out_handle,"feedid",_g_pLightMgr->jlp.feedid,&size) != ESP_OK) {
+		    log_debug("--get feedid fail");
+		}
+        log_debug("--get feedid: %s", jlp->feedid);
+
+		size = sizeof(_g_pLightMgr->jlp.accesskey);
+	    if (nvs_get_str(out_handle,"accesskey",_g_pLightMgr->jlp.accesskey,&size) != ESP_OK) {
+		    log_debug("--get accesskey fail");
+	    }
+        log_debug("--get accesskey: %s", jlp->accesskey);
+
+		size = sizeof(_g_pLightMgr->jlp.localkey);
+	    if (nvs_get_str(out_handle,"localkey",_g_pLightMgr->jlp.localkey,&size) != ESP_OK) {
+		    log_debug("--get localkey fail");
+	    }
+        log_debug("--set localkey: %s", jlp->localkey);
+
+		size = sizeof(_g_pLightMgr->jlp.joylink_server);
+	    if (nvs_get_str(out_handle,"joylink_server",_g_pLightMgr->jlp.joylink_server,&size) != ESP_OK) {
+		    log_debug("--get joylink_server fail");
+	    }
+        log_debug("--set joylink_server: %s", jlp->joylink_server);
+
+		if (nvs_get_u16(out_handle,"server_port",&_g_pLightMgr->jlp.server_port) != ESP_OK) {
+		    log_debug("--get server_port fail");
+	    }
+        log_debug("--set server_port: %d", jlp->server_port);
+
+        _g_pLightMgr->jlp.is_actived = 1;
+		
+		nvs_close(out_handle);
 	}
-	/**
-	*FIXME:must to do
- 	*Must get jlp info from flash 
-	*/
-	int ret = E_RET_OK;
 
-#ifdef _SAVE_FILE_
-JLPInfo_t fjlp;
-jl_platform_memset(&fjlp, 0, sizeof(JLPInfo_t));
-
-FILE *infile;
-infile = jl_platform_fopen(file, "rb+");
-if(infile > 0)
-{
-	jl_platform_fread(&fjlp, sizeof(fjlp), 1, infile);
-	jl_platform_fclose(infile);
-}
-
-	jl_platform_strcpy(jlp->feedid, fjlp.feedid);
-	jl_platform_strcpy(jlp->accesskey, fjlp.accesskey);
-	jl_platform_strcpy(jlp->localkey, fjlp.localkey);
-	jl_platform_strcpy(jlp->joylink_server, fjlp.joylink_server);
-	jlp->server_port = fjlp.server_port;
-	if(joylink_dev_get_user_mac(jlp->mac) < 0){
-		jl_platform_strcpy(jlp->mac, fjlp.mac);
+    if(joylink_dev_get_user_mac(jlp->mac) < 0){
+		log_info("can't get mac!\n");
 	}
 
 	if(joylink_dev_get_private_key(jlp->prikey) < 0){
-		jl_platform_strcpy(jlp->prikey, fjlp.prikey);
+		log_info("can't get private_key!\n");
 	}
-#endif
+    
+    strcpy(jlp->feedid, _g_pLightMgr->jlp.feedid);
+    strcpy(jlp->accesskey, _g_pLightMgr->jlp.accesskey);
+    strcpy(jlp->localkey, _g_pLightMgr->jlp.localkey);
+    strcpy(jlp->joylink_server, _g_pLightMgr->jlp.joylink_server);
+    jlp->server_port =  _g_pLightMgr->jlp.server_port;
+	jlp->devtype = _g_pLightMgr->jlp.devtype;
+    jlp->lancon = _g_pLightMgr->jlp.lancon;
+    jlp->cmd_tran_type = _g_pLightMgr->jlp.cmd_tran_type;
+    jlp->version = _g_pLightMgr->jlp.version;
+    jlp->is_actived = _g_pLightMgr->jlp.is_actived;
+    memcpy(jlp->uuid, _g_pLightMgr->jlp.uuid, JL_MAX_UUID_LEN-1);
+    memcpy(_g_pLightMgr->jlp.mac, jlp->mac, JL_MAX_MAC_LEN-1);
+    memcpy(_g_pLightMgr->jlp.prikey, jlp->prikey, 64);
 
-	jlp->is_actived = E_JL_TRUE;
-	jlp->model_code_flag = E_JL_FALSE;
-	jlp->version = JLP_VERSION;
-	jl_platform_strcpy(jlp->uuid, JLP_UUID);
-
-	jlp->devtype = JLP_DEV_TYPE;
-	jlp->lancon = JLP_LAN_CTRL;
-	jlp->cmd_tran_type = JLP_CMD_TYPE;
-
-	jlp->noSnapshot = JLP_SNAPSHOT;
-
-	return ret;
+    return E_RET_OK;
 }
 
 /**
@@ -334,6 +418,9 @@ joylink_dev_user_data_get(user_dev_status_t *user_data)
 	/**
 	*FIXME:must to do
 	*/
+
+    jl_platform_memcpy(user_data, &user_dev, sizeof(user_dev_status_t));
+    
 	return 0;
 }
 
@@ -425,6 +512,7 @@ joylink_dev_lan_json_ctrl(const char *json_cmd)
      *FIXME:must to do
      */
     log_debug("json ctrl:%s", json_cmd);
+	joylink_dev_parse_ctrl(json_cmd, &user_dev);
 
     return E_RET_OK;
 }
@@ -443,6 +531,8 @@ joylink_dev_user_data_set(char *cmd, user_dev_status_t *user_data)
 	/**
 	*FIXME:must to do
 	*/
+	log_debug("--cmd:%s, ", cmd);
+
 	return E_RET_OK;
 }
 
@@ -481,9 +571,6 @@ joylink_dev_script_ctrl(const char *src, int src_len, JLContrl_t *ctr, int from_
 	}else if(ctr->biz_code == JL_BZCODE_CTRL){
 		joylink_dev_parse_ctrl(src + 12, &user_dev);
 		return E_RET_OK;
-	}else if(ctr->biz_code == JL_BZCODE_MENU){
-		joylink_dev_parse_ctrl(src + 12, &user_dev);
-		return E_RET_OK;
 	}else{
 		char buf[50];
 		jl_platform_sprintf(buf, "Unknown biz_code:%d", ctr->biz_code);
@@ -502,18 +589,18 @@ joylink_dev_script_ctrl(const char *src, int src_len, JLContrl_t *ctr, int from_
 E_JLRetCode_t
 joylink_dev_ota(JLOtaOrder_t *otaOrder)
 {
-	jl_thread_t task_id;
+    if(NULL == otaOrder){
+        return -1;
+    }
+    int ret = E_RET_OK;
 
-	if(NULL == otaOrder){
-		return E_RET_ERROR;
-	}
-	task_id.thread_task = (threadtask) joylink_ota_task;
-	task_id.stackSize = 15*1024;
-    task_id.priority = JL_THREAD_PRI_DEFAULT;
-    task_id.parameter = (void *)otaOrder;
-    jl_platform_thread_start(&task_id);
+    log_debug("serial:%d | feedid:%s | productuuid:%s | version:%d | versionname:%s | crc32:%d | url:%s\n",
+     otaOrder->serial, otaOrder->feedid, otaOrder->productuuid, otaOrder->version, 
+     otaOrder->versionname, otaOrder->crc32, otaOrder->url);
 
-	return E_RET_OK;
+    // esp_ota_task_start((const char*)otaOrder->url);
+
+    return ret;
 }
 
 
@@ -523,7 +610,11 @@ joylink_dev_ota(JLOtaOrder_t *otaOrder)
 void
 joylink_dev_ota_status_upload()
 {
-	return;	
+    JLOtaUpload_t otaUpload;    
+    strcpy(otaUpload.feedid, _g_pdev->jlp.feedid);
+    strcpy(otaUpload.productuuid, _g_pdev->jlp.uuid);	
+
+    joylink_server_ota_status_upload_req(&otaUpload);   
 }
 
 static int joylink_dev_http_parse_content(
@@ -534,9 +625,8 @@ static int joylink_dev_http_parse_content(
 {
 	int length = 0;
 	content[0] = 0;
-    char* p = jl_platform_strstr(response, "\r\n\r\n");
-    if (p == NULL) 
-	{
+    char* p = strstr(response, "\r\n\r\n");
+    if (p == NULL) {
 		return -1;
 	}
 	p += 4;
@@ -544,7 +634,7 @@ static int joylink_dev_http_parse_content(
 	length = length > content_len ? content_len - 1 : length;
 	jl_platform_strncpy(content, p, length);
 	content[length] = 0;
-	// log_info("content = \r\n%s", content);
+	log_info("content = \r\n%s", content);
     
 	return length;
 }
@@ -566,11 +656,36 @@ static int joylink_dev_http_parse_content(
  */
 int joylink_dev_https_post( char* host, char* query ,char *revbuf,int buflen)
 {
-	int ret = -1;
-	/**
-		 *FIXME:must to do
-	*/
-	return ret;
+    esp_tls_cfg_t config = {
+        .skip_common_name = true,
+    };
+    esp_tls_t *tls = NULL;
+    uint32_t len = 0;
+
+    memset(revbuf, 0x0, buflen);
+    tls = esp_tls_conn_new(host, strlen(host), 443, &config);
+    esp_tls_conn_write(tls, query, strlen(query));
+
+    uint32_t temp_size = 1024*4;
+    uint8_t* temp_buf = malloc(1024*4); 
+    
+    len = esp_tls_conn_read(tls, temp_buf, temp_size);
+    esp_tls_conn_delete(tls);
+
+    if (len >= temp_size) {
+        len = temp_size - 1;
+    }
+    temp_buf[len] = 0;
+    char* p = strstr((char *)temp_buf, "\r\n\r\n");
+
+    if (p) {
+        strcpy(revbuf, p + strlen("\r\n\r\n"));
+    } else {
+        revbuf[0] = '\0';
+    }
+    free(temp_buf);
+    printf("revbuf:%d, %s\r\n",len,revbuf);
+    return 0;
 }
 
 /**
@@ -588,7 +703,6 @@ int joylink_dev_https_post( char* host, char* query ,char *revbuf,int buflen)
  * */
 int joylink_dev_http_post( char* host, char* query, char *revbuf, int buflen)
 {
-#ifdef __LINUX_PAL__
 	int log_socket = -1;
 	int len = 0;
     int ret = -1;
@@ -601,7 +715,8 @@ int joylink_dev_http_post( char* host, char* query, char *revbuf, int buflen)
         goto RET;
     }
 
-    jl_platform_memset(ip,0,sizeof(ip)); 
+    memset(ip,0,sizeof(ip)); 
+
 	ret = jl_platform_gethostbyname(host, ip, SOCKET_IP_ADDR_LEN);
 	if(ret < 0){
 		log_error("get ip error");
@@ -609,7 +724,7 @@ int joylink_dev_http_post( char* host, char* query, char *revbuf, int buflen)
 		goto RET;
 	}
 	
-	jl_platform_memset(&saServer, 0, sizeof(saServer));
+	memset(&saServer, 0, sizeof(saServer));
     saServer.sin_family = jl_platform_get_socket_proto_domain(JL_SOCK_PROTO_DOMAIN_AF_INET);
     saServer.sin_port = jl_platform_htons(80);
 	saServer.sin_addr.s_addr = jl_platform_inet_addr(ip);
@@ -636,7 +751,7 @@ int joylink_dev_http_post( char* host, char* query, char *revbuf, int buflen)
         goto RET;
     }
 
-    if (jl_platform_send(log_socket, query, jl_platform_strlen(query), 0, 5000) < 0) {
+    if (jl_platform_send(log_socket, query, jl_platform_strlen(query), 5000, 0) < 0) {
         log_error("... socket send failed");
         goto RET;
     }
@@ -674,17 +789,13 @@ RET:
 	if(-1 != log_socket){
 		jl_platform_close(log_socket);
 	}
-	if (recv_buf)
-	{
+
+	if (recv_buf) {
 		/* code */
 		jl_platform_free(recv_buf);
 	}
 	
 	return ret;
-#else
-    return -1;
-#endif
-
 }
 
 /**
@@ -697,7 +808,7 @@ RET:
 
 int joylink_dev_run_status(JLRunStatus_t status)
 {
-	int ret = -1;
+	int ret = 0;
 	/**
 		 *FIXME:must to do
 	*/
@@ -714,5 +825,18 @@ int joylink_dev_run_status(JLRunStatus_t status)
 void joylink_dev_run_user_code()
 {
     //You may add some code run in the main loop if necessary.
+}
+
+/**
+ * @brief: 传出激活信息
+ *
+ * @param[in] message: 激活信息
+ * 
+ * @returns: 0:设置成功
+ */
+E_JLRetCode_t joylink_dev_active_message(char *message)
+{
+	log_info("message = %s", message);
+    return E_RET_OK;
 }
 

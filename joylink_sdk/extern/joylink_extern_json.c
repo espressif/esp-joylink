@@ -46,6 +46,7 @@ joylink_dev_parse_ctrl(const char *pMsg, user_dev_status_t *userDev)
 		goto RET;
 	}
 
+	char tmp_str[64];
 	cJSON *pStreams = cJSON_GetObjectItem(pJson, "streams");
 	if(NULL != pStreams){
 		int iSize = cJSON_GetArraySize(pStreams);
@@ -64,35 +65,13 @@ joylink_dev_parse_ctrl(const char *pMsg, user_dev_status_t *userDev)
 			if(NULL == pV){
 				continue;
 			}
-#ifdef JOYLINK_SDK_EXAMPLE_TEST
+		
 			if(!jl_platform_strcmp(USER_DATA_POWER, pSId->valuestring)){
-			    if(pV->type == cJSON_String){
-				userDev->Power = jl_platform_atoi(pV->valuestring);
-			    }
-			    else if(pV->type == cJSON_Number){
-			        userDev->Power = pV->valueint;
-			    }
+			    jl_platform_memset(tmp_str, 0, sizeof(tmp_str));
+				jl_platform_strcpy(tmp_str, pV->valuestring);
+				userDev->Power = atoi(tmp_str);
 			    joylink_dev_user_data_set( USER_DATA_POWER,userDev);
 			}
-			if(!jl_platform_strcmp(USER_DATA_MODE, pSId->valuestring)){
-			    if(pV->type == cJSON_String){
-				userDev->Mode = jl_platform_atoi(pV->valuestring);
-			    }
-			    else if(pV->type == cJSON_Number){
-			        userDev->Mode = pV->valueint;
-			    }
-			    joylink_dev_user_data_set( USER_DATA_MODE,userDev);
-			}
-			if(!jl_platform_strcmp(USER_DATA_STATE, pSId->valuestring)){
-			    if(pV->type == cJSON_String){
-				userDev->State = jl_platform_atoi(pV->valuestring);
-			    }
-			    else if(pV->type == cJSON_Number){
-			        userDev->State = pV->valueint;
-			    }
-			    joylink_dev_user_data_set( USER_DATA_STATE,userDev);
-			}
-#endif
 
 			char *dout = cJSON_PrintUnformatted(pSub);
 			if(NULL != dout){
@@ -139,7 +118,6 @@ joylink_dev_package_info(const int retCode, user_dev_status_t *userDev)
 	cJSON_AddNumberToObject(root, "code", retCode);
 	cJSON_AddItemToObject(root, "streams", arrary);
 
-#ifdef JOYLINK_SDK_EXAMPLE_TEST
 	char i2str[64];
 	cJSON *data_Power = cJSON_CreateObject();
 	cJSON_AddItemToArray(arrary, data_Power);
@@ -147,21 +125,6 @@ joylink_dev_package_info(const int retCode, user_dev_status_t *userDev)
 	jl_platform_memset(i2str, 0, sizeof(i2str));
 	jl_platform_sprintf(i2str, "%d", userDev->Power);
 	cJSON_AddStringToObject(data_Power, "current_value", i2str);
-
-	cJSON *data_Mode = cJSON_CreateObject();
-	cJSON_AddItemToArray(arrary, data_Mode);
-	cJSON_AddStringToObject(data_Mode, "stream_id", "Mode");
-	jl_platform_memset(i2str, 0, sizeof(i2str));
-	jl_platform_sprintf(i2str, "%d", userDev->Mode);
-	cJSON_AddStringToObject(data_Mode, "current_value", i2str);
-
-	cJSON *data_State = cJSON_CreateObject();
-	cJSON_AddItemToArray(arrary, data_State);
-	cJSON_AddStringToObject(data_State, "stream_id", "State");
-	jl_platform_memset(i2str, 0, sizeof(i2str));
-	jl_platform_sprintf(i2str, "%d", userDev->State);
-	cJSON_AddStringToObject(data_State, "current_value", i2str);
-#endif
 
 	out=cJSON_PrintUnformatted(root);
 	cJSON_Delete(root);
@@ -208,4 +171,57 @@ joylink_dev_modelcode_info(const int retCode, JLPInfo_t *userDev)
 	cJSON_Delete(root); 
 RET:
 	return out;
+}
+/**
+ * brief: 
+ *
+ * @Param: jlp
+ * @Param: pMsg
+ *
+ * @Returns: 
+ */
+int 
+joylink_parse_jlp(JLPInfo_t *jlp, char * pMsg)
+{
+	int ret = -1;
+	if(NULL == pMsg || NULL == jlp){
+		return ret;
+	}
+	cJSON *pVal;
+	cJSON * pJson = cJSON_Parse(pMsg);
+
+	if(NULL == pJson){
+		log_error("--->:ERROR: pMsg is NULL\n");
+		goto RET;
+	}
+
+	pVal = cJSON_GetObjectItem(pJson, "uuid");
+	if(NULL != pVal){
+		jl_platform_strcpy(jlp->uuid, pVal->valuestring);
+	}
+
+	pVal = cJSON_GetObjectItem(pJson, "feedid");
+	if(NULL != pVal){
+		jl_platform_strcpy(jlp->feedid, pVal->valuestring);
+	}
+
+	pVal = cJSON_GetObjectItem(pJson, "accesskey");
+	if(NULL != pVal){
+		jl_platform_strcpy(jlp->accesskey, pVal->valuestring);
+	}
+
+	pVal = cJSON_GetObjectItem(pJson, "localkey");
+	if(NULL != pVal){
+		jl_platform_strcpy(jlp->localkey, pVal->valuestring);
+	}
+
+	pVal = cJSON_GetObjectItem(pJson, "version");
+	if(NULL != pVal){
+		jlp->version = pVal->valueint;
+	}
+
+	cJSON_Delete(pJson);
+	ret = 0;
+RET:
+	return ret;
 }

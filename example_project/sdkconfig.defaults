@@ -1,0 +1,11 @@
+#
+# Partition Table
+#
+
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="joylink_demo.csv"
+
+#
+# PThreads
+#
+CONFIG_ENABLE_PTHREAD=y

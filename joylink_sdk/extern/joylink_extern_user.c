@@ -19,27 +19,27 @@
 #include "joylink_stdio.h"
 #include "joylink_stdint.h"
 
-static FILE *file_fp = NULL;
+int file_fd = -1;
 
 int joylink_memory_init(void *index, int flag)
 {
 	char *save_path = (char *)index;
 
-	if(file_fp > 0)	
+	if(file_fd > 0)	
 		return -1;
 
 	//jl_platform_printf("save_path: %s\n", save_path);
 	
 	if(flag == MEMORY_WRITE){
-		file_fp = jl_platform_fopen(save_path, "wb+");
-		if(file_fp == NULL){
+		file_fd = open(save_path, O_WRONLY | O_CREAT | O_TRUNC, 0777);
+		if(file_fd < 0){
 			jl_platform_printf("Open file error!\n");
 			return -1;
 		}
 	}
 	else if(flag == MEMORY_READ){
-		file_fp = jl_platform_fopen(save_path, "rb");
-		if(file_fp == NULL){
+		file_fd = open(save_path, O_RDONLY | O_CREAT, 0777);
+		if(file_fd < 0){
 			jl_platform_printf("Open file error!\n");
 			return -1;
 		}
@@ -49,27 +49,27 @@ int joylink_memory_init(void *index, int flag)
 
 int joylink_memory_write(int offset, char *data, int len)
 {
-	if(file_fp == NULL || data == NULL)	
+	if(file_fd < 0 || data == NULL)	
 		return -1;
 
-	return jl_platform_fwrite(data, 1, len, file_fp);
+	return write(file_fd, data, len);
 }
 
 int joylink_memory_read(int offset, char *data, int len)
 {
-	if(file_fp == NULL || data == NULL)	
+	if(file_fd < 0 || data == NULL)	
 		return -1;
 
-	return jl_platform_fread(data, 1, len, file_fp);
+	return read(file_fd, data, len);
 }
 
 int joylink_memory_finish(void)
 {
-	if(file_fp == NULL)
+	if(file_fd < 0)
 		return -1;
 
-	jl_platform_fclose(file_fp);
-	file_fp = NULL;
+	close(file_fd);
+	file_fd = -1;
 	return 0;
 }
 

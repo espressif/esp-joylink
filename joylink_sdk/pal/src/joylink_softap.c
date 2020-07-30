@@ -35,16 +35,16 @@ int32_t jl_softap_enter_ap_mode(void)
  */
 int32_t jl_softap_get_product_info(char *uuid, char *brand, char *cid, char *dev_soft_ssid)
 {
-    char *_uuid = "CDEFC2";
+    char *_uuid = CONFIG_JOYLINK_DEVICE_UUID;
     jl_platform_strcpy(uuid, _uuid);
     
-    char* _dev_soft_ssid="martin";
+    char* _dev_soft_ssid = CONFIG_JOYLINK_SOFTAP_SSID;
     jl_platform_strcpy(dev_soft_ssid, _dev_soft_ssid);
     
-    char *_cid = "25";
+    char *_cid = CONFIG_JOYLINK_DEVICE_CID;
     jl_platform_strcpy(cid, _cid);
 
-    char *_brand="45";
+    char *_brand = CONFIG_JOYLINK_DEVICE_BRAND;
     jl_platform_strcpy(brand, _brand);
     
     return 0;
