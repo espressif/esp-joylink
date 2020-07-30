@@ -339,6 +339,9 @@ void jl_platform_semaphore_wait(jl_semaphore_t handle, uint32_t timeout_ms)
 {
 #ifdef __ESP_PAL__
     if (handle != NULL) {
+        if ((timeout_ms > 0) && (timeout_ms < portTICK_PERIOD_MS)) {
+            timeout_ms = portTICK_PERIOD_MS;
+        }
         xSemaphoreTake(handle, (timeout_ms/portTICK_PERIOD_MS));
     }
 #endif

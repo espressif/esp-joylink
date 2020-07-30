@@ -21,12 +21,12 @@
  */
 void *jl_platform_malloc(uint32_t size)
 {
-#ifdef __LINUX_PAL__
+#if defined __LINUX_PAL__
+    return malloc(size);
+#elif defined __ESP_PAL__
     return malloc(size);
 #else
-#ifdef __ESP_PAL__
-    return malloc(size);
-#endif
+    return NULL;
 #endif
 }
 

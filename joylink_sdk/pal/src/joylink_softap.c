@@ -5,6 +5,7 @@
 #ifdef __ESP_PAL__
 #include "esp_wifi.h"
 #include "joylink_log.h"
+#include "joylink_extern.h"
 #endif
 
 /**
@@ -75,6 +76,7 @@ int32_t jl_softap_connect_wifi_router(char *ssid, char *passwd)
     memcpy(config.sta.password, passwd, strlen(passwd));
 
     esp_wifi_set_config(ESP_IF_WIFI_STA, &config);
+    esp_joylink_wifi_save_info(config.sta.ssid, config.sta.password);
     esp_wifi_connect();
 #endif
     return 0;

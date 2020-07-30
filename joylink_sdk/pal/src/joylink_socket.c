@@ -62,9 +62,9 @@ int32_t jl_platform_gethostbyname(char *hostname, char *ip_buff, uint32_t buff_l
 			jl_platform_memcpy(&inaddr, &addrConv, sizeof(struct in_addr));
 		}
 
-       jl_platform_memset(ip_buff,  0, buff_len);
+        jl_platform_memset(ip_buff,  0, buff_len);
         jl_platform_strncpy(ip_buff, inet_ntoa(inaddr), buff_len);
-         jl_platform_printf("[%s] ip address\r\n", ip_buff);
+        jl_platform_printf("[%s] ip address\r\n", ip_buff);
         return 0;
                 
         }else{
@@ -75,10 +75,10 @@ int32_t jl_platform_gethostbyname(char *hostname, char *ip_buff, uint32_t buff_l
     struct hostent *pGethost = NULL;
 	char **pptr = NULL;
 	struct in_addr addrConv, inaddr;
+
 	memset(&addrConv, 0, sizeof(struct in_addr));
 	pGethost = gethostbyname(hostname);
-	if(pGethost != NULL)
-	{
+	if (pGethost != NULL) {
 		pptr = pGethost->h_addr_list;
 		for(; *pptr != NULL; pptr++){
 			addrConv.s_addr = *(uint32_t *)(*pptr);
@@ -86,14 +86,13 @@ int32_t jl_platform_gethostbyname(char *hostname, char *ip_buff, uint32_t buff_l
 			memcpy(&inaddr, &addrConv, sizeof(struct in_addr));
 		}
 
-       memset(ip_buff,  0, buff_len);
+        memset(ip_buff,  0, buff_len);
         strncpy(ip_buff, inet_ntoa(inaddr), buff_len);
         printf("[%s] ip address\r\n", ip_buff);
         return 0;
-                
-        }else{
-            return -1;
-        }
+    }else{
+        return -1;
+    }
 #endif
 #endif
 
@@ -124,10 +123,11 @@ int32_t jl_platform_get_socket_proto_domain(JL_SOCK_PROTO_DOMAIN_T domain)
     int32_t ret_domain = -1;
     if (domain == JL_SOCK_PROTO_DOMAIN_AF_INET) {
         ret_domain = AF_INET;
-    }
-    else if (domain == JL_SOCK_PROTO_DOMAIN_AF_INET6) {
+    } else if (domain == JL_SOCK_PROTO_DOMAIN_AF_INET6) {
         ret_domain = AF_INET6;
-    } else {};
+    } else {
+        ;
+    };
     return ret_domain;
 #endif
 #endif
@@ -182,8 +182,7 @@ int32_t jl_platform_socket(JL_SOCK_PROTO_DOMAIN_T domain, JL_SOCK_PROTO_TYPE_T t
     int32_t in_domain = 2, in_type, in_protocol = 0;
     if (domain == JL_SOCK_PROTO_DOMAIN_AF_INET) {
         in_domain = AF_INET;
-    }
-    else if (domain == JL_SOCK_PROTO_DOMAIN_AF_INET6) {
+    } else if (domain == JL_SOCK_PROTO_DOMAIN_AF_INET6) {
         in_domain = AF_INET6;
     } else {
         return -1;
@@ -191,11 +190,9 @@ int32_t jl_platform_socket(JL_SOCK_PROTO_DOMAIN_T domain, JL_SOCK_PROTO_TYPE_T t
     
     if (type == JL_SOCK_PROTO_TYPE_SOCK_STREAM) {
         in_type = SOCK_STREAM;
-    }
-    else if (type == JL_SOCK_PROTO_TYPE_SOCK_DGRAM) {
+    } else if (type == JL_SOCK_PROTO_TYPE_SOCK_DGRAM) {
         in_type = SOCK_DGRAM;
-    }
-    else if (type == JL_SOCK_PROTO_TYPE_SOCK_RAW) {
+    } else if (type == JL_SOCK_PROTO_TYPE_SOCK_RAW) {
         in_type = SOCK_RAW;
     } else {
         return -1;
@@ -203,11 +200,9 @@ int32_t jl_platform_socket(JL_SOCK_PROTO_DOMAIN_T domain, JL_SOCK_PROTO_TYPE_T t
     
     if (protocol == JL_SOCK_PROTO_PROTO_IPPROTO_IP) {
         protocol = IPPROTO_IP;
-    }
-    else if (protocol == JL_SOCK_PROTO_PROTO_IPPROTO_TCP) {
+    } else if (protocol == JL_SOCK_PROTO_PROTO_IPPROTO_TCP) {
         protocol = IPPROTO_TCP;
-    }
-    else if (protocol == JL_SOCK_PROTO_PROTO_IPPROTO_UDP) {
+    } else if (protocol == JL_SOCK_PROTO_PROTO_IPPROTO_UDP) {
         protocol = IPPROTO_UDP;
     } else {
         return -1;
@@ -272,8 +267,7 @@ int32_t jl_platform_fcntl(int32_t s, JL_FCNTL_CMD_T cmd)
                 ret = 1;
             }
         }
-    } else
-    {
+    } else {
         ret = -1;
     }
 #else
@@ -289,8 +283,7 @@ int32_t jl_platform_fcntl(int32_t s, JL_FCNTL_CMD_T cmd)
                 ret = 1;
             }
         }
-    } else
-    {
+    } else {
         ret = -1;
     }
 #endif

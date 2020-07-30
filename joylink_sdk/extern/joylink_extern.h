@@ -83,6 +83,23 @@ E_JLRetCode_t joylink_dev_user_data_set(char *cmd, user_dev_status_t *user_data)
 E_JLRetCode_t joylink_dev_active_message(char *message);
 
 /**
+ * @brief: clear wifi information
+ * 
+ * @returns: void
+ */
+void esp_joylink_wifi_clear_info(void);
+
+/**
+ * @brief: save wifi information
+ *
+ * @param[in] ssid
+ * @param[in] password
+ * 
+ * @returns: void
+ */
+void esp_joylink_wifi_save_info(uint8_t*ssid,uint8_t*password);
+
+/**
  * brief: 设置局域网待激活模式
  *
  * @param[in] on_off: 1, 开启激活模式; 0, 关闭激活模式

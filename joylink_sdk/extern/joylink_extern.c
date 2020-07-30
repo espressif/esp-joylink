@@ -406,6 +406,51 @@ joylink_dev_get_modelcode(JLPInfo_t *jlp, char *out_modelcode, int32_t out_max)
 }
 
 /**
+ * @brief: clear wifi information
+ * 
+ * @returns: void
+ */
+void esp_joylink_wifi_clear_info(void)
+{
+    nvs_handle out_handle;
+    
+    if (nvs_open("joylink_wifi", NVS_READWRITE, &out_handle) == ESP_OK) {
+        nvs_erase_all(out_handle);
+        nvs_close(out_handle);
+    }
+}
+
+/**
+ * @brief: save wifi information
+ *
+ * @param[in] ssid
+ * @param[in] password
+ * 
+ * @returns: void
+ */
+void esp_joylink_wifi_save_info(uint8_t*ssid,uint8_t*password)
+{
+    nvs_handle out_handle;
+    char data[65];
+    if (nvs_open("joylink_wifi", NVS_READWRITE, &out_handle) != ESP_OK) {
+        return;
+    }
+
+    memset(data,0x0,sizeof(data));
+    strncpy(data,(char*)ssid,strlen((char*)ssid));
+    if (nvs_set_str(out_handle,"ssid",data) != ESP_OK) {
+        printf("--set ssid fail");
+    }
+
+    memset(data,0x0,sizeof(data));
+    strncpy(data,(char*)password,strlen((char*)password));
+    if (nvs_set_str(out_handle,"password",data) != ESP_OK) {
+        printf("--set password fail");
+    }
+    nvs_close(out_handle);
+}
+
+/**
  * @brief: 返回设备状态,通过填充user_data参数,返回设备当前状态
  *
  * @param[out] user_data: 设备状态结构体指针
