@@ -6,9 +6,9 @@
 * **4. 相关链接：** 给出与 joylink 相关的链接。包括 Demo 下载，微联文档。
 
 ## 1. 概述
-ESP 平台实现了京东微联 Joylink2.0.19 协议。用户可以参考 Espressif 提供的设备端 Demo 进行二次开发，快速接入京东微联云平台。
+ESP 平台实现了京东微联 Joylink2.1.22 协议。用户可以参考 Espressif 提供的设备端 Demo 进行二次开发，快速接入京东微联云平台。
 
-Demo 参考京东官方 [Joylink2.0.19 SDK](https://smartdev.jd.com/docCenterDownload/list/2)，添加了 WiFi 相关、OTA、Flash 存储、button 等适配层，用户只需要关心少部分 API，如初始化、数据收发、事件回调等，加快了用户的二次开发速度。适配层具有一定的通用性且开源，用户可根据产品需求自行修改。
+Demo 参考京东官方 [Joylink2.1.22 SDK](https://smartdev.jd.com/docCenterDownload/list/2)，添加了 WiFi 相关、OTA、Flash 存储、button 等适配层，用户只需要关心少部分 API，如初始化、数据收发、事件回调等，加快了用户的二次开发速度。适配层具有一定的通用性且开源，用户可根据产品需求自行修改。
 Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发者中心上传空实现的 lua 脚本： `only_trans.lua`。
 
 目前京东微联已经停止支持 SmartConfig 的配网方式，所以 Demo 中删除 SmartConfig 配网，目前支持 SoftAp 和 Thunder 配网，芯片上电默认进入 SoftAP 配网，如果用户需要使用 Thunder 配网，需要购买京东的音箱，音箱需要进入沙箱模式，与音箱相关的设置，用户可以咨询京东。
@@ -73,29 +73,21 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 用户需要调用的 API 和参数配置相关的头文件在 `port/include/esp_joylink.h` 中。
 ### 3.1 文件结构
 
-    ├── examples
-    │    └── light_demo                         // light demo
-    │       ├── Makefile
-    │       ├── README.md
-    │       ├── button
-    │       ├── main
-    │       │   ├── Kconfig
-    │       │   ├── app_main.c
-    │       │   └── component.mk
-    │       └── sdkconfig.defaults
-    ├── joylink_cloud                           // joylink SDK source code
-    │    ├── docs
-    │    ├── joylink_ble
-    │    ├── joylink_dev_sdk
-    │    ├── joylink_thunder
-    │    └── joylink_softap
-    ├── port                                    // joylink SDK adaptation
-    │    ├── app
-    │    ├── ble
+    ├── example_project                         // light demo
+    │    ├── Makefile
+    │    ├── README.md
+    │    ├── main
+    │    │   ├── Kconfig
+    │    │   ├── app_main.c
+    │    │   ├── esp_joylink_app.c
+    │    │   └── component.mk
+    │    └── sdkconfig.defaults
+    ├── joylink_sdk                             // joylink SDK source code
     │    ├── extern
-    │    ├── include
-    │    ├── jdinnet
-    │    └── softap
+    │    ├── joylink
+    │    └── pal
+    ├── port                                    // joylink SDK adaptation
+    │    └── net
     ├── component.mk
     ├── docs
     └── README.md
@@ -103,7 +95,7 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 ### 3.2 参数配置
 
 * 产品信息配置  
-    在 `/port/extern` 中， 用户可以修改以下这些参数，如 AES_KEY, UUID, PID等，系统会调用 `joylink_dev_init()` 传入产品注册的信息，注册事件回调函数。用户如果需要修改为自己的设备，首先需要在京东开发者中心上申请自己的设备，并根据相应设备信息在此处修改。  
+    在 `memuconfig` 中， 用户可以修改以下这些参数，如 AES_KEY, UUID, PID等，系统会调用 `joylink_dev_init()` 传入产品注册的信息，注册事件回调函数。用户如果需要修改为自己的设备，首先需要在京东开发者中心上申请自己的设备，并根据相应设备信息在此处修改。  
     因为这些参数需要在服务器后台产品基本信息里获取，或者向京东有关部门咨询。
 
 ### 3.3 配网
