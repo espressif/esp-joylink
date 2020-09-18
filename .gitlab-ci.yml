@@ -1,0 +1,110 @@
+stages:
+  - build
+  - deploy
+
+esp8266_v3.2_build:
+  stage: build
+  image: $CI_DOCKER_REGISTRY/esp8266-ci-env-new
+  tags:
+    - build
+
+  variables:
+    GIT_STRATEGY: clone
+    
+  before_script:
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo -n $GITLAB_KEY >> ~/.ssh/id_rsa_base64
+    - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+
+  script:
+    - cd example_project
+    - git clone -b release/v3.2 ${GITLAB_SSH_SERVER}/sdk/ESP8266_RTOS_SDK.git esp-idf
+    - export IDF_PATH=$(pwd)/esp-idf
+    - source ./esp-idf/tools/ci/configure_ci_environment.sh
+    # - ./esp-idf/tools/idf_tools.py --non-interactive install && eval "$(./esp-idf/tools/idf_tools.py --non-interactive export)" || exit 1
+    - cd esp-idf
+    - git submodule update --init --recursive
+    - cd ..
+    - make defconfig && make
+
+esp8266_v3.3_build:
+  stage: build
+  image: $CI_DOCKER_REGISTRY/esp8266-ci-env-new
+  tags:
+    - build
+
+  variables:
+    GIT_STRATEGY: clone
+    
+  before_script:
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo -n $GITLAB_KEY >> ~/.ssh/id_rsa_base64
+    - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+
+  script:
+    - cd example_project
+    - git clone -b release/v3.3 ${GITLAB_SSH_SERVER}/sdk/ESP8266_RTOS_SDK.git esp-idf
+    - export IDF_PATH=$(pwd)/esp-idf
+    - source ./esp-idf/tools/ci/configure_ci_environment.sh
+    # - ./esp-idf/tools/idf_tools.py --non-interactive install && eval "$(./esp-idf/tools/idf_tools.py --non-interactive export)" || exit 1
+    - cd esp-idf
+    - git submodule update --init --recursive
+    - cd ..
+    - ./esp-idf/tools/idf.py build
+
+esp8266_master_build:
+  stage: build
+  image: $CI_DOCKER_REGISTRY/esp8266-ci-env-new
+  tags:
+    - build
+
+  variables:
+    GIT_STRATEGY: clone
+    
+  before_script:
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo -n $GITLAB_KEY >> ~/.ssh/id_rsa_base64
+    - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+
+  script:
+    - cd example_project
+    - git clone ${GITLAB_SSH_SERVER}/sdk/ESP8266_RTOS_SDK.git esp-idf
+    - export IDF_PATH=$(pwd)/esp-idf
+    - source ./esp-idf/tools/ci/configure_ci_environment.sh
+    # - ./esp-idf/tools/idf_tools.py --non-interactive install && eval "$(./esp-idf/tools/idf_tools.py --non-interactive export)" || exit 1
+    - cd esp-idf
+    - git submodule update --init --recursive
+    - cd ..
+    - ./esp-idf/tools/idf.py build
+
+push_master_to_github:
+  stage: deploy
+  only:
+    - master
+    - /^release\/v.*$/
+  tags:
+    - deploy
+  when: on_success
+  image: $CI_DOCKER_REGISTRY/esp32-ci-env
+  variables:
+    GIT_STRATEGY: clone
+    GITHUB_PUSH_REFS: refs/remotes/origin/release refs/remotes/origin/master
+  script:
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo -n $GH_PUSH_KEY > ~/.ssh/id_rsa_base64
+    - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+    - git remote add https://github.com/espressif/esp-joylink.git
+    # - git push --follow-tags github HEAD:master
+    - eval $(git for-each-ref --shell bash --format 'if [ $CI_COMMIT_SHA == %(objectname) ]; then git checkout -B %(refname:strip=3); git push --follow-tags github %(refname:strip=3); fi;' $GITHUB_PUSH_REFS)
