@@ -20,7 +20,13 @@
 #include "esp_event_loop.h"
 #include "nvs_flash.h"
 
+#if !defined(ESP_IDF_VERSION)
 #include "apps/sntp/sntp.h"
+#elif (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(3,4,0))
+#include "apps/sntp/sntp.h"
+#else
+#include "esp_sntp.h"
+#endif
 #include "esp_joylink_app.h"
 
 esp_err_t event_handler(void *ctx, system_event_t *event)
