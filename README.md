@@ -14,22 +14,23 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 目前京东微联已经停止支持 SmartConfig 的配网方式，所以 Demo 中删除 SmartConfig 配网，目前支持 SoftAp 和 Thunder 配网，芯片上电默认进入 SoftAP 配网，如果用户需要使用 Thunder 配网，需要购买京东的音箱，音箱需要进入沙箱模式，与音箱相关的设置，用户可以咨询京东。
 
 ## 2. Demo 使用
-用户拿到乐鑫提供 Joylink Demo 后，编译下载固件到乐鑫 ESP8266 或者 ESP32 开发板。使用京东微联 APP 扫描测试设备的二维码进行配置。配置激活成功后便可进行设备控制。此 Demo 对应的测试设备类型为“智能家居 / 生活电器 / 灯具”。
+用户拿到乐鑫提供 Joylink Demo 后，编译下载固件到乐鑫 ESP8266 、 ESP32 或者 ESP32-S2 开发板。使用京东微联 APP 扫描测试设备的二维码进行配置。配置激活成功后便可进行设备控制。此 Demo 对应的测试设备类型为“智能家居 / 生活电器 / 灯具”。
 
 ### 2.1. 环境搭建
 
 * 环境准备
   * **ESP32**：[开发环境准备](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/)
+  * **ESP32-S2**：[开发环境准备](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/get-started/index.html)
   * **ESP8266**：[开发环境准备](https://github.com/espressif/ESP8266_RTOS_SDK/blob/release/v3.0/docs/en/get-started/get-started-devkitc.rst)
-
 * 硬件准备  
-  * **开发板**：ESP8266 与 ESP32 开发板（[ESP-DevKitC](http://espressif.com/zh-hans/company/contact/buy-a-sample)）
+  * **开发板**：ESP8266 、ESP32-S2 与 ESP32 开发板（[ESP-DevKitC](http://espressif.com/zh-hans/company/contact/buy-a-sample)）
   * **路由器**：使用 2.4GHz 网络，可以连接外网
   * **手机**：安装[京东微联沙箱 APP](https://smartdev.jd.com/docCenterDownload/list/2)
 
 * 软件准备
-  * **Demo下载**：下载 Demo 工程 [esp-joylink](https://github.com/espressif/esp-joylink.git)
-
+  
+* **Demo下载**：下载 Demo 工程 [esp-joylink](https://github.com/espressif/esp-joylink.git)
+  
 * Demo 的网络拓扑结构
 
     <img src="docs/_picture/环境搭建.jpg" width = "500" alt="i2c hardware" align=center />
@@ -37,27 +38,50 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 ### 2.2 编译下载
 
 * 工程编译
-    首先设置 `IDF_PATH` 的路径，如果是 ESP8266，请使用 ESP8266_RTOS_SDK v3.2, 如果是 ESP32， 则选择 ESP-IDF v3.3
+    首先设置  `IDF_PATH`  的路径
 
-    然后在menuconfig里面配置joylink相关参数 `UUID`, `CID`, `PID`, `PUBLIC_KEY`,`PRIVATE_KEY`,`MAC_ADDRESS`.
-
-    最后再输入命令 `make`， 编译工程。
+    * ESP8266 平台，需使用 ESP8266_RTOS_SDK v3.2 及之后的版本，推荐使用 ESP8266_RTOS_SDK v3.3 
+    * ESP32 平台， 需使用 ESP-IDF v4.0 及之后的版本，推荐使用 ESP-IDF v4.0 和 v4.2
+    
+    * ESP32-S2 平台，需使用 ESP-IDF v4.2 及之后的版本，推荐使用 ESP-IDF v4.2 
+    
+    然后在 menuconfig 里面配置 joylink 相关参数 `UUID`，`CID`，`PID`， `PUBLIC_KEY`，`PRIVATE_KEY`，`MAC_ADDRESS`，其中 `UUID`、`CID` 和 `PID` 分别代表产品的唯一标识码、品类和品牌，在云端产品中的位置如下
+    
+    <img src="docs/_picture/UUID、CID和PID.jpg" width = "900" alt="i2c hardware" align=center />
+    
+    `PUBLIC_KEY ` 为产品公钥，显示在设备端开发页面，设备认证采用一机一密的方式 ，用户需导入 `MAC_ADDRESS` (设备 MAC 地址) 来生成 `PRIVATE_KEY` (设备私钥) ，具体生成方式请在设备端开发页面点击 “导入 MAC 地址生成私钥” 选项并按提示进行。
+    
+    <img src="docs/_picture/公钥、私钥和MAC.jpg" width = "900" alt="i2c hardware" align=center />
+    
+    其次我们提供了默认的 sdkconfig.defaults 及 partition table 文件( `light_demo/default_configs` 目录下)，用户可根据芯片不同，进行使用和参考。
+    
+    最后再输入命令 `$IDF_PATH/tools/idf.py build`， 编译工程。对于 ESP32-S2 平台，执行 `build`  命令之前应先执行`$IDF_PATH/tools/idf.py set-target esp32s2 ` 命令，切换为 ESP32-S2 的编译环境，之后再 `$IDF_PATH/tools/idf.py build`  编译工程。
+    
+    (如果使用 ESP8266_RTOS_SDK v3.2，请使用 `make`  命令进行编译工程)
 
 * 固件烧写  
     1. 如果没有安装串口驱动，需要先安装[串口驱动](http://www.usb-drivers.org/ft232r-usb-uart-driver.html)。
-    2. 输入命令 `make flash`， 将编译好的 bin 文件烧录到开发版中。
+    2. 输入命令 `$IDF_PATH/tools/idf.py -p PORT flash`  (ESP8266_RTOS_SDK v3.2 使用 `make flash ESPPORT=PORT` ) ，将编译好的 bin 文件烧录到开发板中，`PORT`  选择和配置请参考[文档说明](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html#step-6-connect-your-device)。
+
+对于esp32平台，Demo中包含两种配网方式: SoftAP 配网和 BLE 配网，可在 menuconfig 的 joylink 组件配置中进行选择切换，默认是使用SoftAP 配网
+
+<img src="docs/_picture/使能BLE.jpg" width = "800" alt="i2c hardware" align=center />
+
+若切换 BLE 配网，首先需使能  `Whether or not use Joylink ble configure wifi` 选项，然后要在云端产品的基本信息页面中选择 "京东BLE配网" 并保存，最后重新编译和烧写后方可使用。
+
+<img src="docs/_picture/配网选择.jpg" width = "850" alt="i2c hardware" align=center />
 
 ### 2.3 运行
 
 * 操作步骤  
 
-    |序号|设备|状态灯|APP|  
+    |序号|设备|状态灯|APP|
     | :---- | :---- | :----- | :------ |
-    |1|上电，串口正常打印|不亮|-|  
-    |2|配网按键，进入配网|慢闪|扫码开始配置|  
-    |3|配网成功，连接服务器|快闪|显示可使用设备|  
-    |4|连接服务器成功|常亮|显示设备控制界面|  
-    |5|设备被控时状态灯会显示|亮灭|控制设备状态|  
+    |1|上电，串口正常打印|不亮|-|
+    |2|配网按键，进入配网|慢闪|扫码开始配置|
+    |3|配网成功，连接服务器|快闪|显示可使用设备|
+    |4|连接服务器成功|常亮|显示设备控制界面|
+    |5|设备被控时状态灯会显示|亮灭|控制设备状态|
 
 
 * 扫描二维码
@@ -73,24 +97,37 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 用户需要调用的 API 和参数配置相关的头文件在 `port/include/esp_joylink.h` 中。
 ### 3.1 文件结构
 
-    ├── example_project                         // light demo
-    │    ├── Makefile
-    │    ├── README.md
-    │    ├── main
-    │    │   ├── Kconfig
-    │    │   ├── app_main.c
-    │    │   ├── esp_joylink_app.c
-    │    │   └── component.mk
-    │    └── sdkconfig.defaults
-    ├── joylink_sdk                             // joylink SDK source code
-    │    ├── extern
-    │    ├── joylink
-    │    └── pal
-    ├── port                                    // joylink SDK adaptation
-    │    └── net
+    .
+    ├── CMakeLists.txt
     ├── component.mk
     ├── docs
+    ├── examples
+    │   ├── light_demo                                    //  light_demo
+    │   │   ├── CMakeLists.txt
+    │   │   ├── components
+    │   │   ├── default_configs                           // default sdkconfigs
+    │   │   ├── main
+    │   │   └── Makefile
+    │   └── transparent_transmission
+    │   
+    ├── joylink_dev_sdk                                   // joylink SDK source code
+    │   ├── ble_sdk
+    │   ├── example
+    │   ├── joylink
+    │   ├── lua
+    │   ├── Makefile
+    │   ├── pal
+    │   ├── README
+    │   └── scripts
+    │       
+    ├── Kconfig
+    ├── port                                              // joylink SDK adaptation
+    │   ├── include
+    │   ├── joylink_ble.c
+    │   └── joylink_upgrade.c
+    │
     └── README.md
+    
 
 ### 3.2 参数配置
 
