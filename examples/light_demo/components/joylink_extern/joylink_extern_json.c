@@ -71,6 +71,11 @@ joylink_dev_parse_ctrl(const char *pMsg, user_dev_status_t *userDev)
 				jl_platform_strcpy(tmp_str, pV->valuestring);
 				userDev->Power = atoi(tmp_str);
 			    joylink_dev_user_data_set( USER_DATA_POWER,userDev);
+			} else if(!jl_platform_strcmp(USER_DATA_AMBIENTLIGHT, pSId->valuestring)) {
+				jl_platform_memset(tmp_str, 0, sizeof(tmp_str));
+				jl_platform_strcpy(tmp_str, pV->valuestring);
+				userDev->AmbientLight = atoi(tmp_str);
+			    joylink_dev_user_data_set(USER_DATA_AMBIENTLIGHT, userDev);
 			}
 
 			char *dout = cJSON_PrintUnformatted(pSub);

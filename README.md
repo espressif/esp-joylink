@@ -8,13 +8,13 @@
 ## 1. 概述
 ESP 平台实现了京东微联 Joylink2.1.22 协议。用户可以参考 Espressif 提供的设备端 Demo 进行二次开发，快速接入京东微联云平台。
 
-Demo 参考京东官方 [Joylink2.1.22 SDK](https://smartdev.jd.com/docCenterDownload/list/2)，添加了 WiFi 相关、OTA、Flash 存储、button 等适配层，用户只需要关心少部分 API，如初始化、数据收发、事件回调等，加快了用户的二次开发速度。适配层具有一定的通用性且开源，用户可根据产品需求自行修改。
+Demo 参考京东官方 [Joylink2.1.22 SDK](https://smartdev.jd.com/docCenterDownload/list/2)，添加了 WiFi 相关、OTA、Flash 存储等适配层，用户只需要关心少部分 API，如初始化、数据收发、事件回调等，加快了用户的二次开发速度。适配层具有一定的通用性且开源，用户可根据产品需求自行修改。
 Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发者中心上传空实现的 lua 脚本： `only_trans.lua`。
 
 目前京东微联已经停止支持 SmartConfig 的配网方式，所以 Demo 中删除 SmartConfig 配网，目前支持 SoftAp 和 Thunder 配网，芯片上电默认进入 SoftAP 配网，如果用户需要使用 Thunder 配网，需要购买京东的音箱，音箱需要进入沙箱模式，与音箱相关的设置，用户可以咨询京东。
 
 ## 2. Demo 使用
-用户拿到乐鑫提供 Joylink Demo 后，编译下载固件到乐鑫 ESP8266 、 ESP32 或者 ESP32-S2 开发板。使用京东微联 APP 扫描测试设备的二维码进行配置。配置激活成功后便可进行设备控制。此 Demo 对应的测试设备类型为“智能家居 / 生活电器 / 灯具”。
+用户拿到乐鑫提供的 esp-joylink 后，根据不同的 example 编译下载固件到乐鑫 ESP8266 、 ESP32 或者 ESP32-S2 开发板。使用京东微联 APP 扫描测试设备的二维码进行配置。配置激活成功后便可进行设备控制。此 Demo 对应的测试设备类型为“智能家居 / 生活电器 / 灯具”。
 
 ### 2.1. 环境搭建
 
@@ -22,6 +22,7 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
   * **ESP32**：[开发环境准备](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/)
   * **ESP32-S2**：[开发环境准备](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/get-started/index.html)
   * **ESP8266**：[开发环境准备](https://github.com/espressif/ESP8266_RTOS_SDK/blob/release/v3.0/docs/en/get-started/get-started-devkitc.rst)
+  
 * 硬件准备  
   * **开发板**：ESP8266 、ESP32-S2 与 ESP32 开发板（[ESP-DevKitC](http://espressif.com/zh-hans/company/contact/buy-a-sample)）
   * **路由器**：使用 2.4GHz 网络，可以连接外网
@@ -53,9 +54,9 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
     
     <img src="docs/_picture/公钥、私钥和MAC.jpg" width = "900" alt="i2c hardware" align=center />
     
-    其次我们提供了默认的 sdkconfig.defaults 及 partition table 文件( `light_demo/default_configs` 目录下)，用户可根据芯片不同，进行使用和参考。
+    以light_demo为例，我们提供了默认的sdkconfig.defaults及partiton table文件（light_demo/default_configs目录下），用户可根据芯片不同，进行使用和参考。
     
-    最后再输入命令 `$IDF_PATH/tools/idf.py build`， 编译工程。对于 ESP32-S2 平台，执行 `build`  命令之前应先执行`$IDF_PATH/tools/idf.py set-target esp32s2 ` 命令，切换为 ESP32-S2 的编译环境，之后再 `$IDF_PATH/tools/idf.py build`  编译工程。
+    进入example/light_demo目录，然后输入命令 `$IDF_PATH/tools/idf.py build`， 编译工程。对于 ESP32-S2 平台，执行 `build`  命令之前应先执行`$IDF_PATH/tools/idf.py set-target esp32s2 ` 命令，切换为 ESP32-S2 的编译环境，之后再 `$IDF_PATH/tools/idf.py build`  编译工程。
     
     (如果使用 ESP8266_RTOS_SDK v3.2，请使用 `make`  命令进行编译工程)
 
@@ -71,42 +72,33 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 
 <img src="docs/_picture/配网选择.jpg" width = "850" alt="i2c hardware" align=center />
 
-### 2.3 运行
-
-* 操作步骤  
-
-    |序号|设备|状态灯|APP|
-    | :---- | :---- | :----- | :------ |
-    |1|上电，串口正常打印|不亮|-|
-    |2|配网按键，进入配网|慢闪|扫码开始配置|
-    |3|配网成功，连接服务器|快闪|显示可使用设备|
-    |4|连接服务器成功|常亮|显示设备控制界面|
-    |5|设备被控时状态灯会显示|亮灭|控制设备状态|
-
-
-* 扫描二维码
-
-    <img src="docs/_picture/Demo二维码.jpg" width = "300" alt="i2c hardware" align=center />
-
-* 配网界面
-
-    <img src="docs/_picture/微联APP-配网界面.jpg" width = "300" alt="i2c hardware" align=center />
-
 ## 3. 开发指南
 本章详细介绍 Demo 工程，如需二次开发请关注本章。
 用户需要调用的 API 和参数配置相关的头文件在 `port/include/esp_joylink.h` 中。
+
 ### 3.1 文件结构
 
     .
     ├── CMakeLists.txt
     ├── component.mk
     ├── docs
+    │   ├── md                                            //  md files
+    │   │   └── 量产说明.md
+    │   └── _picture
+    │
+    ├── config
+    │   └── mass_mfg
+    │       ├── multipule_mfg_config.csv
+    │       ├── multipule_mfg_values.csv
+    │       └── single_mfg_config.csv
+    │   
     ├── examples
     │   ├── light_demo                                    //  light_demo
     │   │   ├── CMakeLists.txt
     │   │   ├── components
     │   │   ├── default_configs                           // default sdkconfigs
     │   │   ├── main
+    │   │   ├── README.md
     │   │   └── Makefile
     │   └── transparent_transmission
     │   
@@ -127,7 +119,7 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
     │   └── joylink_upgrade.c
     │
     └── README.md
-    
+
 
 ### 3.2 参数配置
 
@@ -147,10 +139,16 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 
 <img src="docs/_picture/ota_后台版本设置.png" width = "900" alt="i2c hardware" align=center />
 
-### 3.5 辅助功能
-增加了按键重启，与 led 状态指示功能。用户可以修改宏使能。
+### 3.5量产功能
+
+每台设备对应唯一的UUID、DeviceMAC、PrivateKey，用户除了可以在`menuconfig`配置相关参数信息，也可以通过烧录NVS分区的方式进行量产。
+
+具体请参考[量产说明](docs/md/量产说明.md)
+
+>如果执行了`idf.py erase_flash`, 需要重新烧录三元组
 
 ## 4. 相关链接
+
 * Espressif 官网： http://espressif.com
 * ESP32 SDK 下载： https://github.com/espressif/esp-idf
 * ESP8266 SDK 下载： https://github.com/espressif/ESP8266_RTOS_SDK

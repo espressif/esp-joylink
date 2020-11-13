@@ -2,6 +2,7 @@
 .cproject
 .project
 .DS_Store
+.vscode
 examples/*/build
 examples/*/sdkconfig*
 examples/*/*.csv
