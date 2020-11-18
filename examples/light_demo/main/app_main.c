@@ -28,6 +28,7 @@
 #include "esp_sntp.h"
 #endif
 #include "esp_joylink_app.h"
+#include "joylink_light.h"
 
 #ifdef CONFIG_JOYLINK_BLE_ENABLE
 #include "joylink_sdk.h"
@@ -91,6 +92,7 @@ void app_main(void)
     nvs_flash_init();
     initialise_wifi();
     initialize_sntp();
+    light_init();
     
     esp_joylink_app_start();
 }

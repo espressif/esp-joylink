@@ -27,14 +27,19 @@ extern "C"{
 #define JLP_CMD_TYPE	E_CMD_TYPE_LUA_SCRIPT
 #define JLP_SNAPSHOT    E_SNAPSHOT_NO
 
+#define MFG_PARTITION_NAME "mfg_nvs"
+#define NVS_PRODUCT        "joylink-key"
 
 #define JLP_UUID          CONFIG_JOYLINK_DEVICE_UUID
 #define JLP_CLOUD_PUB_KEY CONFIG_JOYLINK_PUBLIC_KEY
 #define JLP_PRIVATE_KEY   CONFIG_JOYLINK_PRIVATE_KEY
+#define JLP_DEVICE_MAC    CONFIG_JOYLINK_DEVICE_MAC
 
-#define USER_DATA_POWER   "Power"
+#define USER_DATA_POWER        "Power"
+#define USER_DATA_AMBIENTLIGHT "AmbientLight"
 typedef struct _user_dev_status_t {
     int Power;
+    int AmbientLight;
 } user_dev_status_t;
 
 /**

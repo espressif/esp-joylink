@@ -1,0 +1,5 @@
+joylink-key,namespace,
+UUID,data,string
+DeviceMAC,data,string
+PrivateKey,data,string
+PublicKey,data,string

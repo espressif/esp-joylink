@@ -1,5 +1,19 @@
 menu "Joylink"
 
+    menu "Joylink_light"
+        config JOYLINK_LIGHT_R
+            default "25"
+            int "the GPIO of light_Red"
+        
+        config JOYLINK_LIGHT_G
+            default "26"
+            int "the GPIO of light_green"
+        
+        config JOYLINK_LIGHT_B
+            default "27"
+            int "the GPIO of light_blue"
+    endmenu
+
 config JOYLINK_DEVICE_UUID
     default "972212"
     string "The device uuid, you can get it from Joylink"

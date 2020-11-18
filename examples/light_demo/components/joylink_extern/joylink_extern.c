@@ -25,6 +25,7 @@
 #include "joylink_log.h"
 #include "joylink_time.h"
 #include "joylink_dev.h"
+#include "joylink_light.h"
 
 #include "esp_tls.h"
 #include "tcpip_adapter.h"
@@ -40,29 +41,6 @@
 extern bool get_rst;
 #endif
 
-JLPInfo_t user_jlp = 
-{
-	.version = JLP_VERSION,
-	.uuid = JLP_UUID,
-	.devtype = JLP_DEV_TYPE,
-	.lancon = JLP_LAN_CTRL,
-	.cmd_tran_type = JLP_CMD_TYPE,
-
-	.noSnapshot = JLP_SNAPSHOT,
-};
-
-jl2_d_idt_t user_idt = 
-{
-	.type = 0,
-	.cloud_pub_key = JLP_CLOUD_PUB_KEY,
-
-	.sig = "01234567890123456789012345678901",
-	.pub_key = "01234567890123456789012345678901",
-
-	.f_sig = "01234567890123456789012345678901",
-	.f_pub_key = "01234567890123456789012345678901",
-};
-
 user_dev_status_t user_dev;
 
 LightManage_t _g_lightMgr = {
@@ -74,6 +52,8 @@ LightManage_t _g_lightMgr = {
     .jlp.lancon = JLP_LAN_CTRL,
     .jlp.cmd_tran_type = JLP_CMD_TYPE,
     .jlp.noSnapshot = JLP_SNAPSHOT,
+    .jlp.mac = JLP_DEVICE_MAC,
+    .jlp.prikey = JLP_PRIVATE_KEY,   
 
     .idt.type = 0,
     .idt.cloud_pub_key = JLP_CLOUD_PUB_KEY,
@@ -245,6 +225,75 @@ joylink_dev_set_attr_jlp(JLPInfo_t *jlp)
 }
 
 /**
+ * @brief: nvs分区初始化
+ */
+static esp_err_t joylink_product_param_init(void)
+{
+    esp_err_t ret = ESP_OK;
+    static bool joylink_part_init_flag;
+
+    do {
+        if (joylink_part_init_flag == false) {
+            if ((ret = nvs_flash_init_partition(MFG_PARTITION_NAME)) != ESP_OK) {
+                log_error("NVS Flash init %s failed, Please check that you have flashed mfg_nvs partition!!!", MFG_PARTITION_NAME);
+                break;
+            }
+
+            joylink_part_init_flag = true;
+        }
+    } while (0);
+
+    return ret;
+}
+
+/**
+ * @brief: 从NVS分区中获取参数信息
+ *
+ * @param[in] param_name: 参数名称
+ * @param[in] param_name_str: 指向保存该参数信息的指针
+ * 
+ * @returns: 0:获取失败
+ * @returns: 1:获取成功
+ */
+static int joylink_get_product_param_from_nvs(char *param_name, const char *param_name_str, size_t max_len)
+{
+    esp_err_t ret;
+    nvs_handle handle;
+    int flag = 0;
+
+    do {
+        if (joylink_product_param_init() != ESP_OK) {
+            break;
+        }
+
+        if (param_name == NULL) {
+            log_error("%s param %s NULL", __func__, param_name);
+            break;
+        }
+
+        ret = nvs_open_from_partition(MFG_PARTITION_NAME, NVS_PRODUCT, NVS_READONLY, &handle);
+
+        if (ret != ESP_OK) {
+            log_error("%s nvs_open failed with %x", __func__, ret);
+            break;
+        }
+
+        ret = nvs_get_str(handle, param_name_str, param_name, (size_t *)&max_len);
+
+        if (ret != ESP_OK) {
+            log_error("%s nvs_get_str get %s failed with %x", __func__, param_name_str, ret);
+        } else {
+            log_info("%s %s %s", __func__, param_name_str, param_name);
+            flag = 1;
+        }
+
+        nvs_close(handle);
+    } while (0);
+
+    return flag;
+}
+
+/**
  * @brief: 设置设备认证信息
  *
  * @param[out]: pidt--设备认证信息结构体指针,需填入必要信息sig,pub_key,f_sig,f_pub_key,cloud_pub_key
@@ -263,6 +312,9 @@ joylink_dev_get_idt(jl2_d_idt_t *pidt)
     jl_platform_strcpy(pidt->sig, _g_pLightMgr->idt.sig);
     jl_platform_strcpy(pidt->f_sig, _g_pLightMgr->idt.f_sig);
     jl_platform_strcpy(pidt->f_pub_key, _g_pLightMgr->idt.f_pub_key);
+    if(joylink_get_product_param_from_nvs(_g_pLightMgr->idt.cloud_pub_key, "PublicKey", IDT_C_PK_LEN-1)) {
+        printf("get the public key is nvs\r\n");
+    }
     jl_platform_strcpy(pidt->cloud_pub_key, _g_pLightMgr->idt.cloud_pub_key);
 
     return E_RET_OK;
@@ -318,8 +370,6 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
 {
     nvs_handle out_handle;
     size_t size = 0;
-	static bool init_flag = false;
-    log_debug("--joylink_dev_get_jlp_info");
 
     if(NULL == jlp){
         return E_RET_ERROR;
@@ -360,14 +410,19 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
 		nvs_close(out_handle);
 	}
 
-    if(joylink_dev_get_user_mac(jlp->mac) < 0){
-		log_info("can't get mac!\n");
-	}
+    if(joylink_get_product_param_from_nvs(_g_pLightMgr->jlp.mac, "DeviceMAC", JL_MAX_MAC_LEN-1)) {
+        printf("get the device mac is nvs\r\n");
+    }
+    if(joylink_get_product_param_from_nvs(_g_pLightMgr->jlp.prikey, "PrivateKey", 64)) {
+        printf("get the private key is nvs\r\n");
+    }
+    if(joylink_get_product_param_from_nvs(_g_pLightMgr->jlp.uuid, "UUID", JL_MAX_UUID_LEN-1)) {
+        printf("get the uuid is nvs\r\n");
+    }
 
-	if(joylink_dev_get_private_key(jlp->prikey) < 0){
-		log_info("can't get private_key!\n");
-	}
-    
+    memcpy(jlp->mac, _g_pLightMgr->jlp.mac, JL_MAX_MAC_LEN-1);
+    memcpy(jlp->prikey, _g_pLightMgr->jlp.prikey, 64);
+    memcpy(jlp->uuid, _g_pLightMgr->jlp.uuid, JL_MAX_UUID_LEN-1);
     strcpy(jlp->feedid, _g_pLightMgr->jlp.feedid);
     strcpy(jlp->accesskey, _g_pLightMgr->jlp.accesskey);
     strcpy(jlp->localkey, _g_pLightMgr->jlp.localkey);
@@ -378,9 +433,7 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
     jlp->cmd_tran_type = _g_pLightMgr->jlp.cmd_tran_type;
     jlp->version = _g_pLightMgr->jlp.version;
     jlp->is_actived = _g_pLightMgr->jlp.is_actived;
-    memcpy(jlp->uuid, _g_pLightMgr->jlp.uuid, JL_MAX_UUID_LEN-1);
-    memcpy(_g_pLightMgr->jlp.mac, jlp->mac, JL_MAX_MAC_LEN-1);
-    memcpy(_g_pLightMgr->jlp.prikey, jlp->prikey, 64);
+
 
     return E_RET_OK;
 }
@@ -477,6 +530,8 @@ joylink_dev_get_snap_shot_with_retcode(int32_t ret_code, char *out_snap, int32_t
 	int len = 0;
 
 	joylink_dev_user_data_get(&user_dev);
+
+    joylink_light_Control(user_dev);
 
 	char *packet_data =  joylink_dev_package_info(ret_code, &user_dev);
 	if(NULL !=  packet_data){
