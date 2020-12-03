@@ -17,11 +17,7 @@ extern "C"{
 #define JL_MAX_PACKET_LEN	    (1400)
 #define JL_MAX_IP_LEN               (16)
 
-#if(CONFIG_IDF_TARGET_ESP8266 || CONFIG_IDF_TARGET_ESP32S2)
-#define JL_MAX_MAC_LEN              (17) //esp8266
-#else
-#define JL_MAX_MAC_LEN              (13) //esp32 or esp32s2
-#endif
+#define JL_MAX_MAC_LEN              (17) //esp32 or esp32s2 or esp8266
 
 #define JL_MAX_UUID_LEN             (7)
 #define JL_MAX_FEEDID_LEN           (33)
@@ -418,6 +414,13 @@ typedef enum{
  * @return: 保留. 当前调用方不使用此函数的返回值
  */
 int joylink_server_upload_req();
+
+/**
+ * @brief: 应用程序可以调用此函数实现任意时刻子设备状态上报
+ *
+ * @return: 保留. 当前调用方不使用此函数的返回值
+ */
+int joylink_server_subdev_upload_req();
 
 /**
  * @brief: 应用程序可通过调用此函数实现向云端上报OTA状态

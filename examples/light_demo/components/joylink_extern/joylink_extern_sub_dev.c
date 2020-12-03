@@ -302,6 +302,55 @@ joylink_dev_sub_version_update(char *feedid, int version)
 }
 
 /**
+ * brief: 根据子设备mac查询子设备其他信息。
+ *
+ * @Param: macstr
+ *
+ * @Returns:
+ */
+int joylink_sub_dev_get_by_deviceid(char *macstr, JLSubDevData_t *info_out)
+{
+    int i;
+    if(macstr == NULL || info_out == NULL){
+        return -1;
+    }
+    for(i = 0; i < JL_MAX_SUB; i++){
+        if(!jl_platform_strcmp(macstr, _g_sub_dev[i].mac)){
+            jl_platform_memcpy(info_out, &_g_sub_dev[i], sizeof(JLSubDevData_t));
+            return 0;
+        }
+    }
+    return -1;
+}
+
+/**
+ * brief: 更新子设备信息，并根据标识进行保存。
+ *
+ * @Param: macstr
+ *
+ * @Returns:
+ */
+int joylink_sub_dev_update_device_info(JLSubDevData_t *info_in, int save_flag)
+{
+    int i;
+    if(info_in == NULL){
+        return -1;
+    }
+    for(i = 0; i < JL_MAX_SUB; i++){
+        if(!jl_platform_strcmp(info_in->mac, _g_sub_dev[i].mac)){
+            jl_platform_memcpy(&_g_sub_dev[i], info_in, sizeof(JLSubDevData_t));
+#ifdef _SAVE_FILE_
+            if(save_flag){
+                joylink_dev_sub_data_save();
+            }
+#endif
+            return 0;
+        }
+    }
+    return -1;
+}
+
+/**
  * @brief: 获取所有子设备实例
  *
  * @param[out]: count 子设备总数

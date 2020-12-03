@@ -204,6 +204,7 @@ int32_t jl_platform_fflush(void *stream)
 {
 #ifdef __LINUX_PAL__
     fflush((FILE*)stream);
+    return 0;
 #else
     return -1;
 #endif

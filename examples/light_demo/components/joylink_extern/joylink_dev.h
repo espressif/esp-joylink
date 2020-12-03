@@ -75,12 +75,11 @@ int joylink_dev_get_modelcode(JLPInfo_t *jlp, char *out_modelcode, int32_t out_m
 /**
  * @brief: 获取设备快照json结构
  *
- * @param[out] out_snap: 序列化为字符串的设备快照json结构
- * @param[in] out_max: out_snap可写入的最大长度
+ * @param[out] out_snapshot: 序列化为字符串的设备快照json结构,也可以是lua转换的十六进制数据
  *
  * @returns: 实际写入out_snap的数据长度
  */
-int joylink_dev_get_snap_shot(char *out_snap, int32_t out_max);
+int joylink_dev_get_snapshot(char **out_snapshot);
 
 /**
  * @brief: 获取向App返回的设备快照json结构
@@ -92,7 +91,7 @@ int joylink_dev_get_snap_shot(char *out_snap, int32_t out_max);
  *
  * @returns: 
  */
-int joylink_dev_get_json_snap_shot(char *out_snap, int32_t out_max, int code, char *feedid);
+int joylink_dev_get_json_snapshot(char *out_snap, int32_t out_max, int code, char *feedid);
 
 /**
  * @brief: 通过App控制设备,需要实现此函数,根据传入的json_cmd对设备进行控制
@@ -113,7 +112,17 @@ E_JLRetCode_t joylink_dev_lan_json_ctrl(const char *json_cmd);
  *
  * @returns: E_RET_OK 成功, E_RET_ERROR 失败
  */
-E_JLRetCode_t joylink_dev_script_ctrl(const char *src, int src_len, JLContrl_t *ctr, int from_server);
+E_JLRetCode_t joylink_dev_script_ctrl(const char *src, int src_len);
+
+/**
+ * @brief:特殊场景使用，厨具，下发菜单。
+ *
+ * @param[in] src: 数据包
+ * @param[in] src_len: src长度
+ *
+ * @returns: E_RET_OK 成功
+ */
+E_JLRetCode_t joylink_dev_download_menu(const char *src, int src_len);
 
 /**
  * @brief: 实现接收到ota命令和相关参数后的动作,可使用otaOrder提供的参数进行具体的OTA操作

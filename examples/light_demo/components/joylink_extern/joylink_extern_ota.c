@@ -184,7 +184,7 @@ joylink_get_file_size(int socket_fd, http_ota_st *ota_info)
 
 	memset(buf, 0, sizeof(buf));
 	while(1) {
-		ret_len = joylink_socket_recv(socket_fd, buf + recv_len, 512 - recv_len);
+		ret_len = jl_platform_recv(socket_fd, buf + recv_len, 512 - recv_len, 0, 3000);
 		if(ret_len < 0){
 			log_error("get_file_size recv failed!\n");
 			return -1;
@@ -280,7 +280,7 @@ joylink_ota_set_download_len(int socket_fd, http_ota_st *ota_info)
 
 	memset(buf, 0, 1024);
 	while(1){
-		ret_len = joylink_socket_recv(socket_fd, buf + recv_len, 1);
+		ret_len = jl_platform_recv(socket_fd, buf + recv_len, 1, 0, 2000);
 		if(ret_len < 0){
 			log_error("get_file_data recv failed!\n");
 			return -1;
@@ -359,7 +359,7 @@ joylink_ota_get_data(http_ota_st *ota_info)
 
 		while(download_len != 0){
 			memset(recv_buf, 0, EVERY_PACKET_LEN);
-			ret_len = joylink_socket_recv(socket_fd, recv_buf, read_len);
+			ret_len = jl_platform_recv(socket_fd, recv_buf, EVERY_PACKET_LEN, 0, 3000);
 
 			if(ret_len > 0){
 
