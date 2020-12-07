@@ -10,8 +10,8 @@ extern "C"{
 #include "joylink_stdint.h"
 
 #define _VERSION_  "2.1.22"
-#define JL_MINOR_VERSION	20
-#define _RELEASE_TIME_  "2020_08_11"
+#define JL_MINOR_VERSION	25
+#define _RELEASE_TIME_  "2020_12_15"
 #define JL_PACKET_HEADER_VERSION      	(1)
 
 #define JL_MAX_PACKET_LEN	    (1400)
