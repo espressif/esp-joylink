@@ -54,6 +54,8 @@ typedef struct _http_ota_st
 
 void *joylink_ota_task(void *data);
 
+void joylink_set_ota_info(JLOtaOrder_t *ota_info);
+
 #ifdef __cplusplus
 }
 #endif

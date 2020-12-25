@@ -88,6 +88,42 @@ E_JLRetCode_t
 joylink_dev_sub_update_keys_by_uuid_mac(char *uuid, char *mac, JLSubDevData_t *dev);
 
 /**
+ * brief: 根据子设备mac查询子设备其他信息。
+ *
+ * @Param: macstr
+ *
+ * @Returns: 
+ */
+int joylink_sub_dev_get_by_deviceid(char *macstr, JLSubDevData_t *info_out);
+
+/**
+ * brief: 更新子设备信息，并根据标识进行保存。
+ *
+ * @Param: macstr
+ *
+ * @Returns: 
+ */
+int joylink_sub_dev_update_device_info(JLSubDevData_t *info_in, int save_flag);
+
+
+/**
+ * brief: 子设备上报数据或心跳时调用此函数，设置设备在线标识。
+ *
+ * @Param: macstr
+ *
+ * @Returns: 
+ */
+
+int joylink_sub_dev_hb_event(char *macstr);
+
+/**
+ * brief: 子设备上报设备快照，只上报macstr这个的快照。
+ *
+ * @Returns: 
+ */
+int joylink_server_sub_dev_event_req(char *macstr, char *event_payload, int length);
+
+/**
  * brief: 
  *
  * @Param: count
