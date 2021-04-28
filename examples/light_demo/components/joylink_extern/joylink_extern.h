@@ -42,6 +42,23 @@ typedef struct _user_dev_status_t {
     int AmbientLight;
 } user_dev_status_t;
 
+typedef enum _JL_OTA_UPGRADE_TYPE_E{
+    JL_OTA_UPGRADE_TYPE_PROMPT      = 1,
+    JL_OTA_UPGRADE_TYPE_SILENT      = 2,
+    JL_OTA_UPGRADE_TYPE_ENFORCE     = 3
+}JL_OTA_UPGRADE_TYPE_E;
+
+typedef struct{
+    int serial;
+    char feedid[JL_MAX_FEEDID_LEN];
+    char productuuid[JL_MAX_UUID_LEN];
+    int version;
+    char versionname[JL_MAX_VERSION_NAME_LEN];
+    unsigned int crc32;
+    char url[JL_MAX_URL_LEN];
+    JL_OTA_UPGRADE_TYPE_E upgradetype;
+}JLOtaOrder_t;
+
 /**
  * @brief: 设置设备RTC时间
  *

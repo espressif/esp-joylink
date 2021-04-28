@@ -17,14 +17,12 @@
 extern "C"{
 #endif
 
-//#define HTTP_URL "http://storage.360buyimg.com/devh5/micapp_ota_9_1532350290755.bin"
+#include "joylink_extern.h"
 
 #define OTA_STATUS_DOWNLOAD 0
 #define OTA_STATUS_INSTALL  1
 #define OTA_STATUS_SUCCESS  2
 #define OTA_STATUS_FAILURE  3
-
-//#define OTA_PACKET_NUMB  1
 
 #define HTTP_DEFAULT_PORT 80
 
