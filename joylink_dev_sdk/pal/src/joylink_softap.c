@@ -24,6 +24,7 @@ int32_t jl_softap_enter_ap_mode(void)
     return 0;
 }
 
+
 /**
  * @brief:System is expected to get product information that user regiested in Cloud platform.
  *

@@ -32,13 +32,6 @@ int32_t   jl_platform_printf(const char *fmt, ...)
     return ret;
 }
 
-void jl_platform_printf_lock(void)
-{
-}
-
-void jl_platform_printf_unlock(void)
-{
-}
 /**
  * @brief 将数据安格式化写入到字符串
  *
@@ -86,6 +79,28 @@ int32_t jl_platform_snprintf(char *str, const int32_t len, const char *fmt, ...)
     return ret;
 }
 
+/**
+ * @brief 将字符串格式化写入到数据
+ *
+ * @param [in] str: @n String that holds written text.
+ * @param [in] fmt: @n Format that contains the text to be written, it can optionally contain embedded format specifiers
+     that specifies how subsequent arguments are converted for output.
+ * @param [out] ...: @n the variable argument list, for formatted and inserted in the resulting string replacing their respective specifiers.
+ * @return bytes of character successfully written into string.
+ * @see None.
+ * @note None.
+ */
+int jl_platform_sscanf(const char *str, const char *format, ...)
+{
+    int ret = 0;
+#ifdef __LINUX_PAL__
+    va_list ap;
+    va_start(ap, format);
+    ret = vsscanf(str, format, ap);
+    va_end(ap);
+#endif
+    return ret;
+}
 
 /** @defgroup group_platform_file_api_manage
  *  @{
@@ -224,7 +239,7 @@ void jl_print_buffer(const char *msg, const uint8_t *buff, int len)
         return;
     }
     int i = 0;
-    jl_platform_printf("len = %d, %s\n", len, msg);
+    jl_platform_printf("len = %d, %s\r\n", len, msg);
     for(i =0; i < len; i++){
         jl_platform_printf("%02x ", (int)buff[i]);
         if(!((i + 1)%4)){
@@ -232,10 +247,10 @@ void jl_print_buffer(const char *msg, const uint8_t *buff, int len)
         }
 
         if(!((i + 1)%16)){
-            jl_platform_printf("\n");
+            jl_platform_printf("\r\n");
         }
     }
-    jl_platform_printf("\n");
+    jl_platform_printf("\r\n");
 }
 
 /*

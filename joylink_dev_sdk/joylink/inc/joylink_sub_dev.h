@@ -126,11 +126,11 @@ joylink_proc_lan_sub_script_ctrl(uint8_t *src, int src_len, jl_sockaddr_in *sin_
 // joylink_proc_lan_sub_script_ctrl(uint8_t *src, int src_len, struct sockaddr_in *sin_recv, socklen_t addrlen);
 
 /**
- * brief:
+ * brief: 
  *
- * @Returns:
+ * @Returns: 
  */
-int
+int 
 joylink_packet_check_sub_hb(void);
 /**
  * brief: 

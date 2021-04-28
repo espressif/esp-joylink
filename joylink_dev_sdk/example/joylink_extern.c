@@ -120,7 +120,7 @@ joylink_dev_set_connect_st(int st)
 E_JLRetCode_t joylink_dev_active_message(char *message)
 {
 	log_info("message = %s", message);
-
+	return 0;
 }
 
 /**
@@ -259,6 +259,10 @@ if(infile > 0)
 	jl_platform_strcpy(jlp->localkey, fjlp.localkey);
 	jl_platform_strcpy(jlp->joylink_server, fjlp.joylink_server);
 	jlp->server_port = fjlp.server_port;
+
+	jl_platform_strcpy(jlp->gURLStr, fjlp.gURLStr);
+	jl_platform_strcpy(jlp->gTokenStr, fjlp.gTokenStr);
+
 	if(joylink_dev_get_user_mac(jlp->mac) < 0){
 		jl_platform_strcpy(jlp->mac, fjlp.mac);
 	}
@@ -269,7 +273,10 @@ if(infile > 0)
 #endif
 
 	jlp->is_actived = E_JL_TRUE;
+
+	jl_platform_strcpy(jlp->modelCode, JLP_CHIP_MODEL_CODE);
 	jlp->model_code_flag = E_JL_FALSE;
+
 	jlp->version = JLP_VERSION;
 	jl_platform_strcpy(jlp->uuid, JLP_UUID);
 
@@ -280,43 +287,6 @@ if(infile > 0)
 	jlp->noSnapshot = JLP_SNAPSHOT;
 
 	return ret;
-}
-
-/**
- * @brief: 返回包含model_code的json结构,该json结构的字符串形式由joylink_dev_modelcode_info（小京鱼后台自动生成代码,其中已经包含model_code）返回
- *
- * @param[out]: out_modelcode 用以返回序列化为字符串的model_code json结构
- * @param[in]: out_max json结构的最大允许长度
- *
- * @returns: 实际写入out_modelcode的长度
- */
-int
-joylink_dev_get_modelcode(JLPInfo_t *jlp, char *out_modelcode, int32_t out_max)
-{
-	if(NULL == out_modelcode || out_max < 0){
-		return 0;
-	}
-	/**
-	*FIXME:must to do
-	*/
-	int len = 0;
-
-	char *packet_data =  joylink_dev_modelcode_info(0, jlp);
-	if(NULL !=  packet_data){
-		len = jl_platform_strlen(packet_data);
-		log_info("------>%s:len:%d\n", packet_data, len);
-		if(len < out_max){
-			jl_platform_memcpy(out_modelcode, packet_data, len); 
-		}else{
-			len = 0;
-		}
-	}
-
-	if(NULL !=  packet_data){
-		jl_platform_free(packet_data);
-	}
-
-	return len;
 }
 
 /**
@@ -468,7 +438,7 @@ joylink_dev_script_ctrl(const char *src, int src_len, JLContrl_t *ctr, int from_
 	ctr->biz_code = (int)(*((int *)(src + 4)));
 	ctr->serial = (int)(*((int *)(src +8)));
 
-	uint32_t tt = jl_time_get_timestamp(NULL);
+	uint32_t tt = jl_get_time_second(NULL);
 	log_info("bcode:%d:server:%d:time:%ld", ctr->biz_code, from_server,(long)tt);
 
 	if(ctr->biz_code == JL_BZCODE_GET_SNAPSHOT){

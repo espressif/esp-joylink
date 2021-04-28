@@ -1,7 +1,6 @@
 set(JOYLINK_SDK_DIR joylink_dev_sdk)
 set(includes
     ${JOYLINK_SDK_DIR}/joylink/inc
-    ${JOYLINK_SDK_DIR}/joylink/inc/json
     ${JOYLINK_SDK_DIR}/joylink/inc/softap
     ${JOYLINK_SDK_DIR}/pal/inc
     port/include)
@@ -11,6 +10,7 @@ set(includes
 set(components ${IDF_TARGET} nvs_flash app_update esp-tls tcpip_adapter joylink_extern)
 
 set(srcs
+    ${JOYLINK_SDK_DIR}/pal/src/joylink_flash.c
     ${JOYLINK_SDK_DIR}/pal/src/joylink_memory.c
     ${JOYLINK_SDK_DIR}/pal/src/joylink_socket.c
     ${JOYLINK_SDK_DIR}/pal/src/joylink_softap.c

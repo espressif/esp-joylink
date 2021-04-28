@@ -10,6 +10,12 @@
  */
 int32_t jl_softap_enter_ap_mode(void);
 
+/**
+ * @brief:set softap config stop.
+ *
+ * @returns:success 0, others failed
+ */
+int32_t jl_softap_config_stop(void);
 
 /**
  * @brief:System is expected to get product information that user regiested in Cloud platform.

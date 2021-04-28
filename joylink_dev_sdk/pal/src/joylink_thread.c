@@ -209,7 +209,6 @@ jl_semaphore_t jl_platform_semaphore_create(void)
  */
 void jl_platform_semaphore_destroy(jl_semaphore_t handle)
 {
-
 #ifdef __LINUX_PAL__
     if (handle != NULL) {
         vSemaphoreDelete(handle);

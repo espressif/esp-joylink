@@ -17,6 +17,8 @@
 extern "C"{
 #endif
 
+#include "joylink_extern.h"
+
 //#define HTTP_URL "http://storage.360buyimg.com/devh5/micapp_ota_9_1532350290755.bin"
 
 #define OTA_STATUS_DOWNLOAD 0
@@ -32,8 +34,7 @@ extern "C"{
 
 #define OTA_TIME_OUT (5 * 60 * 1000)
 
-#define HTTP_HEAD "HEAD /%s HTTP/1.1\r\nHOST: %s:%d\r\nConnection: Keep-Alive\r\n\r\n"
-#define HTTP_GET "GET /%s HTTP/1.1\r\nHOST: %s:%d\r\nRange: bytes=%ld-%ld\r\nKeep-Alive: 200\r\nConnection: Keep-Alive\r\n\r\n"
+#define HTTP_GET "GET /%s HTTP/1.1\r\nHOST: %s\r\nAccept: */*\r\n\r\n"
 
 typedef struct _http_ota_st
 {

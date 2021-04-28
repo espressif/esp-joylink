@@ -2,9 +2,6 @@
 #define _JOYLINK_DEV_ACTIVE_H_
 #include "joylink.h"
 
-#define LEN_URL_MAX			32
-#define LEN_TOKEN_MAX		16
-
 #ifdef __cplusplus
 extern "C"{
 #endif /* __cplusplus */
