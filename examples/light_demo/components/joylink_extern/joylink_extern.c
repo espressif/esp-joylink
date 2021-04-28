@@ -439,43 +439,6 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
 }
 
 /**
- * @brief: 返回包含model_code的json结构,该json结构的字符串形式由joylink_dev_modelcode_info（小京鱼后台自动生成代码,其中已经包含model_code）返回
- *
- * @param[out]: out_modelcode 用以返回序列化为字符串的model_code json结构
- * @param[in]: out_max json结构的最大允许长度
- *
- * @returns: 实际写入out_modelcode的长度
- */
-int
-joylink_dev_get_modelcode(JLPInfo_t *jlp, char *out_modelcode, int32_t out_max)
-{
-	if(NULL == out_modelcode || out_max < 0){
-		return 0;
-	}
-	/**
-	*FIXME:must to do
-	*/
-	int len = 0;
-
-	char *packet_data =  joylink_dev_modelcode_info(0, jlp);
-	if(NULL !=  packet_data){
-		len = jl_platform_strlen(packet_data);
-		log_info("------>%s:len:%d\n", packet_data, len);
-		if(len < out_max){
-			jl_platform_memcpy(out_modelcode, packet_data, len); 
-		}else{
-			len = 0;
-		}
-	}
-
-	if(NULL !=  packet_data){
-		jl_platform_free(packet_data);
-	}
-
-	return len;
-}
-
-/**
  * @brief: clear wifi information
  * 
  * @returns: void
@@ -510,6 +473,45 @@ joylink_dev_user_data_get(user_dev_status_t *user_data)
 }
 
 /**
+ * @brief: 获取设备快照json结构,结构中包含返回状态码
+ *
+ * @param[in] ret_code: 返回状态码
+ * @param[out] out_snap: 序列化为字符串的设备快照json结构
+ * @param[in] out_max: out_snap可写入的最大长度
+ *
+ * @returns: 实际写入out_snap的数据长度
+ */
+int
+joylink_dev_get_snap_shot_with_retcode(int32_t ret_code, char *out_snap, int32_t out_max)
+{
+	if(NULL == out_snap || out_max < 0){
+		return 0;
+	}
+	/**
+	*FIXME:must to do
+	*/
+	int len = 0;
+
+	joylink_dev_user_data_get(&user_dev);
+
+	char *packet_data =  joylink_dev_package_info(ret_code, &user_dev);
+	if(NULL !=  packet_data){
+		len = jl_platform_strlen(packet_data);
+		log_info("------>%s:len:%d\n", packet_data, len);
+		if(len < out_max){
+			jl_platform_memcpy(out_snap, packet_data, len); 
+		}else{
+			len = 0;
+		}
+	}
+
+	if(NULL !=  packet_data){
+		jl_platform_free(packet_data);
+	}
+	return len;
+}
+
+/**
  * @brief: 获取设备快照json结构
  *
  * @param[out] out_snapshot: 序列化为字符串的设备快照json结构,也可以是lua转换的十六进制数据
@@ -517,15 +519,9 @@ joylink_dev_user_data_get(user_dev_status_t *user_data)
  * @returns: 实际写入out_snap的数据长度
  */
 int
-joylink_dev_get_snapshot(char **out_snapshot)
+joylink_dev_get_snap_shot(char *out_snap, int32_t out_max)
 {
-	joylink_dev_user_data_get(&user_dev);
-
-	*out_snapshot =  joylink_dev_package_info(0, &user_dev);
-	if(*out_snapshot == NULL){
-		return -1;
-	}
-	return jl_platform_strlen(*out_snapshot);
+    return joylink_dev_get_snap_shot_with_retcode(0, out_snap, out_max); 
 }
 
 /**
@@ -539,7 +535,7 @@ joylink_dev_get_snapshot(char **out_snapshot)
  * @returns: 
  */
 int
-joylink_dev_get_json_snapshot(char *out_snap, int32_t out_max, int code, char *feedid)
+joylink_dev_get_json_snap_shot(char *out_snap, int32_t out_max, int code, char *feedid)
 {
     /**
      *FIXME:must to do
@@ -592,22 +588,45 @@ joylink_dev_user_data_set(char *cmd, user_dev_status_t *user_data)
  *
  * @param[in] src: 控制指令数据包
  * @param[in] src_len: src长度
+ * @param[in] ctr: 控制码
+ * @param[in] from_server: 是否来自server控制 0-App,2-Server
  *
  * @returns: E_RET_OK 成功, E_RET_ERROR 失败
  */
 
 E_JLRetCode_t 
-joylink_dev_script_ctrl(const char *src, int src_len)
+joylink_dev_script_ctrl(const char *src, int src_len, JLContrl_t *ctr, int from_server)
 {
-	if(NULL == src){
+	if(NULL == src || NULL == ctr){
 		return E_RET_ERROR;
 	}
 	/**
 	*FIXME:must to do
 	*/
-	joylink_dev_parse_ctrl(src, &user_dev);
+	int ret = -1;
+	ctr->biz_code = (int)(*((int *)(src + 4)));
+	ctr->serial = (int)(*((int *)(src +8)));
 
-    return E_RET_OK;
+	uint32_t tt = jl_get_time_second(NULL);
+	log_info("bcode:%d:server:%d:time:%ld", ctr->biz_code, from_server,(long)tt);
+
+	if(ctr->biz_code == JL_BZCODE_GET_SNAPSHOT){
+		/*
+		*Nothing to do!
+		*/
+		ret = E_RET_OK;
+	}else if(ctr->biz_code == JL_BZCODE_CTRL){
+		joylink_dev_parse_ctrl(src + 12, &user_dev);
+		return E_RET_OK;
+	}else if(ctr->biz_code == JL_BZCODE_MENU){
+		joylink_dev_parse_ctrl(src + 12, &user_dev);
+		return E_RET_OK;
+	}else{
+		char buf[50];
+		jl_platform_sprintf(buf, "Unknown biz_code:%d", ctr->biz_code);
+		log_error("%s", buf);
+	}
+	return ret;
 }
 
 /**

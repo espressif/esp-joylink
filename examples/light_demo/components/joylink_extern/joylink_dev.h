@@ -63,23 +63,14 @@ E_JLRetCode_t joylink_dev_set_attr_jlp(JLPInfo_t *jlp);
 E_JLRetCode_t joylink_dev_get_jlp_info(JLPInfo_t *jlp);
 
 /**
- * @brief: 返回包含model_code的json结构,该json结构的字符串形式由joylink_dev_modelcode_info（小京鱼后台自动生成代码,其中已经包含model_code）返回
- *
- * @param[out]: out_modelcode 用以返回序列化为字符串的model_code json结构
- * @param[in]: out_max json结构的最大允许长度
- *
- * @returns: 实际写入out_modelcode的长度
- */
-int joylink_dev_get_modelcode(JLPInfo_t *jlp, char *out_modelcode, int32_t out_max);
-
-/**
  * @brief: 获取设备快照json结构
  *
- * @param[out] out_snapshot: 序列化为字符串的设备快照json结构,也可以是lua转换的十六进制数据
+ * @param[out] out_snap: 序列化为字符串的设备快照json结构
+ * @param[in] out_max: out_snap可写入的最大长度
  *
  * @returns: 实际写入out_snap的数据长度
  */
-int joylink_dev_get_snapshot(char **out_snapshot);
+int joylink_dev_get_snap_shot(char *out_snap, int32_t out_max);
 
 /**
  * @brief: 获取向App返回的设备快照json结构
@@ -91,7 +82,7 @@ int joylink_dev_get_snapshot(char **out_snapshot);
  *
  * @returns: 
  */
-int joylink_dev_get_json_snapshot(char *out_snap, int32_t out_max, int code, char *feedid);
+int joylink_dev_get_json_snap_shot(char *out_snap, int32_t out_max, int code, char *feedid);
 
 /**
  * @brief: 通过App控制设备,需要实现此函数,根据传入的json_cmd对设备进行控制
@@ -112,7 +103,7 @@ E_JLRetCode_t joylink_dev_lan_json_ctrl(const char *json_cmd);
  *
  * @returns: E_RET_OK 成功, E_RET_ERROR 失败
  */
-E_JLRetCode_t joylink_dev_script_ctrl(const char *src, int src_len);
+E_JLRetCode_t joylink_dev_script_ctrl(const char *src, int src_len, JLContrl_t *ctr, int from_server);
 
 /**
  * @brief:特殊场景使用，厨具，下发菜单。
