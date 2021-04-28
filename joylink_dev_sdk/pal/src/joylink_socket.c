@@ -8,7 +8,6 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <net/if.h>
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <netdb.h>
@@ -26,8 +25,7 @@
 #include "joylink_socket.h"
 
 
-// 默认使用 getaddrinfo 函数
-#define __GET_ADDR_INFO__
+// #define __GET_ADDR_INFO__
 
 /** @defgroup group_platform_net_api_manage
  *  @{
@@ -602,6 +600,9 @@ uint32_t jl_platform_htonl(uint32_t hostlong)
  */
 uint32_t jl_platform_ntohl(uint32_t netlong)
 {
+#ifdef __LINUX_PAL__
+    return ntohl(netlong);
+#endif
     return 0;
 }
 
@@ -634,6 +635,9 @@ uint16_t jl_platform_htons(uint16_t hostshort)
  */
 uint16_t jl_platform_ntohs(uint16_t netshort)
 {
+#ifdef __LINUX_PAL__
+    return ntohs(netshort);
+#endif
     return 0;
 }
 
