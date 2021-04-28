@@ -2,7 +2,6 @@
 #define _JOYLINK_RET_CODE_H_
 
 #include <stdio.h>
-#include "sdkconfig.h"
 
 #ifdef __cplusplus
 extern "C"{

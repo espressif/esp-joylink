@@ -19,26 +19,6 @@
 int32_t   jl_platform_printf(const char *fmt, ...);
 
 /**
- * @brief 打印加锁
- *
- * @param None
- * @return None.
- * @see None.
- * @note None.
- */
-void  jl_platform_printf_lock(void);
-
-/**
- * @brief 打印解锁
- *
- * @param None
- * @return None.
- * @see None.
- * @note None.
- */
-void  jl_platform_printf_unlock(void);
-
-/**
  * @brief 将数据安格式化写入到字符串
  *
  * @param [out] str: @n String that holds written text.
@@ -64,6 +44,19 @@ int32_t jl_platform_sprintf(char *str, const char *fmt, ...);
  * @note None.
  */
 int32_t jl_platform_snprintf(char *str, const int32_t len, const char *fmt, ...);
+
+/**
+ * @brief 将字符串格式化写入到数据
+ *
+ * @param [in] str: @n String that holds written text.
+ * @param [in] fmt: @n Format that contains the text to be written, it can optionally contain embedded format specifiers
+     that specifies how subsequent arguments are converted for output.
+ * @param [out] ...: @n the variable argument list, for formatted and inserted in the resulting string replacing their respective specifiers.
+ * @return bytes of character successfully written into string.
+ * @see None.
+ * @note None.
+ */
+int jl_platform_sscanf(const char *str, const char *format, ...);
 
 /** @defgroup group_platform_file_api_manage
  *  @{

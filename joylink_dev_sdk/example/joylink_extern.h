@@ -24,6 +24,8 @@ extern "C"{
 #define JLP_UUID "363282" 
 #define IDT_CLOUD_PUB_KEY "0283866FBE020E880A0D004C7253A5FED07EBEEB618DB4149098F98ED8E5CEF244"
 
+#define JLP_CHIP_MODEL_CODE ""
+
 #define USER_DATA_POWER   "Power"
 #define USER_DATA_MODE   "Mode"
 #define USER_DATA_STATE   "State"
@@ -37,11 +39,30 @@ typedef struct _user_dev_status_t {
 #define JLP_UUID "" 
 #define IDT_CLOUD_PUB_KEY ""
 
+#define JLP_CHIP_MODEL_CODE ""
+
 typedef struct _user_dev_status_t {
 
 } user_dev_status_t;
 #endif
 
+
+typedef enum _JL_OTA_UPGRADE_TYPE_E{
+    JL_OTA_UPGRADE_TYPE_PROMPT      = 1,
+    JL_OTA_UPGRADE_TYPE_SILENT      = 2,
+    JL_OTA_UPGRADE_TYPE_ENFORCE     = 3
+}JL_OTA_UPGRADE_TYPE_E;
+
+typedef struct{
+    int serial;
+    char feedid[JL_MAX_FEEDID_LEN];
+    char productuuid[JL_MAX_UUID_LEN];
+    int version;
+    char versionname[JL_MAX_VERSION_NAME_LEN];
+    unsigned int crc32;
+    char url[JL_MAX_URL_LEN];
+    JL_OTA_UPGRADE_TYPE_E upgradetype;
+}JLOtaOrder_t;
 
 /**
  * @brief: 此函数需返回设备的MAC地址
@@ -256,6 +277,48 @@ E_JLRetCode_t joylink_dev_active_message(char *message);
  * @param[in] on_off: 1, 开启激活模式; 0, 关闭激活模式
  */
 void joylink_dev_lan_active_switch(uint8_t on_off);
+
+/* 记录错误类型的统计，每种错误类型单独统计错误次数,最多纪录MAX_SIZE种错误类型的数据。*/
+#define MAX_SIZE    10
+
+typedef struct failedinfo{
+	int 	times;	//错误次数
+	int 	code;	//错误码
+	char 	des[32];	//错误描述
+}failedinfo_t;
+
+/******************************接口用于模组连接ap失败 begin*********************************/
+/**
+ * @brief: 存储模组连接ap失败信息.
+ *
+ * @note: 在连接ap失败后调用，将错误码code与错误描述des写入flash保存。
+ *
+ * @param[in] code: 错误码
+ *
+ * @param[in] des: 错误描述
+ *
+ * @returns: 0 存储成功, -1 存储失败
+ */
+int joylink_set_fac_ap_con_failinfo(int code, char* des);
+
+/**
+ * @brief: 读取模组连接ap失败信息.
+ *
+ * @note: 上报错误日志前调用，读取flash中的错误信息。
+ *
+ * @param[out] info: 错误信息结构体指针
+ *
+ * @returns: 读取成功，返回size, 读取失败，返回-1.
+ */
+int joylink_get_fac_ap_con_failinfo(failedinfo_t* info);
+
+
+/**
+ * brief: 设置认证方式。
+ *
+ * @param[in] mode: 0, 单向认证; 1, 双向认证。   // 默认为双向认证。
+ */
+extern void joylink_set_device_auth_mode(uint8_t mode);
 
 
 #ifdef __cplusplus

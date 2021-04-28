@@ -3,15 +3,12 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <semaphore.h>
+#include <signal.h>
 
 #ifdef __LINUX_PAL__
 #include <pthread.h>
 #include <sched.h>
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/timers.h"
-#include "freertos/semphr.h"
-#include "esp_timer.h"
 #endif
 
 // joylink platform layer header files
@@ -192,8 +189,13 @@ void jl_platform_mutex_delete(jl_mutex_t handle)
 jl_semaphore_t jl_platform_semaphore_create(void)
 {
 #ifdef __LINUX_PAL__
-    jl_semaphore_t semaphore_t = xSemaphoreCreateCounting(255, 0);;
-    return semaphore_t; 
+    jl_semaphore_t semaphore_t = NULL;
+
+    sem_t *sem = NULL;
+    sem = (sem_t *)jl_platform_malloc(sizeof(sem_t));
+    sem_init(sem, 0, 0);
+    semaphore_t = (jl_semaphore_t)sem;
+    return semaphore_t;
 #else
     return NULL;
 #endif
@@ -209,11 +211,13 @@ jl_semaphore_t jl_platform_semaphore_create(void)
  */
 void jl_platform_semaphore_destroy(jl_semaphore_t handle)
 {
-
 #ifdef __LINUX_PAL__
-    if (handle != NULL) {
-        vSemaphoreDelete(handle);
+    if(handle == NULL)
+    {
+        jl_platform_printf("[semaphore] handle is NULL\n");
+        return ;
     }
+    sem_destroy((sem_t *)handle);
 #endif
 }
 
@@ -234,12 +238,12 @@ void jl_platform_semaphore_destroy(jl_semaphore_t handle)
 void jl_platform_semaphore_wait(jl_semaphore_t handle, uint32_t timeout_ms)
 {
 #ifdef __LINUX_PAL__
-    if (handle != NULL) {
-        if ((timeout_ms > 0) && (timeout_ms < portTICK_PERIOD_MS)) {
-            timeout_ms = portTICK_PERIOD_MS;
-        }
-        xSemaphoreTake(handle, (timeout_ms/portTICK_PERIOD_MS));
+    if(handle == NULL)
+    {
+        jl_platform_printf("[semaphore] handle is NULL\n");
+        return ;
     }
+    sem_wait((sem_t *)handle);
 #endif
 }
 
@@ -254,9 +258,12 @@ void jl_platform_semaphore_wait(jl_semaphore_t handle, uint32_t timeout_ms)
 void jl_platform_semaphore_post(jl_semaphore_t handle)
 {
 #ifdef __LINUX_PAL__
-    if (handle != NULL) {
-        xSemaphoreGive(handle);
+    if(handle == NULL)
+    {
+        jl_platform_printf("[semaphore] handle is NULL\n");
+        return ;
     }
+    sem_post((sem_t *)handle);
 #endif
 }
 
@@ -350,9 +357,7 @@ void jl_platform_thread_delete(jl_thread_t* thread_handle)
  */
 int32_t jl_platform_thread_isrunning(jl_thread_t* thread_handle)
 {
-#ifdef __LINUX_PAL__
-    return thread_handle->isRunning;
-#endif
+    return 0;
 }
 
 /**
@@ -366,7 +371,7 @@ int32_t jl_platform_thread_isrunning(jl_thread_t* thread_handle)
 void  jl_platform_msleep(uint32_t ms)
 {
 #ifdef __LINUX_PAL__
-    vTaskDelay(ms/ portTICK_PERIOD_MS);
+    usleep(ms*1000);
 #endif
 }
 

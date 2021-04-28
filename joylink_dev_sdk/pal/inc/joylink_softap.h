@@ -10,6 +10,12 @@
  */
 int32_t jl_softap_enter_ap_mode(void);
 
+/**
+ * @brief:set softap config stop.
+ *
+ * @returns:success 0, others failed
+ */
+int32_t jl_softap_config_stop(void);
 
 /**
  * @brief:System is expected to get product information that user regiested in Cloud platform.
@@ -33,13 +39,4 @@ int32_t jl_softap_get_product_info(char *uuid, char *brand, char *cid, char *dev
  */
 int32_t jl_softap_connect_wifi_router(char *ssid, char *passwd);
 
-/**
- * @brief: save wifi information
- *
- * @param[in] ssid
- * @param[in] password
- * 
- * @returns: void
- */
-void esp_joylink_wifi_save_info(uint8_t*ssid,uint8_t*password);
 #endif

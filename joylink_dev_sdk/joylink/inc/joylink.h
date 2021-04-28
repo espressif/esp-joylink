@@ -10,15 +10,17 @@ extern "C"{
 #include "joylink_stdint.h"
 
 #define _VERSION_  "2.1.22"
-#define JL_MINOR_VERSION	25
-#define _RELEASE_TIME_  "2020_12_15"
+#define JL_MINOR_VERSION	30
+#define _RELEASE_TIME_  "2021_03_17"
+
 #define JL_PACKET_HEADER_VERSION      	(1)
 
+#ifndef JL_MAX_PACKET_LEN
 #define JL_MAX_PACKET_LEN	    (1400)
+#endif // !JL_MAX_PACKET_LEN
+
 #define JL_MAX_IP_LEN               (16)
-
-#define JL_MAX_MAC_LEN              (17) //esp32 or esp32s2 or esp8266
-
+#define JL_MAX_MAC_LEN              (17)
 #define JL_MAX_UUID_LEN             (7)
 #define JL_MAX_FEEDID_LEN           (33)
 #define JL_MAX_KEY_BIN_LEN          (21)
@@ -176,6 +178,10 @@ typedef enum _lan_snap_short{
     E_SNAPSHOT_NO = 1
 }E_JLLanSnapShort_t;
 
+
+#define LEN_URL_MAX		32
+#define LEN_TOKEN_MAX		16
+
 typedef struct {
 	int isUsed;
 	short version;
@@ -214,11 +220,12 @@ typedef struct {
 
 	int batchBind;
 
-#if(CONFIG_IDF_TARGET_ESP8266 || CONFIG_IDF_TARGET_ESP32S2)
-    int model_code_flag; 
-#endif
+	int model_code_flag;
 
 	unsigned int crc32;
+
+	char gURLStr[LEN_URL_MAX+1];
+	char gTokenStr[LEN_TOKEN_MAX+1];
 }JLPInfo_t;
 
 #define IDT_D_PK_LEN            (34)
@@ -260,15 +267,10 @@ typedef struct {
 
     int cloud_serial;
     int cloud_timestamp;
-	int sync_time_flag;
 
-#if(CONFIG_IDF_TARGET_ESP8266 || CONFIG_IDF_TARGET_ESP32S2)
 	unsigned char sdk_response;
-	
+
 	char *activeJsonData;
-#else
-    int model_code_flag;
-#endif
 }JLDevice_t;
 
 typedef enum _dev_type{
@@ -376,16 +378,6 @@ typedef struct {
 }JLDataUploadRsp_t;
 
 typedef struct{
-	int serial;
-    char feedid[JL_MAX_FEEDID_LEN];
-    char productuuid[JL_MAX_UUID_LEN];
-    int version;
-    char versionname[JL_MAX_VERSION_NAME_LEN];
-    unsigned int crc32;
-    char url[JL_MAX_URL_LEN];
-}JLOtaOrder_t;
-
-typedef struct{
     char feedid[JL_MAX_FEEDID_LEN];
     char productuuid[JL_MAX_UUID_LEN];
     int status;
@@ -416,11 +408,25 @@ typedef enum{
 int joylink_server_upload_req();
 
 /**
- * @brief: 应用程序可以调用此函数实现任意时刻子设备状态上报
+ * brief: 向云端上报设备状态
  *
+ * @Returns: 
+ */
+int joylink_server_event_req(char *event_payload, int length);
+
+/**
+ * @brief: 应用程序可以调用此函数实现任意时刻子设备状态上报
+ * 
  * @return: 保留. 当前调用方不使用此函数的返回值
  */
 int joylink_server_subdev_upload_req();
+
+/**
+ * brief: 向云端上报子设备状态
+ *
+ * @Returns: 
+ */
+int joylink_server_subdev_event_req(char *macstr, char *event_payload, int length);
 
 /**
  * @brief: 应用程序可通过调用此函数实现向云端上报OTA状态

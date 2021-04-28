@@ -6,8 +6,6 @@
 #include "joylink_stdint.h"
 
 
-#define TIME_SYNC_PERIOD    (60 * SECONDS)
-
 typedef struct{
     uint32_t    year;         /* 年份，其值等于实际年份减去1900 */
     uint8_t     month;      /* 月份(从一月开始，0代一月)，取值区间为[0,11]*/
@@ -30,23 +28,14 @@ typedef struct {
  * @return: success or fail
  *
  */
-int32_t jl_set_UTCtime(jl_time_stamp_t time_stamp);
-
-/**
- * get time
- *
- * @out param: time
- * @return: success or fail
- *
- */
-int32_t jl_time_get_time(jl_time_t *jl_time);
+int32_t jl_set_UTCtime(jl_time_stamp_t ts);
 
 /**
 * @brief get timestamp(ms)
 * @param none
 * @return time ms
 */
-uint32_t jl_time_get_timestamp_ms(jl_time_stamp_t *time_stamp);
+int jl_get_time_msec(jl_time_stamp_t *ts);
 
 /**
  * get timestamp(ms)
@@ -54,7 +43,16 @@ uint32_t jl_time_get_timestamp_ms(jl_time_stamp_t *time_stamp);
  * @return: UTC Second
  *
  */
-uint32_t jl_time_get_timestamp(jl_time_t *jl_time);
+uint32_t jl_get_time_second(uint32_t *jl_time);
+
+/**
+ * get time string
+ *
+ * @out param: 
+ * @return: success or fail
+ *
+ */
+int jl_get_time(jl_time_t *jl_time);
 
 /**
  * get time string
@@ -63,7 +61,7 @@ uint32_t jl_time_get_timestamp(jl_time_t *jl_time);
  * @return: success or fail
  *
  */
-int32_t jl_get_time_str(char *out, int32_t len);
+char *jl_get_time_str(void);
 
 /**
  * get os time
