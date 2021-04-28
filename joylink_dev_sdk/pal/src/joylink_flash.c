@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 // joylink platform layer header files
 #include "joylink_flash.h"
@@ -181,7 +182,7 @@ int64_t jl_flash_GetInt64(const char* key, int64_t defaultValue)
     }
     fclose(fp);
     fp = NULL;
-    printf("jl_flash_GetInt64, value = %ld\n", value);
+    printf("jl_flash_GetInt64, value = %"PRId64" \n", value);
     return value;
 #else
     return 0;
