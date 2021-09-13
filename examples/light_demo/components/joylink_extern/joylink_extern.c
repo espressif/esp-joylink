@@ -214,10 +214,10 @@ joylink_dev_set_attr_jlp(JLPInfo_t *jlp)
 
 #ifdef CONFIG_JOYLINK_BLE_ENABLE
     if (get_rst) {
-        ret = jl_send_net_config_state(E_JL_NET_CONF_ST_IOT_CONNECT_SUCCEED);
+        ret = jl_send_net_config_state(E_JL_NET_CONF_ST_IOT_CONNECT_SUCCEED, NULL, 0);
         log_debug("E_JL_NET_CONF_ST_IOT_CONNECT_SUCCEED ret = %d", ret);
 
-        ret = jl_send_net_config_state(E_JL_NET_CONF_ST_CLOUD_CONNECT_SUCCEED);
+        ret = jl_send_net_config_state(E_JL_NET_CONF_ST_CLOUD_CONNECT_SUCCEED, NULL, 0);
         log_debug("E_JL_NET_CONF_ST_CLOUD_CONNECT_SUCCEED ret = %d", ret);
     }
 #endif

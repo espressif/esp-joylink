@@ -23,11 +23,11 @@ config JOYLINK_PUBLIC_KEY
     string "The public key, you can get it from JD"
 
 config JOYLINK_DEVICE_MAC
-    default "240AAEEBCF18"
+    default "240AAEEBCF20"
     string "DEVICE MAC"
 
 config JOYLINK_PRIVATE_KEY
-    default "B1120284273A1686E9B518FA49248CFA65C8D229581BB075860EFD895829C089"
+    default "6F5111A86101EECCCF6CB791FDD447E6DBC953F73E30D4BB3826527C4BBF50F3"
     string "The private key, you can get it from JD"
 
 config JOYLINK_DEVICE_BRAND

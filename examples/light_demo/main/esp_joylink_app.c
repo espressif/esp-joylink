@@ -112,7 +112,7 @@ static void joylink_task(void *pvParameters)
             vTaskDelay(10);
             if(get_rst) {
                 joylink_ble_report_flag = true;
-                ret = jl_send_net_config_state(E_JL_NET_CONF_ST_WIFI_CONNECT_START);
+                ret = jl_send_net_config_state(E_JL_NET_CONF_ST_WIFI_CONNECT_START, NULL, 0);
                 log_debug("E_JL_NET_CONF_ST_WIFI_CONNECT_START ret = %d", ret);
 
                 log_debug("SSID: %s\r\n", (char *)jd_ble_config.sta.ssid);

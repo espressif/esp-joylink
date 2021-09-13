@@ -46,11 +46,13 @@ esp_err_t event_handler(void *ctx, system_event_t *event)
         case SYSTEM_EVENT_STA_GOT_IP:
 #ifdef CONFIG_JOYLINK_BLE_ENABLE
             if (get_rst) {
-                ret = jl_send_net_config_state(E_JL_NET_CONF_ST_WIFI_CONNECT_SUCCEED);
+                ret = jl_send_net_config_state(E_JL_NET_CONF_ST_WIFI_CONNECT_SUCCEED, NULL, 0);
                 log_debug("E_JL_NET_CONF_ST_WIFI_CONNECT_SUCCEED ret = %d", ret);
                 printf("token: %s\n", ble_net_cfg_data.token);
                 printf("url: %s\n", ble_net_cfg_data.url);
                 joylink_dev_active_start((char *)ble_net_cfg_data.url, (char *)ble_net_cfg_data.token);
+                free(ble_net_cfg_data.token);
+                free(ble_net_cfg_data.url);
                 // joylink_dev_active_req();
                 joylink_ble_report_flag = false;
             }

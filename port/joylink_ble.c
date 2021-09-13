@@ -326,7 +326,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
     	case ESP_GATTS_CONF_EVT:
             ESP_LOGI(TAG, "ESP_GATTS_CONF_EVT - handle = %d, status = %d", param->conf.handle, param->conf.status);
             if (param->conf.status == ESP_GATT_OK) {
-                jl_indicate_confirm_send_data();
+                jl_send_confirm();
                 get_rst = true;
             }
     	    break;
