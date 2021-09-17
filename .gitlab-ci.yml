@@ -62,13 +62,12 @@ esp8266_master_build:
 
 esp32_master_build:
   stage: build
-  image: $CI_DOCKER_REGISTRY/esp32-ci-env
+  image: $CI_DOCKER_REGISTRY/esp-env:v4.4-1
   tags:
     - build
 
   variables:
     GIT_STRATEGY: clone
-    PYTHON_VER: 3.6.13
     
   before_script:
     - mkdir -p ~/.ssh
@@ -81,8 +80,6 @@ esp32_master_build:
   script:
     - git clone ${GITLAB_SSH_SERVER}/espressif/esp-idf.git esp-idf
     - export IDF_PATH=$(pwd)/esp-idf
-    - source $IDF_PATH/tools/ci/utils.sh
-    - source $IDF_PATH/tools/ci/setup_python.sh
     - source $IDF_PATH/tools/ci/configure_ci_environment.sh
     - $IDF_PATH/tools/idf_tools.py --non-interactive install && eval "$($IDF_PATH/tools/idf_tools.py --non-interactive export)" || exit 1
     - cd $IDF_PATH
@@ -152,13 +149,12 @@ esp32_v4.0_build:
 
 esp32s2_master_build:
   stage: build
-  image: $CI_DOCKER_REGISTRY/esp32-ci-env
+  image: $CI_DOCKER_REGISTRY/esp-env:v4.4-1
   tags:
     - build
 
   variables:
     GIT_STRATEGY: clone
-    PYTHON_VER: 3.6.13
     
   before_script:
     - mkdir -p ~/.ssh
@@ -171,8 +167,6 @@ esp32s2_master_build:
   script:
     - git clone ${GITLAB_SSH_SERVER}/espressif/esp-idf.git esp-idf
     - export IDF_PATH=$(pwd)/esp-idf
-    - source $IDF_PATH/tools/ci/utils.sh
-    - source $IDF_PATH/tools/ci/setup_python.sh
     - source $IDF_PATH/tools/ci/configure_ci_environment.sh
     - $IDF_PATH/tools/idf_tools.py --non-interactive install && eval "$($IDF_PATH/tools/idf_tools.py --non-interactive export)" || exit 1
     - cd $IDF_PATH
