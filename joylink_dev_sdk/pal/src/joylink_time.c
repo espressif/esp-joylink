@@ -75,9 +75,10 @@ int jl_get_time(jl_time_t *jl_time)
 {
 #ifdef __LINUX_PAL__
     time_t timep;
-    struct tm *p;
-    jl_time->timestamp = (uint32_t) jl_get_time_second(NULL);
-    p = gmtime(&timep);
+
+    time(&timep);
+    struct tm *p = localtime(&timep);
+
     jl_time->year      = p->tm_year;
     jl_time->month     = p->tm_mon;
     jl_time->week      = p->tm_wday;

@@ -21,12 +21,12 @@
 
 #define JL_MAX_SUB 2
 
-int sub_dev_numb = JL_MAX_SUB;
+int sub_dev_numb = 0;
 
 JLSubDevData_t _g_sub_dev[JL_MAX_SUB] = {
-    {.mac = "AA0011223344", .type = E_JLDEV_TYPE_SUB, .uuid = "4E4638", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .subNoSnapshot = E_SNAPSHOT_NO, .devAuthValue = "96f730bd1a6f9fcc2d40cfad0c0d8b9c"},
-	{.mac = "AA0011223355", .type = E_JLDEV_TYPE_SUB, .uuid = "4E4638", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .subNoSnapshot = E_SNAPSHOT_NO, .devAuthValue = "9401a7005788efd93c25b46fdaf169ad"},
 #if 0
+    {.mac = "AA0011223344", .type = E_JLDEV_TYPE_SUB, .uuid = "7D7E2A", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .subNoSnapshot = E_SNAPSHOT_NO, .devAuthValue = "64f33f8c828a588bab67464ad2eea88d"},
+	{.mac = "AA0011223355", .type = E_JLDEV_TYPE_SUB, .uuid = "D23707", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .subNoSnapshot = E_SNAPSHOT_NO, .devAuthValue = "51f73d8d949994ab5b87d7a0ac0b6717"},
 	{.mac = "AA0011223366", .type = E_JLDEV_TYPE_SUB, .uuid = "4E4638", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .subNoSnapshot = E_SNAPSHOT_NO, .devAuthValue = "844cd9ab1f28140d8d60bd389b660154"},
 	{.mac = "AA0011223377", .type = E_JLDEV_TYPE_SUB, .uuid = "4E4638", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .subNoSnapshot = E_SNAPSHOT_NO, .devAuthValue = "006b728b172e3e204e16380398ffe9da"},
 	{.mac = "AA0011223399", .type = E_JLDEV_TYPE_SUB, .uuid = "514C0E", .lancon = 1, .cmd_tran_type = 1, .state = 1, .protocol = 1, .subNoSnapshot = E_SNAPSHOT_NO, .devAuthValue = "880c86bcd07b1648367c332cb2a1463a"},
@@ -145,6 +145,7 @@ joylink_dev_sub_add(JLSubDevData_t *dev, int num)
 	    if(jl_platform_strlen(_g_sub_dev[i].uuid) == 0){
 	        jl_platform_memcpy(&_g_sub_dev[i], dev, sizeof(JLSubDevData_t));
 		sub_dev_numb++;
+        log_debug("i = %d, sub_dev_numb = %d, uuid = %s, device_id = %s", i, sub_dev_numb, _g_sub_dev[i].uuid, _g_sub_dev[i].mac);
 		break;
 	    }
 	}
@@ -366,7 +367,7 @@ joylink_dev_sub_devs_get(int *count)
     /**
      *FIXME: todo must lock
      */
-    int i = 0, j = 0, sum = 0; 
+    int i = 0, j = 0, n = 0, sum = 0; 
     JLSubDevData_t *devs = NULL;
 
     #ifdef _SAVE_FILE_
@@ -375,7 +376,13 @@ joylink_dev_sub_devs_get(int *count)
 	joylink_dev_sub_data_read();
     }
     #endif
-    
+
+    for(i = 0; i < JL_MAX_SUB; i++){
+        if(jl_platform_strlen(_g_sub_dev[i].uuid) != 0){			
+            n++;
+        }
+    }
+    sub_dev_numb = n;
     sum = sub_dev_numb;
     devs = (JLSubDevData_t *)jl_platform_malloc(sizeof(JLSubDevData_t) * sum);
     jl_platform_memset(devs, 0, sizeof(JLSubDevData_t) * sum);
@@ -437,8 +444,8 @@ joylink_dev_sub_get_snap_shot(char *feedid, int *out_len)
     /**
      *FIXME: todo must lock
      */
-    char on[] = "{\"code\": 0,  \"streams\": [{ \"current_value\": \"1\", \"stream_id\": \"power\" }]}";
-    char off[] = "{\"code\": 0,  \"streams\": [{ \"current_value\": \"0\", \"stream_id\": \"power\" }]}";
+    char on[] = "{\"code\": 0,  \"streams\": [{ \"current_value\": \"1\", \"stream_id\": \"Power\" }]}";
+    char off[] = "{\"code\": 0,  \"streams\": [{ \"current_value\": \"0\", \"stream_id\": \"Power\" }]}";
 
     char *tp = 	NULL;
 
@@ -487,6 +494,64 @@ joylink_dev_sub_unbind(const char *feedid)
 #ifdef _SAVE_FILE_
 	joylink_dev_sub_data_save();
 #endif
+
+    return ret;
+}
+
+/**
+ * brief: 立刻上报子设备快照
+ *
+ * @Returns: 
+ */
+
+int joylink_sub_dev_report_snapshot_immediately(char *macstr, char *data, int len)
+{
+	return joylink_server_subdev_event_req(macstr, data, len);
+}
+
+/**
+ * @brief: SDK subdev active 子设备激活状态报告
+ * 
+ * @param[in] status: 状态 0打开, 1成功，2失败, 3解邦
+ * 
+ * @return: reserved 当前此函数仅做通知,调用方不关心返回值.
+ */
+void joylink_sub_dev_active_status(char status)
+{
+	;
+}
+
+/**
+ * @brief: delete subdev 删除子设备
+ * 
+ * @param[in] mac: 删除子设备的 mac
+ * 
+ * @return: reserved 当前此函数仅做通知,调用方不关心返回值.
+ */
+void joylink_sub_dev_delete_msg(char *mac)
+{
+	// 离网之后会有离网回调，删除MAC在回调中完成。
+	;
+}
+
+/**
+ * @brief: 添加子设备到全局数组_g_sub_dev中
+ *
+ * @param[in]: dev 设备结构
+ * @param[in]: message 例如：
+ * {
+* 	"uuid": "D23707",                                               // 小京鱼开放平台创建的虚拟红外被控设备的UUID
+* 	"brandKey": "mm",                                           // 虚拟被控红外设备品牌标识，对接厂商自行定义
+* 	"modelKey": "xx",                                              // 虚拟被控红外设备型号标识，对接厂商自行定义
+* 	"controllerId": "948001623745658402"    // 主控红外遥控器的feedid，表示虚拟红外被控设备可以被哪一个遥控器控制。
+* }
+ *
+ * @returns:  E_RET_OK 成功, E_RET_ERROR 发生错误
+ */
+E_JLRetCode_t joylink_dev_sub_add_infrared_receiver(JLSubDevData_t *dev, char *message)
+{
+    int ret = E_RET_OK;
+    joylink_dev_sub_add(dev, 1);
 
     return ret;
 }

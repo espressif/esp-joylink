@@ -5,13 +5,10 @@
 extern "C"{
 #endif /* __cplusplus */
 
+#include "joylink_version.h"
 #include "joylink_log.h"
 #include "joylink_ret_code.h"
 #include "joylink_stdint.h"
-
-#define _VERSION_  "2.1.22"
-#define JL_MINOR_VERSION	30
-#define _RELEASE_TIME_  "2021_03_17"
 
 #define JL_PACKET_HEADER_VERSION      	(1)
 
@@ -160,7 +157,10 @@ typedef enum _tran_type{
     E_SUBDEV_TRANS_TYPE_WIFI = 0,
     E_SUBDEV_TRANS_TYPE_ZIGBEE = 1,
     E_SUBDEV_TRANS_TYPE_BLE = 2,
-    E_SUBDEV_TRANS_TYPE_433 = 3
+    E_SUBDEV_TRANS_TYPE_433 = 3,
+    E_SUBDEV_TRANS_TYPE_ZIGBEE30 = 4,
+    E_SUBDEV_TRANS_TYPE_MODBUS = 5,
+    E_SUBDEV_TRANS_TYPE_INFRARED
 }E_JLSubDevTransType_t;
 
 typedef enum _cmd_type{
@@ -224,8 +224,8 @@ typedef struct {
 
 	unsigned int crc32;
 
-	char gURLStr[LEN_URL_MAX+1];
-	char gTokenStr[LEN_TOKEN_MAX+1];
+	char domain[LEN_URL_MAX+1];
+	char token[LEN_TOKEN_MAX+1];
 }JLPInfo_t;
 
 #define IDT_D_PK_LEN            (34)
@@ -305,6 +305,7 @@ typedef struct __dev_enable{
     char joylink_server[JL_MAX_SERVER_NAME_LEN];
     int server_port;
     char cloud_sig[64 * 2 + 1];
+    char domain[LEN_URL_MAX+1];
 
 }DevEnable_t;
 
