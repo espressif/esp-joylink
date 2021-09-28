@@ -28,6 +28,45 @@ typedef struct _light_manage_{
 	LightCtrl_t lightCtrl;
 }LightManage_t;
 
+typedef struct _jl_http_t{
+    char        *url;
+    char        *header;
+    char        *body;
+    char        *response;
+    int32_t      resp_len;
+}jl_http_t;
+
+#define SET_HTTP_RECV_MAX_LEN 64
+
+/**
+ * @name:实现HTTPS的POST请求,请求响应填入revbuf参数
+ *
+ * @param[in]: url POST请求的链接和路径
+ * @param[in]: header POST请求的HEADER
+ * @param[in]: body POST请求的Payload
+ * @param[out]: revbuf 填入请求的响应信息
+ *
+ * @returns:   NULL - 发生错误, 其它 - 请求返回的数据 ，使用完毕内存需要释放
+ *
+ * @note:此函数必须正确实现,否则设备无法激活绑定
+ * @note:小京鱼平台HTTPS使用的证书每年都会更新.
+ * @note:因为Joylink协议层面有双向认证的安全机制,所以此HTTPS请求设备无需校验server的证书.
+ * @note:如果设备必须校验server的证书,那么需要开发者实现时间同步等相关机制.
+ */
+int32_t jl_platform_https_request(jl_http_t *info);
+
+/**
+ * @name:实现HTTP的POST请求,请求响应填入revbuf参数
+ *
+ * @param[in]: url POST请求的链接和路径
+ * @param[in]: header POST请求的HEADER
+ * @param[in]: body POST请求的Payload
+ * @param[out]: revbuf 填入请求的响应信息
+ *
+ * @returns:   NULL - 发生错误, 其它 - 请求返回的数据 ，使用完毕内存需要释放
+ */
+int32_t jl_platform_http_request(jl_http_t *info);
+
 /**
  * @brief: 返回是否可以访问互联网
  *
@@ -146,38 +185,6 @@ E_JLRetCode_t joylink_dev_get_idt(jl2_d_idt_t *pidt);
  * @returns: 整型随机数
  */
 int joylink_dev_get_random();
-
-/**
- * @name:实现HTTPS的POST请求,请求响应填入revbuf参数 
- *
- * @param[in]: host POST请求的目标地址
- * @param[in]: query POST请求的路径、HEADER和Payload
- * @param[out]: revbuf 填入请求的响应信息
- * @param[in]: buflen  revbuf最大长度
- *
- * @returns:   
- *
- * @note:此函数必须正确实现,否则设备无法激活绑定
- * @note:小京鱼平台HTTPS使用的证书每年都会更新. 
- * @note:因为Joylink协议层面有双向认证的安全机制,所以此HTTPS请求设备无需校验server的证书. 
- * @note:如果设备必须校验server的证书,那么需要开发者实现时间同步等相关机制.
- */
-int joylink_dev_https_post( char* host, char* query ,char *revbuf,int buflen);
-
-/**
- * @brief 实现HTTP的POST请求,请求响应填入revbuf参数.
- * 
- * @param[in]  host: POST请求的目标主机
- * @param[in]  query: POST请求的路径、HEADER和Payload
- * @param[out] revbuf: 填入请求的响应信息的Body
- * @param[in]  buflen: revbuf的最大长度
- * 
- * @returns: 0 - 请求成功, -1 - 请求失败
- * 
- * @note: 此函数必须正确实现,否者设备无法校时,无法正常激活绑定
- *
- * */
-int joylink_dev_http_post( char* host, char* query ,char *revbuf,int buflen);
 
 /**
  * @brief: SDK main loop 运行状态报告,正常情况下此函数每5秒会被调用一次,可以用来判断SDK主任务的运行状态.
