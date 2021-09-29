@@ -260,8 +260,8 @@ if(infile > 0)
 	jl_platform_strcpy(jlp->joylink_server, fjlp.joylink_server);
 	jlp->server_port = fjlp.server_port;
 
-	jl_platform_strcpy(jlp->gURLStr, fjlp.gURLStr);
-	jl_platform_strcpy(jlp->gTokenStr, fjlp.gTokenStr);
+	jl_platform_strcpy(jlp->domain, fjlp.domain);
+	jl_platform_strcpy(jlp->token, fjlp.token);
 
 	if(joylink_dev_get_user_mac(jlp->mac) < 0){
 		jl_platform_strcpy(jlp->mac, fjlp.mac);
@@ -495,155 +495,6 @@ joylink_dev_ota_status_upload()
 	return;	
 }
 
-static int joylink_dev_http_parse_content(
-	char *response, 
-	int response_len, 
-	char *content,
-	int content_len)
-{
-	int length = 0;
-	content[0] = 0;
-    char* p = jl_platform_strstr(response, "\r\n\r\n");
-    if (p == NULL) 
-	{
-		return -1;
-	}
-	p += 4;
-	length = response_len - (p - response);
-	length = length > content_len ? content_len - 1 : length;
-	jl_platform_strncpy(content, p, length);
-	content[length] = 0;
-	// log_info("content = \r\n%s", content);
-    
-	return length;
-}
-
-/**
- * @name:实现HTTPS的POST请求,请求响应填入revbuf参数 
- *
- * @param[in]: host POST请求的目标地址
- * @param[in]: query POST请求的路径、HEADER和Payload
- * @param[out]: revbuf 填入请求的响应信息
- * @param[in]: buflen  revbuf最大长度
- *
- * @returns:   负数 - 发生错误, 非负数 - 实际填充revbuf的长度 
- *
- * @note:此函数必须正确实现,否则设备无法激活绑定
- * @note:小京鱼平台HTTPS使用的证书每年都会更新. 
- * @note:因为Joylink协议层面有双向认证的安全机制,所以此HTTPS请求设备无需校验server的证书. 
- * @note:如果设备必须校验server的证书,那么需要开发者实现时间同步等相关机制.
- */
-int joylink_dev_https_post( char* host, char* query ,char *revbuf,int buflen)
-{
-	int ret = -1;
-	/**
-		 *FIXME:must to do
-	*/
-	return ret;
-}
-
-/**
- * @brief 实现HTTP的POST请求,请求响应填入revbuf参数.
- * 
- * @param[in]  host: POST请求的目标主机
- * @param[in]  query: POST请求的路径、HEADER和Payload
- * @param[out] revbuf: 填入请求的响应信息的Body
- * @param[in]  buflen: revbuf的最大长度
- * 
- * @returns: 负值 - 发生错误, 非负 - 实际填充revbuf的长度
- * 
- * @note: 此函数必须正确实现,否者设备无法校时,无法正常激活绑定
- *
- * */
-int joylink_dev_http_post( char* host, char* query, char *revbuf, int buflen)
-{
-#ifdef __LINUX_PAL__
-	int log_socket = -1;
-	int len = 0;
-    int ret = -1;
-    char *recv_buf = NULL;
-    jl_sockaddr_in saServer; 
-	char ip[20] = {0};
-
-    if(host == NULL || query == NULL || revbuf == NULL) {
-        log_error("DNS lookup failed");
-        goto RET;
-    }
-
-    jl_platform_memset(ip,0,sizeof(ip)); 
-	ret = jl_platform_gethostbyname(host, ip, SOCKET_IP_ADDR_LEN);
-	if(ret < 0){
-		log_error("get ip error");
-		ret = -1;
-		goto RET;
-	}
-	
-	jl_platform_memset(&saServer, 0, sizeof(saServer));
-    saServer.sin_family = jl_platform_get_socket_proto_domain(JL_SOCK_PROTO_DOMAIN_AF_INET);
-    saServer.sin_port = jl_platform_htons(80);
-	saServer.sin_addr.s_addr = jl_platform_inet_addr(ip);
-
-    log_socket = jl_platform_socket(JL_SOCK_PROTO_DOMAIN_AF_INET, JL_SOCK_PROTO_TYPE_SOCK_STREAM, JL_SOCK_PROTO_PROTO_IPPROTO_TCP);
-    if(log_socket < 0) {
-        log_error("... Failed to allocate socket.");
-        goto RET;
-    }
-	int reuseaddrEnable = 1;
-	if (jl_platform_setsockopt(log_socket, 
-                JL_SOCK_OPT_LEVEL_SOL_SOCKET,
-                JL_SOCK_OPT_NAME_SO_REUSEADDR, 
-                (uint8_t *)&reuseaddrEnable, 
-                sizeof(reuseaddrEnable)) < 0){
-		log_error("set SO_REUSEADDR error");
-	}
-	
-    /*fcntl(log_socket,F_SETFL,fcntl(log_socket,F_GETFL,0)|O_NONBLOCK);*/
-
-    if(jl_platform_connect(log_socket, (jl_sockaddr *)&saServer, sizeof(saServer)) != 0)
-	{
-        log_error("... socket connect failed");
-        goto RET;
-    }
-
-    if (jl_platform_send(log_socket, query, jl_platform_strlen(query), 0, 5000) < 0) {
-        log_error("... socket send failed");
-        goto RET;
-    }
-
-	int recv_buf_len = 1024; //2048;
-	recv_buf = (char *)jl_platform_malloc(recv_buf_len);
-	if(recv_buf == NULL)
-	{
-		goto RET;
-	}
-	jl_platform_memset(recv_buf, 0, recv_buf_len);
-	len = jl_platform_recv(log_socket, recv_buf, recv_buf_len, 0, 5000);
-	if(len <= 0)
-	{
-		ret = -1;
-		goto RET;
-	}
-	log_info("... read data length = %d, response data = \r\n%s", len, recv_buf);
-	ret = joylink_dev_http_parse_content(recv_buf, len, revbuf, buflen);
-
-
-RET:
-	if(-1 != log_socket){
-		jl_platform_close(log_socket);
-	}
-	if (recv_buf)
-	{
-		/* code */
-		jl_platform_free(recv_buf);
-	}
-	
-	return ret;
-#else
-    return -1;
-#endif
-
-}
-
 /**
  * @brief: SDK main loop 运行状态报告,正常情况下此函数每5秒会被调用一次,可以用来判断SDK主任务的运行状态.
  * 
@@ -672,4 +523,3 @@ void joylink_dev_run_user_code()
 {
     //You may add some code run in the main loop if necessary.
 }
-

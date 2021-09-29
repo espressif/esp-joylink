@@ -707,124 +707,223 @@ static int joylink_dev_http_parse_content(
 	return length;
 }
 
+static void jl_platform_get_host(char *url, char *host, char *path)
+{
+	char *p = NULL, *p1 = NULL;
+	int length = 0;
+
+	jl_platform_strcpy(host, url);
+	path[0] = '\0';
+	p = jl_platform_strstr(url, "://");
+	if(p == NULL){
+		goto RET;
+	}
+	p += 3;
+	p1 = jl_platform_strchr(p, '/');
+	length = p1 - p;
+	if(length >= 0)
+	{
+		// 如果有路径
+		jl_platform_memcpy(host, p, length);
+		host[length] = '\0';
+		jl_platform_strcpy(path, p1);
+		length = jl_platform_strlen(p1);
+		path[length] = '\0';
+	}
+	else
+	{
+		// 如果没有路径
+		length = jl_platform_strlen(p);
+		jl_platform_strcpy(host, p);
+		host[length] = '\0';
+		path[0] = '\0';
+	}
+
+RET:
+	log_debug("url = %s, host = %s, path = %s", url, host, path);
+	return;
+}
+
+static char *jl_platform_get_request_data(char *host, char *path, char *header, char *body)
+{
+	char *request = NULL;
+	int length = 0, offset = 0;
+	if (!path)
+	{
+		goto RET;
+	}
+	if (body)
+		length = jl_platform_strlen(body);
+
+	request = jl_platform_malloc(length + 300);
+	if(request == NULL)
+		goto RET;
+
+	offset = jl_platform_sprintf(request, "POST %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\nAccept: */*\r\n", path, host);
+	if(header)
+		offset += jl_platform_sprintf(request + offset, "%s\r\n", header);
+	if(length)
+		offset += jl_platform_sprintf(request + offset, "Content-Length:%d\r\n\r\n", length);
+	if(body)
+		offset += jl_platform_sprintf(request + offset, "%s", body);
+	offset += jl_platform_sprintf(request + offset, "\r\n");
+
+RET:
+	if(!request)
+		log_debug("request is NULL");
+	else
+		log_debug("request = %s", request);
+
+	return request;
+}
+
 /**
  * @name:实现HTTPS的POST请求,请求响应填入revbuf参数 
  *
- * @param[in]: host POST请求的目标地址
- * @param[in]: query POST请求的路径、HEADER和Payload
+ * @param[in]: url POST请求的链接和路径
+ * @param[in]: header POST请求的HEADER
+ * @param[in]: body POST请求的Payload
  * @param[out]: revbuf 填入请求的响应信息
- * @param[in]: buflen  revbuf最大长度
  *
- * @returns:   负数 - 发生错误, 非负数 - 实际填充revbuf的长度 
+ * @returns:   NULL - 发生错误, 其它 - 请求返回的数据 ，使用完毕内存需要释放
  *
  * @note:此函数必须正确实现,否则设备无法激活绑定
  * @note:小京鱼平台HTTPS使用的证书每年都会更新. 
  * @note:因为Joylink协议层面有双向认证的安全机制,所以此HTTPS请求设备无需校验server的证书. 
  * @note:如果设备必须校验server的证书,那么需要开发者实现时间同步等相关机制.
  */
-int joylink_dev_https_post( char* host, char* query ,char *revbuf,int buflen)
+int32_t jl_platform_https_request(jl_http_t *info)
 {
-    esp_tls_cfg_t config = {
-        .skip_common_name = true,
-    };
-    esp_tls_t *tls = NULL;
-    uint32_t len = 0;
-
-    memset(revbuf, 0x0, buflen);
-    tls = esp_tls_conn_new(host, strlen(host), 443, &config);
-    esp_tls_conn_write(tls, query, strlen(query));
-   
+    int len = 0;
+	char host[50];
+	char path[100];
+	char *request;
+	if ( !info || !info->url || !info->response )
+	{
+		log_error("Invalid argument\n");
+		return NULL;
+	}
     uint32_t temp_size = 1024;
     uint8_t* temp_buf = malloc(temp_size);
     int content_length = 0;
+	jl_platform_get_host(info->url, host, path);
+    esp_tls_cfg_t config = {
+         .skip_common_name = true,
+    };
+    esp_tls_t *tls = NULL;
+    log_debug("jl_platform_https_request host:%s\r\n", host);
+	request = jl_platform_get_request_data(host, path, info->header, info->body);
+	if(request)
+	{
+		tls = esp_tls_conn_new(host, strlen(host), 443, &config);
+		if (tls == NULL)
+		{
+			jl_platform_printf("esp_tls_conn_new failed\n");
+			goto RET;
+		}
 
-    len = esp_tls_conn_read(tls, temp_buf, temp_size-1);
-    printf("tempbuf:%s\n", temp_buf);
-    if(len >= temp_size)
-    {
-        len = temp_size -1;
-    }
-    char *p = strstr((char *)temp_buf, "\r\n\r\n");
+        esp_tls_conn_write(tls, request, strlen(request));
+        len = esp_tls_conn_read(tls, temp_buf, temp_size - 1);
+        printf("tempbuf:%s\n", temp_buf);
 
-    char *pv1 = strstr((char *)temp_buf, "Content-Length:");
-    char *pv2 = pv1 +16 ;
-    while(*pv2 >=48 && *pv2<=57)
-    {
-        content_length = 10*content_length + *pv2++ -48;
-    }
-    printf("Content_Length result: %d\n", content_length);
-    if(p)
-    {
-        strcpy(revbuf, p + strlen("\r\n\r\n"));
-    } else
-    {
-        revbuf[0] = '\0';
-    }
-    if(p + 4 + content_length >= temp_buf + temp_size)
-    {
-        int real_length = temp_size - (p -(char*)temp_buf) - 4;
-        while(real_length <= content_length)
+        if(len >= temp_size)
         {
-            memset(temp_buf, '\0', temp_size);
-            len = esp_tls_conn_read(tls, temp_buf, temp_size);
-            strcat(revbuf,(char*)temp_buf);
-            real_length += len;
-            printf("real_length: %d\n", real_length);
+            len = temp_size -1;
         }
- 
-    }
+        char *p = strstr((char *)temp_buf, "\r\n\r\n");
+
+        char *pv1 = strstr((char *)temp_buf, "Content-Length:");
+        char *pv2 = pv1 +16 ;
+        while(*pv2 >=48 && *pv2<=57)
+        {
+            content_length = 10*content_length + *pv2++ -48;
+        }
+        printf("Content_Length result: %d\n", content_length);
+        if(p)
+        {
+            strncpy(info->response, p + strlen("\r\n\r\n"), content_length);
+        } else
+        {
+            info->response[0] = '\0';
+        }
+        if(p + 4 + content_length >= temp_buf + temp_size)
+        {
+            int real_length = temp_size - (p -(char*)temp_buf) - 4;
+            while(real_length <= content_length)
+            {
+                memset(temp_buf, '\0', temp_size);
+                len = esp_tls_conn_read(tls, temp_buf, temp_size);
+                strcat(info->response,(char*)temp_buf);
+                real_length += len;
+                printf("real_length: %d\n", real_length);
+            }
+        }
+	}
+
+	log_info("... read data length = %d, response data = \r\n%s", len, info->response);
+RET:
     esp_tls_conn_delete(tls);
-    free(temp_buf);
-    printf("revbuf: %s\n", revbuf);
+	if(request)
+		jl_platform_free(request);
+    jl_platform_free(temp_buf);
     return 0;
 }
 
 /**
- * @brief 实现HTTP的POST请求,请求响应填入revbuf参数.
- * 
- * @param[in]  host: POST请求的目标主机
- * @param[in]  query: POST请求的路径、HEADER和Payload
- * @param[out] revbuf: 填入请求的响应信息的Body
- * @param[in]  buflen: revbuf的最大长度
- * 
- * @returns: 负值 - 发生错误, 非负 - 实际填充revbuf的长度
- * 
- * @note: 此函数必须正确实现,否者设备无法校时,无法正常激活绑定
+ * @name:实现HTTP的POST请求,请求响应填入revbuf参数
  *
- * */
-int joylink_dev_http_post( char* host, char* query, char *revbuf, int buflen)
+ * @param[in]: url POST请求的链接和路径
+ * @param[in]: header POST请求的HEADER
+ * @param[in]: body POST请求的Payload
+ * @param[out]: revbuf 填入请求的响应信息
+ *
+ * @returns:   NULL - 发生错误, 其它 - 请求返回的数据 ，使用完毕内存需要释放
+ */
+int32_t jl_platform_http_request(jl_http_t *info)
 {
+	char *recv_buf = NULL;
 	int log_socket = -1;
-	int len = 0;
-    int ret = -1;
-    char *recv_buf = NULL;
-    jl_sockaddr_in saServer; 
+	jl_sockaddr_in saServer;
 	char ip[20] = {0};
+	char host[50];
+	char path[100];
+	char *request = NULL, *p;
+	int ret = -1;
+    printf("dev-http-url: %s\n", info->url);
 
-    if(host == NULL || query == NULL || revbuf == NULL) {
-        log_error("DNS lookup failed");
-        goto RET;
-    }
+	if ( !info || !info->url || !info->response)
+	{
+		log_error("Invalid argument\n");
+		return -1;
+	}
 
-    memset(ip,0,sizeof(ip)); 
+	jl_platform_get_host(info->url, host, path);
+	request = jl_platform_get_request_data(host, path, info->header, info->body);
+	if(!request)
+	{
+		goto RET;
+	}
 
+	p = jl_platform_strchr(host, ':');
+	if(p)
+		*p = '\0';
+	jl_platform_memset(ip,0,sizeof(ip));
 	ret = jl_platform_gethostbyname(host, ip, SOCKET_IP_ADDR_LEN);
 	if(ret < 0){
 		log_error("get ip error");
-		ret = -1;
 		goto RET;
 	}
 	
-	memset(&saServer, 0, sizeof(saServer));
-    saServer.sin_family = jl_platform_get_socket_proto_domain(JL_SOCK_PROTO_DOMAIN_AF_INET);
-    saServer.sin_port = jl_platform_htons(80);
+	jl_platform_memset(&saServer, 0, sizeof(saServer));
+	saServer.sin_family = jl_platform_get_socket_proto_domain(JL_SOCK_PROTO_DOMAIN_AF_INET);
+	saServer.sin_port = jl_platform_htons(80);
 	saServer.sin_addr.s_addr = jl_platform_inet_addr(ip);
 
-    log_socket = jl_platform_socket(JL_SOCK_PROTO_DOMAIN_AF_INET, JL_SOCK_PROTO_TYPE_SOCK_STREAM, JL_SOCK_PROTO_PROTO_IPPROTO_TCP);
-    if(log_socket < 0) {
-        log_error("... Failed to allocate socket.");
-        goto RET;
-    }
+	log_socket = jl_platform_socket(JL_SOCK_PROTO_DOMAIN_AF_INET, JL_SOCK_PROTO_TYPE_SOCK_STREAM, JL_SOCK_PROTO_PROTO_IPPROTO_TCP);
+	if(log_socket < 0) {
+		log_error("... Failed to allocate socket.");
+		goto RET;
+	}
 	int reuseaddrEnable = 1;
 	if (jl_platform_setsockopt(log_socket, 
                 JL_SOCK_OPT_LEVEL_SOL_SOCKET,
@@ -834,58 +933,71 @@ int joylink_dev_http_post( char* host, char* query, char *revbuf, int buflen)
 		log_error("set SO_REUSEADDR error");
 	}
 	
-    /*fcntl(log_socket,F_SETFL,fcntl(log_socket,F_GETFL,0)|O_NONBLOCK);*/
+	/*fcntl(log_socket,F_SETFL,fcntl(log_socket,F_GETFL,0)|O_NONBLOCK);*/
 
-    if(jl_platform_connect(log_socket, (jl_sockaddr *)&saServer, sizeof(saServer)) != 0)
+	if(jl_platform_connect(log_socket, (jl_sockaddr *)&saServer, sizeof(saServer)) != 0)
 	{
-        log_error("... socket connect failed");
-        goto RET;
-    }
-
-    if (jl_platform_send(log_socket, query, jl_platform_strlen(query), 0, 5000) < 0) {
-        log_error("... socket send failed");
-        goto RET;
-    }
-#if 0
-    struct timeval receiving_timeout;
-    receiving_timeout.tv_sec = 5;
-    receiving_timeout.tv_usec = 0;
-    if (jl_platform_setsockopt(log_socket,
-                   JL_SOCK_OPT_LEVEL_SOL_SOCKET,
-                   JL_SOCK_OPT_NAME_SO_RCVTIMEO,
-		           &receiving_timeout,
-                   sizeof(receiving_timeout)) < 0) {
-        log_error("... failed to set socket receiving timeout");
-        goto RET;
-    }
-#endif
-	int recv_buf_len = 1024; //2048;
-	recv_buf = (char *)jl_platform_malloc(recv_buf_len);
-	if(recv_buf == NULL)
-	{
+		log_error("... socket connect failed");
 		goto RET;
 	}
-	jl_platform_memset(recv_buf, 0, recv_buf_len);
-	len = jl_platform_recv(log_socket, recv_buf, recv_buf_len, 0, 5000);
-	if(len <= 0)
-	{
-		ret = -1;
+
+	if (jl_platform_send(log_socket, request, jl_platform_strlen(request), 0, 5000) < 0) {
+		log_error("... socket send failed");
 		goto RET;
 	}
-	log_info("... read data length = %d, response data = \r\n%s", len, recv_buf);
-	ret = joylink_dev_http_parse_content(recv_buf, len, revbuf, buflen);
 
+	int count = 0;
+	int offset = 0;
+	int read_len = 0;
 
+	recv_buf = (char *)jl_platform_malloc(SET_HTTP_RECV_MAX_LEN);
+	if(recv_buf == NULL){
+		goto RET;
+	}
+	jl_platform_memset(recv_buf, 0, SET_HTTP_RECV_MAX_LEN);
+
+	while(1){
+		offset = count * SET_HTTP_RECV_MAX_LEN + read_len;
+		int ret_len = jl_platform_recv(log_socket, recv_buf + offset, SET_HTTP_RECV_MAX_LEN - read_len, 0, 20000);
+		//log_debug("ret_len: %d\n", ret_len);
+		if(ret_len > 0){
+			read_len += ret_len;
+			if(read_len != SET_HTTP_RECV_MAX_LEN){
+				continue;
+			}
+		}
+		if(read_len != SET_HTTP_RECV_MAX_LEN)
+		{
+			int len = offset;
+			if(len <= 0){
+				log_error("read len error");
+				goto RET;
+			}
+			recv_buf[len] = '\0';
+			log_debug("... read data length = %d, response data = \r\n%s", len, recv_buf);
+			joylink_dev_http_parse_content(recv_buf, len, info->response, info->resp_len);
+			break;
+		}
+		char *p_now = jl_platform_realloc(recv_buf, SET_HTTP_RECV_MAX_LEN*(count+2));
+		if(p_now == NULL){
+			log_error("realloc error");
+			goto RET;
+		}
+		recv_buf = p_now;
+		count++;
+		read_len = 0;
+	}
+	ret = 0;
 RET:
 	if(-1 != log_socket){
 		jl_platform_close(log_socket);
 	}
-
-	if (recv_buf) {
-		/* code */
+	if(recv_buf != NULL){
 		jl_platform_free(recv_buf);
 	}
-	
+	if(request != NULL){
+		jl_platform_free(request);
+	}
 	return ret;
 }
 

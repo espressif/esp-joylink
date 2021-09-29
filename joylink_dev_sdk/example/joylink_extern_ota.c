@@ -314,7 +314,7 @@ void *joylink_ota_task(void *data)
 	int ret = 0;
 	http_ota_st ota_info;
 	
-	log_info("\n\nJoylink ota statrt!\n");
+	log_info("\n\nJoylink ota start!\n");
 
 	log_info("\nserial:%d | feedid:%s | productuuid:%s | version:%d | versionname:%s | crc32:%d | url:%s | upgradetype:%d\n\n",\
 		otaOrder.serial, otaOrder.feedid, otaOrder.productuuid, otaOrder.version,\

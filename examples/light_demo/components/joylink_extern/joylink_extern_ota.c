@@ -479,7 +479,7 @@ joylink_ota_task(void *data)
 	memset(&otaOrder, 0, sizeof(JLOtaOrder_t));
 	memcpy(&otaOrder, data, sizeof(JLOtaOrder_t));
 	
-	log_info("\n\nJoylink ota statrt!\n");
+	log_info("\n\nJoylink ota start!\n");
 
 	log_info("\nserial:%d | feedid:%s | productuuid:%s | version:%d | versionname:%s | crc32:%d | url:%s\n\n",\
 		otaOrder.serial, otaOrder.feedid, otaOrder.productuuid, otaOrder.version,\

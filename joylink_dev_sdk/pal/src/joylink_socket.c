@@ -209,13 +209,13 @@ int32_t jl_platform_socket(JL_SOCK_PROTO_DOMAIN_T domain, JL_SOCK_PROTO_TYPE_T t
     } else {};
     
     if (protocol == JL_SOCK_PROTO_PROTO_IPPROTO_IP) {
-        protocol = IPPROTO_IP;
+        in_protocol = IPPROTO_IP;
     }
     else if (protocol == JL_SOCK_PROTO_PROTO_IPPROTO_TCP) {
-        protocol = IPPROTO_TCP;
+        in_protocol = IPPROTO_TCP;
     }
     else if (protocol == JL_SOCK_PROTO_PROTO_IPPROTO_UDP) {
-        protocol = IPPROTO_UDP;
+        in_protocol = IPPROTO_UDP;
     } else {};
 
     return socket(in_domain, in_type, in_protocol);

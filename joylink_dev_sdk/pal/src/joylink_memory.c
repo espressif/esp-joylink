@@ -39,7 +39,11 @@ void *jl_platform_malloc(uint32_t size)
  */
 void *jl_platform_realloc(void *ptr, uint32_t size)
 {
+#ifdef __LINUX_PAL__
+    return realloc(ptr, size);
+#else
     return NULL;
+#endif
 }
 
 /**

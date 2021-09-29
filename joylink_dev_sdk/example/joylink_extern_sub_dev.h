@@ -167,6 +167,58 @@ joylink_dev_sub_get_snap_shot(char *feedid, int *out_len);
 E_JLRetCode_t
 joylink_dev_sub_unbind(const char *feedid);
 
+/**
+ * brief: 上报子设备快照
+ *
+ * @Returns: 
+ */
+extern int joylink_server_subdev_event_req(char *macstr, char *event_payload, int length);
+
+/**
+ * brief: 立刻上报子设备快照
+ *
+ * @Returns: 
+ */
+
+int joylink_sub_dev_report_snapshot_immediately(char *macstr, char *data, int len);
+
+#define SUBDEV_ACTIVE_STATUS_OPEN      0
+#define SUBDEV_ACTIVE_STATUS_OK        1
+#define SUBDEV_ACTIVE_STATUS_FAILED    2
+
+/**
+ * @brief: SDK subdev active 子设备激活状态报告
+ * 
+ * @param[in] status: 状态 0打开, 1成功，2失败, 3解邦
+ * 
+ * @return: reserved 当前此函数仅做通知,调用方不关心返回值.
+ */
+void joylink_sub_dev_active_status(char status);
+
+/**
+ * @brief: delete subdev 删除子设备
+ * 
+ * @param[in] mac: 删除子设备的 mac
+ * 
+ * @return: reserved 当前此函数仅做通知,调用方不关心返回值.
+ */
+void joylink_sub_dev_delete_msg(char *mac);
+
+/**
+ * @brief: 添加子设备到全局数组_g_sub_dev中
+ *
+ * @param[in]: dev 设备结构
+ * @param[in]: message 例如：
+ * {
+* 	"uuid": "D23707",                                               // 小京鱼开放平台创建的虚拟红外被控设备的UUID
+* 	"brandKey": "mm",                                           // 虚拟被控红外设备品牌标识，对接厂商自行定义
+* 	"modelKey": "xx",                                              // 虚拟被控红外设备型号标识，对接厂商自行定义
+* 	"controllerId": "948001623745658402"    // 主控红外遥控器的feedid，表示虚拟红外被控设备可以被哪一个遥控器控制。
+* }
+ *
+ * @returns:  E_RET_OK 成功, E_RET_ERROR 发生错误
+ */
+E_JLRetCode_t joylink_dev_sub_add_infrared_receiver(JLSubDevData_t *dev, char *message);
 
 #ifdef __cplusplus
 }
