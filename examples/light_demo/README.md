@@ -17,15 +17,16 @@
 
 **3.配置 `Light Demo`**
 
-- ESP32开发板：RGB 灯默认分别接在 `GPIO25`, `GPIO26`, `GPIO27` 
-- ESP32S2开发板：RGB 灯默认分别接在 `GPIO34`, `GPIO35`, `GPIO36` 
-- ESP8266开发板：RGB 灯默认分别接在 `GPIO4`, `GPIO5`, `GPIO15` 
+- ESP32 开发板：RGB 灯默认分别接在 `GPIO25`, `GPIO26`, `GPIO27`
+- ESP32S2 和 ESP32S3 开发板：RGB 灯默认分别接在 `GPIO15`, `GPIO16`, `GPIO17`
+- ESP8266 开发板：RGB 灯默认分别接在 `GPIO4`, `GPIO5`, `GPIO15`
+- ESP32C3 开发板：RGB 灯默认分别接在 `GPIO5`, `GPIO6`, `GPIO7`
 
 >GPIO可通过menuconfig中`Joylink->light_red、light_green、light_blue`进行个性化配置
 
 **4.编译`light_demo`并烧录运行**
 
-对于ESP32平台，请输入如下命令进行编译烧录
+对于 ESP32 平台，请输入如下命令进行编译烧录
 
 ```
 cd examples/light_demo
@@ -33,7 +34,7 @@ idf.py build
 idf.py -p /dev/ttyUSBx flash monitor
 ```
 
-对于ESP32S2平台，请使用如下命令进行编译烧录
+对于 ESP32S2 平台，请使用如下命令进行编译烧录
 
 ```
 cd examples/light_demo
@@ -42,7 +43,25 @@ idf.py build
 idf.py -p /dev/ttyUSBx flash monitor
 ```
 
-对于ESP8266平台，请使用如下命令进行编译烧录
+对于 ESP32S3 平台，请使用如下命令进行编译烧录
+
+```
+cd examples/light_demo
+idf.py set-target esp32s3
+idf.py build
+idf.py -p /dev/ttyUSBx flash monitor
+```
+
+对于 ESP32C3 平台，请使用如下命令进行编译烧录
+
+```
+cd examples/light_demo
+idf.py set-target esp32c3
+idf.py build
+idf.py -p /dev/ttyUSBx flash monitor
+```
+
+对于 ESP8266 平台，请使用如下命令进行编译烧录
 
 ```
 cd examples/light_demo

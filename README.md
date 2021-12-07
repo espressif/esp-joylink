@@ -14,7 +14,7 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 目前京东微联已经停止支持 SmartConfig 的配网方式，所以 Demo 中删除 SmartConfig 配网，目前支持 SoftAp 和 Thunder 配网，芯片上电默认进入 SoftAP 配网，如果用户需要使用 Thunder 配网，需要购买京东的音箱，音箱需要进入沙箱模式，与音箱相关的设置，用户可以咨询京东。
 
 ## 2. Demo 使用
-用户拿到乐鑫提供的 esp-joylink 后，根据不同的 example 编译下载固件到乐鑫 ESP8266 、 ESP32 或者 ESP32-S2 开发板。使用京东微联 APP 扫描测试设备的二维码进行配置。配置激活成功后便可进行设备控制。此 Demo 对应的测试设备类型为“智能家居 / 生活电器 / 灯具”。
+用户拿到乐鑫提供的 esp-joylink 后，根据不同的 example 编译下载固件到乐鑫 ESP8266 、 ESP32 或者 ESP32-S 系列和 ESP32-C 系列开发板或模组。使用京东微联 APP 扫描测试设备的二维码进行配置。配置激活成功后便可进行设备控制。此 Demo 对应的测试设备类型为“智能家居 / 生活电器 / 灯具”。
 
 ### 2.1. 环境搭建
 
@@ -22,9 +22,11 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
   * **ESP32**：[开发环境准备](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/)
   * **ESP32-S2**：[开发环境准备](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/get-started/index.html)
   * **ESP8266**：[开发环境准备](https://github.com/espressif/ESP8266_RTOS_SDK/blob/release/v3.0/docs/en/get-started/get-started-devkitc.rst)
+  * **ESP32-S3**：[开发环境准备](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/get-started/index.html)
+  * **ESP32-C3**：[开发环境准备](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/get-started/index.html)
   
 * 硬件准备  
-  * **开发板**：ESP8266 、ESP32-S2 与 ESP32 开发板（[ESP-DevKitC](http://espressif.com/zh-hans/company/contact/buy-a-sample)）
+  * **开发板**：ESP8266 、ESP32、ESP32-S 系列或 ESP32-C 系列开发板
   * **路由器**：使用 2.4GHz 网络，可以连接外网
   * **手机**：安装[京东微联沙箱 APP](https://smartdev.jd.com/docCenterDownload/list/2)
 
@@ -43,8 +45,9 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 
     * ESP8266 平台，需使用 ESP8266_RTOS_SDK v3.2 及之后的版本，推荐使用 ESP8266_RTOS_SDK v3.3 
     * ESP32 平台， 需使用 ESP-IDF v4.0 及之后的版本，推荐使用 ESP-IDF v4.0 和 v4.2
-    
     * ESP32-S2 平台，需使用 ESP-IDF v4.2 及之后的版本，推荐使用 ESP-IDF v4.2 
+    * ESP32-S3 平台，需使用 ESP-IDF v4.4 及之后的版本，推荐使用 ESP-IDF v4.4
+    * ESP32-C3 平台，需使用 ESP-IDF v4.3 及之后的版本，推荐使用 ESP-IDF v4.3
     
     然后在 menuconfig 里面配置 joylink 相关参数 `UUID`，`CID`，`PID`， `PUBLIC_KEY`，`PRIVATE_KEY`，`MAC_ADDRESS`，其中 `UUID`、`CID` 和 `PID` 分别代表产品的唯一标识码、品类和品牌，在云端产品中的位置如下
     
@@ -56,7 +59,7 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
     
     以light_demo为例，我们提供了默认的sdkconfig.defaults及partiton table文件（light_demo/default_configs目录下），用户可根据芯片不同，进行使用和参考。
     
-    进入example/light_demo目录，然后输入命令 `$IDF_PATH/tools/idf.py build`， 编译工程。对于 ESP32-S2 平台，执行 `build`  命令之前应先执行`$IDF_PATH/tools/idf.py set-target esp32s2 ` 命令，切换为 ESP32-S2 的编译环境，之后再 `$IDF_PATH/tools/idf.py build`  编译工程。
+    进入example/light_demo目录，然后输入命令 `$IDF_PATH/tools/idf.py build`， 编译工程。对于 ESP32-S2 平台，执行 `build`  命令之前应先执行`$IDF_PATH/tools/idf.py set-target esp32s2 ` 命令，切换为 ESP32-S2 的编译环境，之后再 `$IDF_PATH/tools/idf.py build`  编译工程。同样对于 ESP32-S3 和 ESP32-C3 平台，也需要在执行 `build`  命令之前执行 ESP32-S2 平台相类似的命令。
     
     (如果使用 ESP8266_RTOS_SDK v3.2，请使用 `make`  命令进行编译工程)
 
@@ -64,7 +67,7 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
     1. 如果没有安装串口驱动，需要先安装[串口驱动](http://www.usb-drivers.org/ft232r-usb-uart-driver.html)。
     2. 输入命令 `$IDF_PATH/tools/idf.py -p PORT flash`  (ESP8266_RTOS_SDK v3.2 使用 `make flash ESPPORT=PORT` ) ，将编译好的 bin 文件烧录到开发板中，`PORT`  选择和配置请参考[文档说明](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html#step-6-connect-your-device)。
 
-对于esp32平台，Demo中包含两种配网方式: SoftAP 配网和 BLE 配网，可在 menuconfig 的 joylink 组件配置中进行选择切换，默认是使用SoftAP 配网
+对于ESP32、ESP32-S3 和 ESP32-C3 平台，Demo中包含两种配网方式: SoftAP 配网和 BLE 配网，可在 menuconfig 的 joylink 组件配置中进行选择切换，默认是使用SoftAP 配网
 
 <img src="docs/_picture/使能BLE.jpg" width = "800" alt="i2c hardware" align=center />
 
