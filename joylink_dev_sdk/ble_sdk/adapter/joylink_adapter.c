@@ -30,7 +30,7 @@ Return: 0：成功
        -1：失败
 Others:
 *************************************************/
-int jl_adapter_send_data(uint8_t* data, uint32_t data_len)
+int32_t jl_adapter_send_data(uint8_t* data, uint32_t data_len)
 {
     int ret = 0;
     ret = esp_ble_gatts_send_data(data, data_len);
@@ -55,7 +55,7 @@ Return: 0：成功
        -1：失败
 Others: 设置激活绑定接口：joylink_dev_active_start(data->url, data->token);
 *************************************************/
-int jl_adapter_set_config_data(jl_net_config_data_t *data)
+int32_t jl_adapter_set_config_data(jl_net_config_data_t *data)
 {
     int status = 0;
     ble_net_cfg_data.url = (uint8_t *) malloc(data->url_len + 1);
@@ -86,7 +86,7 @@ Return: 0：成功
        -1：失败
 Others: None
 *************************************************/
-int jl_adapter_set_system_time(jl_timestamp_t *time)
+int32_t jl_adapter_set_system_time(jl_timestamp_t *time)
 {
     struct timeval now = { .tv_sec = time->second , .tv_usec = time->usecond};
     settimeofday(&now, NULL);

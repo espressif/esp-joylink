@@ -19,7 +19,8 @@ set(srcs
     ${JOYLINK_SDK_DIR}/pal/src/joylink_thread.c
     ${JOYLINK_SDK_DIR}/pal/src/joylink_time.c)
 
-if ("${IDF_TARGET}" STREQUAL "esp32")
+if (("${IDF_TARGET}" STREQUAL "esp32") OR ("${IDF_TARGET}" STREQUAL "esp32s3")
+     OR ("${IDF_TARGET}" STREQUAL "esp32c3"))
 list(APPEND components "bt")
 endif()
 
