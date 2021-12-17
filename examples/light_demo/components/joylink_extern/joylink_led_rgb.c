@@ -28,6 +28,7 @@
 #include "driver/pwm.h"
 #else
 #include "driver/ledc.h"
+#include "driver/periph_ctrl.h"
 #endif
 #include "esp_log.h"
 
