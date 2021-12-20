@@ -290,7 +290,7 @@ esp32c3_v4.3_build:
     - cd ..
 
     - cd examples/light_demo
-    - $IDF_PATH/tools/idf.py set-target esp32s3 build
+    - $IDF_PATH/tools/idf.py set-target esp32c3 build
 
 push_master_to_github:
   stage: deploy
