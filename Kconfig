@@ -50,5 +50,5 @@ config JOYLINK_SOFTAP_SSID
 config JOYLINK_BLE_ENABLE
     bool "Whether or not use Joylink ble configure wifi"
     default n
-        depends on IDF_TARGET_ESP32
+        depends on (IDF_TARGET_ESP32 || IDF_TARGET_ESP32C3 || IDF_TARGET_ESP32S3)
 endmenu
