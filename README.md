@@ -43,12 +43,12 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 * 工程编译
     首先设置  `IDF_PATH`  的路径
 
-    * ESP8266 平台，需使用 ESP8266_RTOS_SDK v3.2 及之后的版本，推荐使用 ESP8266_RTOS_SDK v3.3 
-    * ESP32 平台， 需使用 ESP-IDF v4.0 及之后的版本，推荐使用 ESP-IDF v4.0 和 v4.2
-    * ESP32-S2 平台，需使用 ESP-IDF v4.2 及之后的版本，推荐使用 ESP-IDF v4.2 
-    * ESP32-S3 平台，需使用 ESP-IDF v4.4 及之后的版本，推荐使用 ESP-IDF v4.4
-    * ESP32-C3 平台，需使用 ESP-IDF v4.3 及之后的版本，推荐使用 ESP-IDF v4.3
-    
+    * ESP8266 平台，请使用 ESP8266_RTOS_SDK release/v3.3 或 release/v3.4 分支
+    * ESP32 平台， 请使用 ESP-IDF release/v4.2、release/v4.3 或 release/v4.4 分支
+    * ESP32-S2 平台，请使用 ESP-IDF release/v4.2、release/v4.3 或 release/v4.4 分支
+    * ESP32-S3 平台，请使用 ESP-IDF release/v4.4 分支
+    * ESP32-C3 平台，请使用 ESP-IDF release/v4.3 或 release/v4.4 分支
+
     然后在 menuconfig 里面配置 joylink 相关参数 `UUID`，`CID`，`PID`， `PUBLIC_KEY`，`PRIVATE_KEY`，`MAC_ADDRESS`，其中 `UUID`、`CID` 和 `PID` 分别代表产品的唯一标识码、品类和品牌，在云端产品中的位置如下
     
     <img src="docs/_picture/UUID、CID和PID.jpg" width = "900" alt="i2c hardware" align=center />
