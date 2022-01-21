@@ -60,34 +60,34 @@ esp8266_master_build:
     - cd examples/light_demo
     - $IDF_PATH/tools/idf.py build
 
-esp32_master_build:
-  stage: build
-  image: $CI_DOCKER_REGISTRY/esp-env:v4.4-1
-  tags:
-    - build
+# esp32_master_build:
+#   stage: build
+#   image: $CI_DOCKER_REGISTRY/esp-env:v4.4-1
+#   tags:
+#     - build
 
-  variables:
-    GIT_STRATEGY: clone
+#   variables:
+#     GIT_STRATEGY: clone
     
-  before_script:
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo -n $GITLAB_KEY >> ~/.ssh/id_rsa_base64
-    - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+#   before_script:
+#     - mkdir -p ~/.ssh
+#     - chmod 700 ~/.ssh
+#     - echo -n $GITLAB_KEY >> ~/.ssh/id_rsa_base64
+#     - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
+#     - chmod 600 ~/.ssh/id_rsa
+#     - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
-  script:
-    - git clone ${GITLAB_SSH_SERVER}/espressif/esp-idf.git esp-idf
-    - export IDF_PATH=$(pwd)/esp-idf
-    - source $IDF_PATH/tools/ci/configure_ci_environment.sh
-    - $IDF_PATH/tools/idf_tools.py --non-interactive install && eval "$($IDF_PATH/tools/idf_tools.py --non-interactive export)" || exit 1
-    - cd $IDF_PATH
-    - git submodule update --init --recursive
-    - cd ..
+#   script:
+#     - git clone ${GITLAB_SSH_SERVER}/espressif/esp-idf.git esp-idf
+#     - export IDF_PATH=$(pwd)/esp-idf
+#     - source $IDF_PATH/tools/ci/configure_ci_environment.sh
+#     - $IDF_PATH/tools/idf_tools.py --non-interactive install && eval "$($IDF_PATH/tools/idf_tools.py --non-interactive export)" || exit 1
+#     - cd $IDF_PATH
+#     - git submodule update --init --recursive
+#     - cd ..
 
-    - cd examples/light_demo
-    - $IDF_PATH/tools/idf.py build
+#     - cd examples/light_demo
+#     - $IDF_PATH/tools/idf.py build
 
 esp32_v4.2_build:
   stage: build
@@ -147,34 +147,34 @@ esp32_v4.0_build:
     - cd examples/light_demo
     - $IDF_PATH/tools/idf.py build
 
-esp32s2_master_build:
-  stage: build
-  image: $CI_DOCKER_REGISTRY/esp-env:v4.4-1
-  tags:
-    - build
+# esp32s2_master_build:
+#   stage: build
+#   image: $CI_DOCKER_REGISTRY/esp-env:v4.4-1
+#   tags:
+#     - build
 
-  variables:
-    GIT_STRATEGY: clone
+#   variables:
+#     GIT_STRATEGY: clone
     
-  before_script:
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo -n $GITLAB_KEY >> ~/.ssh/id_rsa_base64
-    - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+#   before_script:
+#     - mkdir -p ~/.ssh
+#     - chmod 700 ~/.ssh
+#     - echo -n $GITLAB_KEY >> ~/.ssh/id_rsa_base64
+#     - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
+#     - chmod 600 ~/.ssh/id_rsa
+#     - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
-  script:
-    - git clone ${GITLAB_SSH_SERVER}/espressif/esp-idf.git esp-idf
-    - export IDF_PATH=$(pwd)/esp-idf
-    - source $IDF_PATH/tools/ci/configure_ci_environment.sh
-    - $IDF_PATH/tools/idf_tools.py --non-interactive install && eval "$($IDF_PATH/tools/idf_tools.py --non-interactive export)" || exit 1
-    - cd $IDF_PATH
-    - git submodule update --init --recursive
-    - cd ..
+#   script:
+#     - git clone ${GITLAB_SSH_SERVER}/espressif/esp-idf.git esp-idf
+#     - export IDF_PATH=$(pwd)/esp-idf
+#     - source $IDF_PATH/tools/ci/configure_ci_environment.sh
+#     - $IDF_PATH/tools/idf_tools.py --non-interactive install && eval "$($IDF_PATH/tools/idf_tools.py --non-interactive export)" || exit 1
+#     - cd $IDF_PATH
+#     - git submodule update --init --recursive
+#     - cd ..
 
-    - cd examples/light_demo
-    - $IDF_PATH/tools/idf.py set-target esp32s2 build
+#     - cd examples/light_demo
+#     - $IDF_PATH/tools/idf.py set-target esp32s2 build
 
 esp32s2_v4.2_build:
   stage: build
@@ -205,63 +205,63 @@ esp32s2_v4.2_build:
     - cd examples/light_demo
     - $IDF_PATH/tools/idf.py set-target esp32s2 build
 
-esp32s3_master_build:
-  stage: build
-  image: $CI_DOCKER_REGISTRY/esp-env:v4.4-1
-  tags:
-    - build
+# esp32s3_master_build:
+#   stage: build
+#   image: $CI_DOCKER_REGISTRY/esp-env:v4.4-1
+#   tags:
+#     - build
 
-  variables:
-    GIT_STRATEGY: clone
+#   variables:
+#     GIT_STRATEGY: clone
     
-  before_script:
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo -n $GITLAB_KEY >> ~/.ssh/id_rsa_base64
-    - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+#   before_script:
+#     - mkdir -p ~/.ssh
+#     - chmod 700 ~/.ssh
+#     - echo -n $GITLAB_KEY >> ~/.ssh/id_rsa_base64
+#     - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
+#     - chmod 600 ~/.ssh/id_rsa
+#     - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
-  script:
-    - git clone ${GITLAB_SSH_SERVER}/espressif/esp-idf.git esp-idf
-    - export IDF_PATH=$(pwd)/esp-idf
-    - source $IDF_PATH/tools/ci/configure_ci_environment.sh
-    - $IDF_PATH/tools/idf_tools.py --non-interactive install && eval "$($IDF_PATH/tools/idf_tools.py --non-interactive export)" || exit 1
-    - cd $IDF_PATH
-    - git submodule update --init --recursive
-    - cd ..
+#   script:
+#     - git clone ${GITLAB_SSH_SERVER}/espressif/esp-idf.git esp-idf
+#     - export IDF_PATH=$(pwd)/esp-idf
+#     - source $IDF_PATH/tools/ci/configure_ci_environment.sh
+#     - $IDF_PATH/tools/idf_tools.py --non-interactive install && eval "$($IDF_PATH/tools/idf_tools.py --non-interactive export)" || exit 1
+#     - cd $IDF_PATH
+#     - git submodule update --init --recursive
+#     - cd ..
 
-    - cd examples/light_demo
-    - $IDF_PATH/tools/idf.py set-target esp32s3 build
+#     - cd examples/light_demo
+#     - $IDF_PATH/tools/idf.py set-target esp32s3 build
 
-esp32c3_master_build:
-  stage: build
-  image: $CI_DOCKER_REGISTRY/esp-env:v4.4-1
-  tags:
-    - build
+# esp32c3_master_build:
+#   stage: build
+#   image: $CI_DOCKER_REGISTRY/esp-env:v4.4-1
+#   tags:
+#     - build
 
-  variables:
-    GIT_STRATEGY: clone
+#   variables:
+#     GIT_STRATEGY: clone
     
-  before_script:
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo -n $GITLAB_KEY >> ~/.ssh/id_rsa_base64
-    - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+#   before_script:
+#     - mkdir -p ~/.ssh
+#     - chmod 700 ~/.ssh
+#     - echo -n $GITLAB_KEY >> ~/.ssh/id_rsa_base64
+#     - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
+#     - chmod 600 ~/.ssh/id_rsa
+#     - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
-  script:
-    - git clone ${GITLAB_SSH_SERVER}/espressif/esp-idf.git esp-idf
-    - export IDF_PATH=$(pwd)/esp-idf
-    - source $IDF_PATH/tools/ci/configure_ci_environment.sh
-    - $IDF_PATH/tools/idf_tools.py --non-interactive install && eval "$($IDF_PATH/tools/idf_tools.py --non-interactive export)" || exit 1
-    - cd $IDF_PATH
-    - git submodule update --init --recursive
-    - cd ..
+#   script:
+#     - git clone ${GITLAB_SSH_SERVER}/espressif/esp-idf.git esp-idf
+#     - export IDF_PATH=$(pwd)/esp-idf
+#     - source $IDF_PATH/tools/ci/configure_ci_environment.sh
+#     - $IDF_PATH/tools/idf_tools.py --non-interactive install && eval "$($IDF_PATH/tools/idf_tools.py --non-interactive export)" || exit 1
+#     - cd $IDF_PATH
+#     - git submodule update --init --recursive
+#     - cd ..
 
-    - cd examples/light_demo
-    - $IDF_PATH/tools/idf.py set-target esp32c3 build
+#     - cd examples/light_demo
+#     - $IDF_PATH/tools/idf.py set-target esp32c3 build
 
 esp32c3_v4.3_build:
   stage: build
