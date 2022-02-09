@@ -26,8 +26,10 @@ endif()
 
 if(CONFIG_JOYLINK_BLE_ENABLE)
 list(APPEND includes ${JOYLINK_SDK_DIR}/ble_sdk/include)
-list(APPEND srcs ${JOYLINK_SDK_DIR}/ble_sdk/adapter/joylink_adapter.c port/joylink_upgrade.c port/joylink_ble.c)
+list(APPEND srcs ${JOYLINK_SDK_DIR}/ble_sdk/adapter/joylink_adapter.c port/joylink_ble.c)
 endif()
+
+list(APPEND srcs port/joylink_upgrade.c)
 
 idf_component_register(SRCS "${srcs}"
                        INCLUDE_DIRS "${includes}"

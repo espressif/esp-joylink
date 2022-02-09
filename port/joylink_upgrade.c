@@ -34,6 +34,7 @@
 #include "esp_partition.h"
 
 #include "tcpip_adapter.h"
+#include "joylink_upgrade.h"
 
 #include "joylink.h"
 
@@ -56,15 +57,7 @@ static int esp_at_ota_socket_id = -1;
 
 #define ESP_JOYLINK_OTA_DEBUG  log_debug
 
-typedef struct URLInfo {
-    char schema[8];
-    char host[256];
-    char host_name[256];
-    unsigned int port;
-    char file[256];
-} URLInfo;
-
-bool parse_url(const char* url) {
+static bool parse_url(const char* url) {
     int i = 0, j = 0;
     char schema[8] = { 0 };
     char host[256] = { 0 };
@@ -115,7 +108,7 @@ static void esp_at_ota_timeout_callback( TimerHandle_t xTimer )
     }
 }
 
-bool esp_ota_upgrade_process(const char* url)
+static bool esp_ota_upgrade_process(const char* url)
 {
     bool pkg_body_start = false;
     struct sockaddr_in sock_info;
@@ -174,6 +167,19 @@ bool esp_ota_upgrade_process(const char* url)
                 NULL,
                 esp_at_ota_timeout_callback);
     xTimerStart(esp_joylink_timeout_timer,portMAX_DELAY);
+
+#ifdef CONFIG_IDF_TARGET_ESP8266
+    ip_address.addr = inet_addr(ESP_OTA_SERVER_IP);
+
+    if ((ip_address.addr == IPADDR_NONE) && (strcmp(ESP_OTA_SERVER_IP,"255.255.255.255") != 0)) {
+        if((hptr = gethostbyname(ESP_OTA_SERVER_IP)) == NULL)
+        {
+            ESP_JOYLINK_OTA_DEBUG("gethostbyname fail\r\n");
+            goto OTA_ERROR;
+        }
+        ip_address.addr = ((struct in_addr*)(hptr->h_addr))->s_addr;
+    }
+#else
     ip_address.u_addr.ip4.addr = inet_addr(ESP_OTA_SERVER_IP);
 
     if ((ip_address.u_addr.ip4.addr == IPADDR_NONE) && (strcmp(ESP_OTA_SERVER_IP,"255.255.255.255") != 0)) {
@@ -184,6 +190,7 @@ bool esp_ota_upgrade_process(const char* url)
         }
         ip_address = *(ip_addr_t*)hptr->h_addr_list[0];
     }
+#endif
     esp_at_ota_socket_id = socket(AF_INET, SOCK_STREAM, 0);
     if (esp_at_ota_socket_id < 0) {
         goto OTA_ERROR;
@@ -193,7 +200,11 @@ bool esp_ota_upgrade_process(const char* url)
     // set connect info
     memset(&sock_info, 0, sizeof(struct sockaddr_in));
     sock_info.sin_family = AF_INET;
+#ifdef CONFIG_IDF_TARGET_ESP8266
+    sock_info.sin_addr.s_addr = ip_address.addr;
+#else
     sock_info.sin_addr.s_addr = ip_address.u_addr.ip4.addr;
+#endif
     sock_info.sin_port = htons(ESP_OTA_SERVER_PORT);
 
     // connect to http server
@@ -218,7 +229,7 @@ bool esp_ota_upgrade_process(const char* url)
     /*send GET request to http server*/
     if (send(esp_at_ota_socket_id, http_request, strlen((char*)http_request), 0) < 0)
     {
-    	ESP_JOYLINK_OTA_DEBUG("send GET request to server failed\r\n");
+        ESP_JOYLINK_OTA_DEBUG("send GET request to server failed\r\n");
         goto OTA_ERROR;
     }
 
@@ -358,12 +369,12 @@ OTA_ERROR:
         xTimerDelete(esp_joylink_timeout_timer,portMAX_DELAY);
         esp_joylink_timeout_timer = NULL;
     }
-    
+
     if (esp_at_ota_socket_id >= 0) {
         close(esp_at_ota_socket_id);
         esp_at_ota_socket_id = -1;
     }
-    
+
     if (http_request) {
         free(http_request);
         http_request = NULL;
@@ -373,7 +384,7 @@ OTA_ERROR:
         free(data_buffer);
         data_buffer = NULL;
     }
-    
+
     if (ESP_OTA_SERVER_IP) {
         free(ESP_OTA_SERVER_IP);
         ESP_OTA_SERVER_IP = NULL;
@@ -388,7 +399,7 @@ OTA_ERROR:
         otaUpload->progress = 0;
     }
     joylink_server_ota_status_upload_req(otaUpload);
-
+    vTaskDelay(100);
     if (otaUpload) {
         free(otaUpload);
         otaUpload = NULL;
@@ -403,7 +414,8 @@ static void esp_ota_task(void* para)
     esp_restart();
     vTaskDelete(NULL);
 }
-void esp_ota_task_start(char* url)
+
+void ota_task_start(char* url)
 {
     if (url == NULL) {
         return;
@@ -416,4 +428,3 @@ void esp_ota_task_start(char* url)
     strcpy(data,url);
     xTaskCreate(esp_ota_task, "ota", 1024*4, (void*)data, 2, NULL);
 }
-

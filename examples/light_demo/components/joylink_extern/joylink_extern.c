@@ -32,6 +32,7 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "esp_spi_flash.h"
+// #include "joylink_upgrade.h"
 
 #define JOYLINK_NVS_NAMESPACE       "joylink"
 
@@ -433,7 +434,7 @@ joylink_dev_get_jlp_info(JLPInfo_t *jlp)
     jlp->cmd_tran_type = _g_pLightMgr->jlp.cmd_tran_type;
     jlp->version = _g_pLightMgr->jlp.version;
     jlp->is_actived = _g_pLightMgr->jlp.is_actived;
-
+    jlp->version = JLP_VERSION;
 
     return E_RET_OK;
 }
@@ -665,8 +666,8 @@ joylink_dev_ota(JLOtaOrder_t *otaOrder)
     log_debug("serial:%d | feedid:%s | productuuid:%s | version:%d | versionname:%s | crc32:%d | url:%s\n",
      otaOrder->serial, otaOrder->feedid, otaOrder->productuuid, otaOrder->version, 
      otaOrder->versionname, otaOrder->crc32, otaOrder->url);
-
-    // esp_ota_task_start((const char*)otaOrder->url);
+	void esp_ota_task_start(char* url);
+    esp_ota_task_start((const char*)otaOrder->url);
 
     return ret;
 }
