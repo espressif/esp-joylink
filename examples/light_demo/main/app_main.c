@@ -30,6 +30,8 @@
 #include "esp_joylink_app.h"
 #include "joylink_light.h"
 
+#include "joylink_upgrade.h"
+
 #ifdef CONFIG_JOYLINK_BLE_ENABLE
 #include "joylink_sdk.h"
 #include "joylink_dev_active.h"
@@ -38,6 +40,11 @@ extern bool get_rst;
 extern jl_net_config_data_t ble_net_cfg_data;
 extern bool joylink_ble_report_flag;
 #endif
+
+void esp_ota_task_start(char* url)
+{
+    ota_task_start(url);
+}
 
 esp_err_t event_handler(void *ctx, system_event_t *event)
 {
