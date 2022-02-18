@@ -61,8 +61,8 @@ int32_t jl_adapter_set_config_data(jl_net_config_data_t *data)
     ble_net_cfg_data.url = (uint8_t *) malloc(data->url_len + 1);
     ble_net_cfg_data.token = (uint8_t *) malloc(data->token_len + 1);
 
-    strncpy(ble_net_cfg_data.url, data->url, data->url_len + 1);
-    strncpy(ble_net_cfg_data.token, data->token, data->token_len + 1);
+    strncpy((char *)ble_net_cfg_data.url, (char *)data->url, data->url_len + 1);
+    strncpy((char *)ble_net_cfg_data.token, (char *)data->token, data->token_len + 1);
 
     memcpy(jd_ble_config.sta.ssid, data->ssid, strlen((char *)data->ssid));
     memcpy(jd_ble_config.sta.password, data->password, strlen((char *)data->password));
