@@ -41,26 +41,29 @@ Demo 使用的通讯方式为非透传模式。非透传模式下需要在开发
 ### 2.2 编译下载
 
 * 工程编译
-    首先设置  `IDF_PATH`  的路径
+    首先设置  `IDF_PATH`  的路径，并使用对应芯片支持的 esp-idf 版本进行下一步配置
 
-    * ESP8266 平台，请使用 ESP8266_RTOS_SDK release/v3.3 或 release/v3.4 分支
-    * ESP32 平台， 请使用 ESP-IDF release/v4.2、release/v4.3 或 release/v4.4 分支
-    * ESP32-S2 平台，请使用 ESP-IDF release/v4.2、release/v4.3 或 release/v4.4 分支
-    * ESP32-S3 平台，请使用 ESP-IDF release/v4.4 分支
-    * ESP32-C3 平台，请使用 ESP-IDF release/v4.3 或 release/v4.4 分支
+    | Chip     | v4.2      | v4.3      | v4.4      |
+    | -------- | --------- | --------- | --------- |
+    | ESP32    | supported | supported | supported |
+    | ESP32-S2 | supported | supported | supported |
+    | ESP32-C3 |           | supported | supported |
+    | ESP32-S3 |           |           | supported |
+
+    对于 ESP8266 & ESP8285 芯片，支持使用 ESP8266_RTOS_SDK v3.3 或 v3.4 版本。
 
     然后在 menuconfig 里面配置 joylink 相关参数 `UUID`，`CID`，`PID`， `PUBLIC_KEY`，`PRIVATE_KEY`，`MAC_ADDRESS`，其中 `UUID`、`CID` 和 `PID` 分别代表产品的唯一标识码、品类和品牌，在云端产品中的位置如下
-    
+
     <img src="docs/_picture/UUID、CID和PID.jpg" width = "900" alt="i2c hardware" align=center />
-    
+
     `PUBLIC_KEY ` 为产品公钥，显示在设备端开发页面，设备认证采用一机一密的方式 ，用户需导入 `MAC_ADDRESS` (设备 MAC 地址) 来生成 `PRIVATE_KEY` (设备私钥) ，具体生成方式请在设备端开发页面点击 “导入 MAC 地址生成私钥” 选项并按提示进行。
-    
+
     <img src="docs/_picture/公钥、私钥和MAC.jpg" width = "900" alt="i2c hardware" align=center />
-    
+
     以light_demo为例，我们提供了默认的sdkconfig.defaults及partiton table文件（light_demo/default_configs目录下），用户可根据芯片不同，进行使用和参考。
-    
+
     进入example/light_demo目录，然后输入命令 `$IDF_PATH/tools/idf.py build`， 编译工程。对于 ESP32-S2 平台，执行 `build`  命令之前应先执行`$IDF_PATH/tools/idf.py set-target esp32s2 ` 命令，切换为 ESP32-S2 的编译环境，之后再 `$IDF_PATH/tools/idf.py build`  编译工程。同样对于 ESP32-S3 和 ESP32-C3 平台，也需要在执行 `build`  命令之前执行 ESP32-S2 平台相类似的命令。
-    
+
     (如果使用 ESP8266_RTOS_SDK v3.2，请使用 `make`  命令进行编译工程)
 
 * 固件烧写  
